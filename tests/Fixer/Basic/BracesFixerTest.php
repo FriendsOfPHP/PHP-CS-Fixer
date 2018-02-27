@@ -1768,6 +1768,35 @@ if (1) {
             ],
             [
                 '<?php
+if (1) {
+    if (2) {
+        $a = "a";
+    } elseif (3) {
+        $b = "b";
+    // comment line 1
+    // comment line 2
+    } else {
+        $c = "c";
+    }
+    $d = "d";
+}',
+                '<?php
+if (1) {
+    if (2) {
+        $a = "a";
+    } elseif (3) {
+        $b = "b";
+        // comment line 1
+        // comment line 2
+    } else {
+        $c = "c";
+    }
+    $d = "d";
+}',
+                self::$configurationOopPositionSameLine,
+            ],
+            [
+                '<?php
 foreach ($numbers as $num) {
     for ($i = 0; $i < $num; ++$i) {
         $a = "a";
