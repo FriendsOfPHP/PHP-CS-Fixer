@@ -1775,6 +1775,8 @@ if (1) {
         $b = "b";
     // comment line 1
     // comment line 2
+    // comment line 3
+    // comment line 4
     } else {
         $c = "c";
     }
@@ -1788,6 +1790,8 @@ if (1) {
         $b = "b";
         // comment line 1
         // comment line 2
+// comment line 3
+            // comment line 4
     } else {
         $c = "c";
     }
