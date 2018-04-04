@@ -324,7 +324,8 @@ if (true) {
                     'throw',
                     'try',
                 ])
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

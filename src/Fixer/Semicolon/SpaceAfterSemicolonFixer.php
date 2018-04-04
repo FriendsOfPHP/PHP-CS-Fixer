@@ -76,7 +76,8 @@ final class SpaceAfterSemicolonFixer extends AbstractFixer implements Configurat
             (new FixerOptionBuilder('remove_in_empty_for_expressions', 'Whether spaces should be removed for empty `for` expressions.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

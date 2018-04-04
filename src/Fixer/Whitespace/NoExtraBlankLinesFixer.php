@@ -333,7 +333,8 @@ switch($a) {
                     return $tokens;
                 })
                 ->setDefault(['extra'])
-                ->getOption(),
+                ->getOption()
+            ,
         ], $this->getName());
     }
 

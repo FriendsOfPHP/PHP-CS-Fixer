@@ -221,11 +221,13 @@ final class OrderedInterfacesFixer extends AbstractFixer implements Configuratio
             (new FixerOptionBuilder(self::OPTION_ORDER, 'How the interfaces should be ordered'))
                 ->setAllowedValues($this->supportedOrderOptions)
                 ->setDefault(self::ORDER_ALPHA)
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder(self::OPTION_DIRECTION, 'Which direction the interfaces should be ordered'))
                 ->setAllowedValues($this->supportedDirectionOptions)
                 ->setDefault(self::DIRECTION_ASCEND)
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 }

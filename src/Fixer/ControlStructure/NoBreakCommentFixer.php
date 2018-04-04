@@ -108,7 +108,8 @@ switch ($foo) {
                     return rtrim($value);
                 })
                 ->setDefault('no break')
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

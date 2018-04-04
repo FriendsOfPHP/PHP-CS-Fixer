@@ -2,6 +2,10 @@
 Rule ``multiline_whitespace_before_semicolons``
 ===============================================
 
+.. warning:: This rule is deprecated and will be removed on next major version.
+
+   You should use ``whitespace_before_statement_end`` instead.
+
 Forbid multi-line whitespace before the closing semicolon or move the semicolon
 to the new line for chained calls.
 
@@ -53,13 +57,3 @@ With configuration: ``['strategy' => 'new_line_for_chained_calls']``.
    +                            ->method(3)
    +;
                         ?>
-
-Rule sets
----------
-
-The rule is part of the following rule set:
-
-@PhpCsFixer
-  Using the `@PhpCsFixer <./../../ruleSets/PhpCsFixer.rst>`_ rule set will enable the ``multiline_whitespace_before_semicolons`` rule with the config below:
-
-  ``['strategy' => 'new_line_for_chained_calls']``

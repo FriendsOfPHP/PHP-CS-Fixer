@@ -183,7 +183,8 @@ SAMPLE
             (new FixerOptionBuilder('keep_multiple_spaces_after_comma', 'Whether keep multiple spaces after comma.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder(
                 'ensure_fully_multiline',
                 'ensure every argument of a multiline argument list is on its own line'
@@ -191,14 +192,16 @@ SAMPLE
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false) // @TODO 3.0 remove
                 ->setDeprecationMessage('Use option `on_multiline` instead.')
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder(
                 'on_multiline',
                 'Defines how to handle function arguments lists that contain newlines.'
             ))
                 ->setAllowedValues(['ignore', 'ensure_single_line', 'ensure_fully_multiline'])
                 ->setDefault('ignore') // @TODO 3.0 should be 'ensure_fully_multiline'
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder('after_heredoc', 'Whether the whitespace between heredoc end and comma should be removed.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
@@ -209,7 +212,8 @@ SAMPLE
 
                     return $value;
                 })
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

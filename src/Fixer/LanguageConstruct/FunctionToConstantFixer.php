@@ -165,7 +165,8 @@ final class FunctionToConstantFixer extends AbstractFixer implements Configurati
                     'pi',
                     // TODO on v3.0 add 'get_called_class' and `get_class_this` here
                 ])
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

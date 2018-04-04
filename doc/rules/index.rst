@@ -35,7 +35,7 @@ Array Notation
     Operator ``=>`` should not be surrounded by multi-line whitespaces.
 - `no_trailing_comma_in_singleline_array <./array_notation/no_trailing_comma_in_singleline_array.rst>`_
     PHP single-line arrays should not have trailing comma.
-- `no_whitespace_before_comma_in_array <./array_notation/no_whitespace_before_comma_in_array.rst>`_
+- `no_whitespace_before_comma_in_array <./array_notation/no_whitespace_before_comma_in_array.rst>`_ *(deprecated)*
     In array declaration, there MUST NOT be a whitespace before each comma.
 - `normalize_index_brace <./array_notation/normalize_index_brace.rst>`_
     Array index should always be written by using square braces.
@@ -519,13 +519,13 @@ Return Notation
 Semicolon
 ---------
 
-- `multiline_whitespace_before_semicolons <./semicolon/multiline_whitespace_before_semicolons.rst>`_
+- `multiline_whitespace_before_semicolons <./semicolon/multiline_whitespace_before_semicolons.rst>`_ *(deprecated)*
     Forbid multi-line whitespace before the closing semicolon or move the semicolon to the new line for chained calls.
 - `no_empty_statement <./semicolon/no_empty_statement.rst>`_
     Remove useless (semicolon) statements.
 - `no_multiline_whitespace_before_semicolons <./semicolon/no_multiline_whitespace_before_semicolons.rst>`_ *(deprecated)*
     Multi-line whitespace before closing semicolon are prohibited.
-- `no_singleline_whitespace_before_semicolons <./semicolon/no_singleline_whitespace_before_semicolons.rst>`_
+- `no_singleline_whitespace_before_semicolons <./semicolon/no_singleline_whitespace_before_semicolons.rst>`_ *(deprecated)*
     Single-line whitespace before closing semicolon are prohibited.
 - `semicolon_after_instruction <./semicolon/semicolon_after_instruction.rst>`_
     Instructions must be terminated with a semicolon.
@@ -593,3 +593,5 @@ Whitespace
     Remove trailing whitespace at the end of blank lines.
 - `single_blank_line_at_eof <./whitespace/single_blank_line_at_eof.rst>`_
     A PHP file without end tag must always end with a single empty line feed.
+- `whitespace_before_statement_end <./whitespace/whitespace_before_statement_end.rst>`_
+    Forbid multi-line whitespace before a statement end (comma or semicolon) or moves it to the next line for multiline statements.

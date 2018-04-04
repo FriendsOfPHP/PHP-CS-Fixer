@@ -188,7 +188,8 @@ yield(2);
                     'switch_case',
                     'yield',
                 ])
-                ->getOption(),
+                ->getOption()
+            ,
         ], $this->getName());
     }
 }

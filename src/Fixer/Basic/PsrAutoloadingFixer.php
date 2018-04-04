@@ -140,7 +140,8 @@ class InvalidName {}
             (new FixerOptionBuilder('dir', 'If provided, the directory where the project code is placed.'))
                 ->setAllowedTypes(['null', 'string'])
                 ->setDefault(null)
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

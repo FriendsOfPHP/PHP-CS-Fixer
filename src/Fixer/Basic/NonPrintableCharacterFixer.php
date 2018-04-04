@@ -112,7 +112,8 @@ final class NonPrintableCharacterFixer extends AbstractFixer implements Configur
 
                     return $value;
                 })
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

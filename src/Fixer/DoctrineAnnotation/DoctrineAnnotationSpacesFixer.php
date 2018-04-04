@@ -97,45 +97,55 @@ final class DoctrineAnnotationSpacesFixer extends AbstractDoctrineAnnotationFixe
                 (new FixerOptionBuilder('around_parentheses', 'Whether to fix spaces around parentheses.'))
                     ->setAllowedTypes(['bool'])
                     ->setDefault(true)
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('around_commas', 'Whether to fix spaces around commas.'))
                     ->setAllowedTypes(['bool'])
                     ->setDefault(true)
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('around_argument_assignments', 'Whether to fix spaces around argument assignment operator.'))
                     ->setAllowedTypes(['bool'])
                     ->setDefault(true)
                     ->setDeprecationMessage('Use options `before_argument_assignments` and `after_argument_assignments` instead.')
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('before_argument_assignments', 'Whether to add, remove or ignore spaces before argument assignment operator.'))
                     ->setAllowedTypes(['null', 'bool'])
                     ->setDefault(false)
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('after_argument_assignments', 'Whether to add, remove or ignore spaces after argument assignment operator.'))
                     ->setAllowedTypes(['null', 'bool'])
                     ->setDefault(false)
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('around_array_assignments', 'Whether to fix spaces around array assignment operators.'))
                     ->setAllowedTypes(['bool'])
                     ->setDefault(true)
                     ->setDeprecationMessage('Use options `before_array_assignments_equals`, `after_array_assignments_equals`, `before_array_assignments_colon` and `after_array_assignments_colon` instead.')
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('before_array_assignments_equals', 'Whether to add, remove or ignore spaces before array `=` assignment operator.'))
                     ->setAllowedTypes(['null', 'bool'])
                     ->setDefault(true)
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('after_array_assignments_equals', 'Whether to add, remove or ignore spaces after array assignment `=` operator.'))
                     ->setAllowedTypes(['null', 'bool'])
                     ->setDefault(true)
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('before_array_assignments_colon', 'Whether to add, remove or ignore spaces before array `:` assignment operator.'))
                     ->setAllowedTypes(['null', 'bool'])
                     ->setDefault(true)
-                    ->getOption(),
+                    ->getOption()
+                ,
                 (new FixerOptionBuilder('after_array_assignments_colon', 'Whether to add, remove or ignore spaces after array assignment `:` operator.'))
                     ->setAllowedTypes(['null', 'bool'])
                     ->setDefault(true)
-                    ->getOption(),
+                    ->getOption()
+                ,
             ]
         ));
     }
