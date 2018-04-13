@@ -27,16 +27,21 @@ final class DeclareStrictTypesFixerTest extends AbstractFixerTestCase
     /**
      * @param string      $expected
      * @param null|string $input
+     * @param null|array  $configuration
      *
-     * @dataProvider provideFixCases
+     * @dataProvider provideDefaultFixCases
      * @requires PHP 7.0
      */
-    public function testFix($expected, $input = null)
+    public function testDefaultFix($expected, $input = null, array $configuration = null)
     {
+        if (null !== $configuration) {
+            $this->fixer->configure($configuration);
+        }
+
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideDefaultFixCases()
     {
         return [
             [
@@ -50,7 +55,8 @@ class A {
 }',
             ],
             [
-                '<?php declare/* A b C*/(strict_types=1);',
+                '<?php
+declare/* A b C*/(strict_types=1);',
             ],
             [
                 '<?php /**/ /**/ deClarE  (strict_types=1)    ?>Test',
@@ -65,14 +71,18 @@ class A {
                 declare(strict_types=1);',
             ],
             [
-                '<?php declare(strict_types=1);
+                '<?php
+declare(strict_types=1);
+
                 phpinfo();',
                 '<?php
 
                 phpinfo();',
             ],
             [
-                '<?php declare(strict_types=1);
+                '<?php
+declare(strict_types=1);
+
 /**
  * Foo
  */
@@ -85,12 +95,14 @@ phpinfo();',
 phpinfo();',
             ],
             [
-                '<?php declare(strict_types=1);
+                '<?php
+declare(strict_types=1);
 phpinfo();',
                 '<?php phpinfo();',
             ],
             [
-                '<?php declare(strict_types=1);
+                '<?php
+declare(strict_types=1);
 $a = 456;
 ',
                 '<?php
@@ -98,7 +110,8 @@ $a = 456;
 ',
             ],
             [
-                '<?php declare(strict_types=1);
+                '<?php
+declare(strict_types=1);
 /**/',
                 '<?php /**/',
             ],
@@ -120,6 +133,7 @@ $a = 456;
         return [
             ['  <?php echo 123;'], // first statement must be a open tag
             ['<?= 123;'], // first token open with echo is not fixed
+            ['<?php declare(strict_types=1);'], // declare statement made, no preference to position configured
         ];
     }
 
@@ -141,11 +155,11 @@ $a = 456;
     {
         return [
             [
-                "<?php declare(strict_types=1);\r\nphpinfo();",
+                "<?php\r\ndeclare(strict_types=1);\r\n\tphpinfo();",
                 "<?php\r\n\tphpinfo();",
             ],
             [
-                "<?php declare(strict_types=1);\r\nphpinfo();",
+                "<?php\r\ndeclare(strict_types=1);\r\nphpinfo();",
                 "<?php\nphpinfo();",
             ],
         ];

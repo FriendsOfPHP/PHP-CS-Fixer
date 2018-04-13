@@ -410,6 +410,17 @@ Choose from the list of available rules:
 
   *Risky rule: forcing strict types will stop non strict code from working.*
 
+* **declare_strict_types_position**
+
+  Move the strict type declaration to the configured location. Requires
+  PHP >= 7.0.
+
+  Configuration options:
+
+  - ``relocate_to`` (``'next'``, ``'same'``): whether ``declare(strict_types=1)`` should
+    be placed on "next" or "same" line, after the opening ``<?php`` tag;
+    defaults to ``'next'``
+
 * **dir_constant** [@Symfony:risky]
 
   Replaces ``dirname(__FILE__)`` expression with equivalent ``__DIR__``
