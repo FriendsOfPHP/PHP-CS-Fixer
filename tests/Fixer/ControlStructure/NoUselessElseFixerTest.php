@@ -776,8 +776,8 @@ else?><?php echo 5;',
     }
 
     /**
-     * @param string            $input
      * @param string<int, bool> $indexes
+     * @param string            $input
      *
      * @dataProvider provideIsInConditionWithoutBracesCases
      */

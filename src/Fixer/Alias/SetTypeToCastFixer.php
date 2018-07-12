@@ -203,9 +203,9 @@ settype($bar, "null");
 
     /**
      * @param Tokens $tokens
-     * @param Token  $castToken
      * @param int    $functionNameIndex
      * @param Token  $argumentToken
+     * @param Token  $castToken
      */
     private function fixSettypeCall(
         Tokens $tokens,
