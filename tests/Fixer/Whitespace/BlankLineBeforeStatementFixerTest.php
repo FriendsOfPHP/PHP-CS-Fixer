@@ -389,6 +389,50 @@ switch ($a) {
     }
 
     /**
+     * @dataProvider provideFixWithDocCommentCases
+     *
+     * @param string      $expected
+     * @param null|string $input
+     */
+    public function testFixWithDocCommentCases($expected, $input = null)
+    {
+        $this->fixer->configure([
+            'statements' => ['doccomment'],
+        ]);
+
+        $this->doTest($expected, $input);
+    }
+
+    /**
+     * @return array
+     */
+    public function provideFixWithDocCommentCases()
+    {
+        return [
+            [
+                '<?php
+/** @var int $foo */
+$foo = 123;
+
+/** @var float $bar */
+$bar = 45.6;
+
+/** @var string */
+$baz = "789";
+',
+                '<?php
+/** @var int $foo */
+$foo = 123;
+/** @var float $bar */
+$bar = 45.6;
+/** @var string */
+$baz = "789";
+',
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider provideFixWithDieCases
      *
      * @param string      $expected
