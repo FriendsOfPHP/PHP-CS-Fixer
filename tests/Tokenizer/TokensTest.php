@@ -514,8 +514,8 @@ PHP;
 
     /**
      * @param string  $source
-     * @param Token[] $expected tokens
      * @param int[]   $indexes  to clear
+     * @param Token[] $expected tokens
      *
      * @dataProvider provideGetClearTokenAndMergeSurroundingWhitespaceCases
      */

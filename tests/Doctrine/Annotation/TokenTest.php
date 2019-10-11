@@ -96,8 +96,8 @@ final class TokenTest extends TestCase
     /**
      * @dataProvider provideIsNotTypeCases
      *
-     * @param int       $type
      * @param int|int[] $types
+     * @param int       $type
      */
     public function testIsTypeReturnsFalse($types, $type)
     {

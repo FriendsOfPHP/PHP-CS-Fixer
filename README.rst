@@ -1593,6 +1593,11 @@ Choose from the list of available rules:
   Annotations in PHPDoc should be ordered so that ``@param`` annotations
   come first, then ``@throws`` annotations, then ``@return`` annotations.
 
+* **phpdoc_param_order**
+
+  Orders all ``@param`` annotations in DocBlocks according to method
+  signature.
+
 * **phpdoc_return_self_reference** [@Symfony, @PhpCsFixer]
 
   The type of ``@return`` annotations of methods returning a reference to
