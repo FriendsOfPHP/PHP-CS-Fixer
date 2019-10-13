@@ -1190,6 +1190,10 @@ Choose from the list of available rules:
 
   A final class must not have final methods.
 
+* **no_unneeded_import_alias** [@PhpCsFixer]
+
+  Remove unneeded alias in ``use`` clauses.
+
 * **no_unreachable_default_argument_value** [@PhpCsFixer:risky]
 
   In function arguments there must not be arguments with default values
