@@ -2,6 +2,14 @@
 Rule ``braces``
 ===============
 
+.. warning:: This rule is deprecated and will be removed on next major version.
+
+   You should use ``single_space_after_construct``,
+   ``control_structure_braces``, ``blank_lines_inside_block``,
+   ``curly_braces_position``, ``control_structure_continuation``,
+   ``declare_braces``, ``no_multiple_statements_per_line`` and
+   ``statement_indentation`` instead.
+
 The body of each structure MUST be enclosed by braces. Braces should be properly
 placed. Body of braces should be properly indented.
 
@@ -173,26 +181,3 @@ With configuration: ``['position_after_functions_and_oop_constructs' => 'same']`
    +        }
         }
     }
-
-Rule sets
----------
-
-The rule is part of the following rule sets:
-
-@PSR12
-  Using the `@PSR12 <./../../ruleSets/PSR12.rst>`_ rule set will enable the ``braces`` rule with the config below:
-
-  ``['allow_single_line_anonymous_class_with_empty_body' => true]``
-
-@PSR2
-  Using the `@PSR2 <./../../ruleSets/PSR2.rst>`_ rule set will enable the ``braces`` rule with the default config.
-
-@PhpCsFixer
-  Using the `@PhpCsFixer <./../../ruleSets/PhpCsFixer.rst>`_ rule set will enable the ``braces`` rule with the config below:
-
-  ``['allow_single_line_anonymous_class_with_empty_body' => true, 'allow_single_line_closure' => true]``
-
-@Symfony
-  Using the `@Symfony <./../../ruleSets/Symfony.rst>`_ rule set will enable the ``braces`` rule with the config below:
-
-  ``['allow_single_line_anonymous_class_with_empty_body' => true, 'allow_single_line_closure' => true]``

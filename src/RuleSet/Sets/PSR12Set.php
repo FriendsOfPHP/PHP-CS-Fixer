@@ -24,10 +24,10 @@ final class PSR12Set extends AbstractRuleSetDescription
         return [
             '@PSR2' => true,
             'blank_line_after_opening_tag' => true,
-            'braces' => [
-                'allow_single_line_anonymous_class_with_empty_body' => true,
-            ],
             'compact_nullable_typehint' => true,
+            'curly_braces_position' => [
+                'allow_single_line_empty_anonymous_classes' => true,
+            ],
             'declare_equal_normalize' => true,
             'lowercase_cast' => true,
             'lowercase_static_reference' => true,

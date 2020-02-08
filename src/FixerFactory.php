@@ -35,16 +35,6 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 final class FixerFactory
 {
-    const HIDDEN_FIXERS = [
-        'Basic\\CurlyBracesPositionFixer',
-        'Basic\\NoMultipleStatementsPerLineFixer',
-        'ControlStructure\\ControlStructureBracesFixer',
-        'ControlStructure\\ControlStructureContinuationFixer',
-        'LanguageConstruct\\DeclareBracesFixer',
-        'Whitespace\\BlankLinesInsideBlockFixer',
-        'Whitespace\\StatementIndentationFixer',
-    ];
-
     /**
      * @var FixerNameValidator
      */
@@ -96,14 +86,8 @@ final class FixerFactory
         if (null === $builtInFixers) {
             $builtInFixers = [];
 
-            $finder = SymfonyFinder::create()->files()->in(__DIR__.'/Fixer')->depth(1);
-
-            foreach (self::HIDDEN_FIXERS as $hiddenFixer) {
-                $finder->notName(substr($hiddenFixer, strpos($hiddenFixer, '\\') + 1).'.php');
-            }
-
             /** @var SplFileInfo $file */
-            foreach ($finder as $file) {
+            foreach (SymfonyFinder::create()->files()->in(__DIR__.'/Fixer')->depth(1) as $file) {
                 $relativeNamespace = $file->getRelativePath();
                 $fixerClass = 'PhpCsFixer\\Fixer\\'.($relativeNamespace ? $relativeNamespace.'\\' : '').$file->getBasename('.php');
                 if ('Fixer' === substr($fixerClass, -5)) {
@@ -113,19 +97,6 @@ final class FixerFactory
         }
 
         foreach ($builtInFixers as $class) {
-            $this->registerFixer(new $class(), false);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function registerHiddenFixers()
-    {
-        foreach (self::HIDDEN_FIXERS as $hiddenFixer) {
-            $class = "PhpCsFixer\\Fixer\\{$hiddenFixer}";
             $this->registerFixer(new $class(), false);
         }
 

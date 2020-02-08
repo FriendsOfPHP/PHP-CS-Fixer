@@ -614,7 +614,6 @@ final class FixerFactoryTest extends TestCase
     {
         $factory = new FixerFactory();
         $factory->registerBuiltInFixers();
-        $factory->registerHiddenFixers();
 
         return $factory->getFixers();
     }

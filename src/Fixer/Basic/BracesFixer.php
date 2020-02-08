@@ -16,6 +16,7 @@ use PhpCsFixer\AbstractProxyFixer;
 use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
 use PhpCsFixer\Fixer\ControlStructure\ControlStructureBracesFixer;
 use PhpCsFixer\Fixer\ControlStructure\ControlStructureContinuationFixer;
+use PhpCsFixer\Fixer\DeprecatedFixerInterface;
 use PhpCsFixer\Fixer\LanguageConstruct\DeclareBracesFixer;
 use PhpCsFixer\Fixer\LanguageConstruct\SingleSpaceAfterConstructFixer;
 use PhpCsFixer\Fixer\Whitespace\BlankLinesInsideBlockFixer;
@@ -32,8 +33,10 @@ use PhpCsFixer\Tokenizer\Tokens;
  * Fixer for rules defined in PSR2 ¶4.1, ¶4.4, ¶5.
  *
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
+ *
+ * @deprecated since 2.17
  */
-final class BracesFixer extends AbstractProxyFixer implements ConfigurationDefinitionFixerInterface, WhitespacesAwareFixerInterface
+final class BracesFixer extends AbstractProxyFixer implements ConfigurationDefinitionFixerInterface, WhitespacesAwareFixerInterface, DeprecatedFixerInterface
 {
     /**
      * @internal
@@ -143,6 +146,14 @@ class Foo
     public function getPriority()
     {
         return 35;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getSuccessorsNames()
+    {
+        return array_keys($this->proxyFixers);
     }
 
     public function configure(array $configuration = null)
