@@ -1,0 +1,23 @@
+--TEST--
+Integration of fixers: method_separation,statement_indentation.
+--RULESET--
+{"method_separation": true, "statement_indentation": true}
+--EXPECT--
+<?php
+
+class Foo
+{
+    /** bar */
+    public function bar() {}
+
+    /** baz */
+    public function baz() {}
+}
+
+--INPUT--
+<?php
+
+class Foo
+{
+    /** bar */public function bar() {}/** baz */public function baz() {}
+}

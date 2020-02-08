@@ -447,11 +447,13 @@ final class BracesFixerTest extends AbstractFixerTestCase
                 self::$configurationOopPositionSameLine,
             ],
             [
+                '<?php class A {
+    /** */
+}',
                 '<?php class A
 /** */
 {
 }',
-                null,
                 self::$configurationOopPositionSameLine,
             ],
             [
@@ -789,6 +791,29 @@ echo 1;
 echo 2;
 <?php } ?>
 ',
+            ],
+            [
+                '<?php
+do {
+    foo();
+} // comment
+while (false);
+',
+            ],
+            [
+                '<?php
+
+if (true) {
+    ?>
+<hr />
+    <?php
+    if (true) {
+        echo \'x\';
+    }
+    ?>
+<hr />
+    <?php
+}',
             ],
         ];
     }
@@ -1480,9 +1505,8 @@ class Foo
     class C
     {
         public function __construct(
-        )
-        //comment
-        {
+        ) {
+            //comment
         }
     }',
                 '<?php
@@ -2172,9 +2196,9 @@ function mixedComplex()
             [
                 '<?php
     if (true)
+    // foo
+    // bar
     {
-        // foo
-        // bar
         if (true)
         {
             print("foo");
@@ -2511,9 +2535,8 @@ class Foo
                 '<?php
     class C {
         public function __construct(
-        )
-        //comment
-        {
+        ) {
+            //comment
         }
     }',
                 '<?php
@@ -2527,24 +2550,20 @@ class Foo
             ],
             [
                 '<?php
-class Something # a
-{
-    public function sth() //
-    {
+class Something { # a
+    public function sth() { //
         return function (int $foo) use ($bar) {
             return $bar;
         };
     }
 }
 
-function C() /**/ //    # /**/
-{
+function C() { /**/ //    # /**/
 }
 
-function D() /**
+function D() { /**
 *
 */
-{
 }',
                 '<?php
 class Something # a
@@ -2964,13 +2983,17 @@ function foo()
             [
                 '<?php
 if ($a) { //
+    ?><?php ++$a;
+} ?>',
+                '<?php
+if ($a) { //
 ?><?php ++$a;
 } ?>',
             ],
             [
                 '<?php
 if ($a) { /* */ /* */ /* */ /* */ /* */
-?><?php ++$a;
+    ?><?php ++$a;
 } ?>',
             ],
         ];
@@ -3373,7 +3396,7 @@ class Foo
             ],
             [
                 '<?php
-    $fnc = function ($a, $b) /* random comment */ {
+    $fnc = function ($a, $b) { /* random comment */
         return 0;
     };',
                 '<?php
@@ -3384,7 +3407,7 @@ class Foo
             ],
             [
                 '<?php
-    $fnc = function ($a, $b) /** random comment */ {
+    $fnc = function ($a, $b) { /** random comment */
         return 0;
     };',
                 '<?php
@@ -3573,7 +3596,7 @@ class Foo
             ],
             [
                 '<?php
-    $fnc = function ($a, $b) /* random comment */ {
+    $fnc = function ($a, $b) { /* random comment */
         return 0;
     };',
                 '<?php
@@ -3585,7 +3608,7 @@ class Foo
             ],
             [
                 '<?php
-    $fnc = function ($a, $b) /** random comment */ {
+    $fnc = function ($a, $b) { /** random comment */
         return 0;
     };',
                 '<?php
@@ -4220,6 +4243,12 @@ if (1) {
             [
                 '<?php
 use function some\a\{
+    test1,
+    test2
+};
+test();',
+                '<?php
+use function some\a\{
      test1,
     test2
  };
@@ -4665,31 +4694,46 @@ if (1) {
             [
                 '<?php
 use function some\a\{
+    test1,
+    test2
+};
+test();',
+                '<?php
+use function some\a\{
      test1,
     test2
  };
 test();',
-                null,
                 self::$configurationOopPositionSameLine,
             ],
             [
                 '<?php
 use function some\a\{
-     test1,
+    test1,
     test2
- };
+};
 test();',
-                null,
-                self::$configurationOopPositionSameLine + self::$configurationCtrlStructPositionNextLine,
-            ],
-            [
                 '<?php
 use function some\a\{
      test1,
     test2
  };
 test();',
-                null,
+                self::$configurationOopPositionSameLine + self::$configurationCtrlStructPositionNextLine,
+            ],
+            [
+                '<?php
+use function some\a\{
+    test1,
+    test2
+};
+test();',
+                '<?php
+use function some\a\{
+     test1,
+    test2
+ };
+test();',
                 self::$configurationOopPositionSameLine + self::$configurationAnonymousPositionNextLine,
             ],
             [
@@ -4799,8 +4843,9 @@ if (1 === 1) {//a
     $a = "b"; /*d*/
 }//c
 echo $a;
-if ($a === 3) /**/
-{echo 1;}
+if ($a === 3) { /**/
+    echo 1;
+}
 ',
                 '<?php
 if ($test) // foo
@@ -4827,6 +4872,7 @@ if (true) {
 }',
             ],
             [
+                "<?php if (true) {\r\n\r\n    // CRLF newline\n}",
                 "<?php if (true) {\r\n\r\n// CRLF newline\n}",
             ],
             [
@@ -4869,13 +4915,13 @@ if (true) {
                 self::$configurationOopPositionSameLine + self::$configurationCtrlStructPositionNextLine,
             ],
             [
-                "<?php if (true) {\r\n\r\n// CRLF newline\n}",
+                "<?php if (true) {\r\n\r\n    // CRLF newline\n}",
                 null,
                 self::$configurationOopPositionSameLine,
             ],
             [
                 "<?php if (true)
-{\r\n\r\n// CRLF newline\n}",
+{\r\n\r\n    // CRLF newline\n}",
                 "<?php if (true){\r\n\r\n// CRLF newline\n}",
                 self::$configurationOopPositionSameLine + self::$configurationCtrlStructPositionNextLine,
             ],
@@ -5051,7 +5097,7 @@ if(true) if(true) echo 1; elseif(true) echo 2; else echo 3;',
 if (true) {
     $var = <<<'NOWDOC'
 NOWDOC;
-?>
+    ?>
 <?php
 }
 
@@ -5075,7 +5121,7 @@ EOT
 if (true) {
     $var = <<<HEREDOC
 HEREDOC;
-?>
+    ?>
 <?php
 }
 
@@ -5474,6 +5520,84 @@ if ($a) foreach ($b as $c): ?>
         <?php endforeach; ?>
     <?php endfor; ?>
 <?php endforeach; ?>',
+        ];
+
+        yield [
+            '<?php
+switch (n) {
+    case label1:
+        echo 1;
+        echo 2;
+        break;
+    default:
+        echo 3;
+        echo 4;
+}',
+            '<?php
+switch (n)
+{
+ case label1:
+    echo 1;
+        echo 2;
+        break;
+    default:
+        echo 3;
+        echo 4;
+}',
+        ];
+
+        yield [
+            '<?php
+switch ($foo) {
+    case \'bar\': if (5) {
+        echo 6;
+    }
+}',
+            '<?php
+switch ($foo)
+{
+case \'bar\': if (5) echo 6;
+}',
+        ];
+
+        yield [
+            '<?php
+
+class mySillyClass
+{
+    public function mrMethod()
+    {
+        switch ($i) {
+            case 0:
+                echo "i equals 0";
+                break;
+            case 1:
+                echo "i equals 1";
+                break;
+            case 2:
+                echo "i equals 2";
+                break;
+        }
+    }
+}',
+            '<?php
+
+class mySillyClass
+{
+public function mrMethod() {
+switch ($i) {
+case 0:
+echo "i equals 0";
+break;
+case 1:
+echo "i equals 1";
+break;
+case 2:
+echo "i equals 2";
+break;
+}
+}
+}',
         ];
     }
 
