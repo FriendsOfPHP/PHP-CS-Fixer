@@ -1589,6 +1589,10 @@ Choose from the list of available rules:
 
   PHPDoc annotation descriptions should not be a sentence.
 
+* **phpdoc_fully_qualified_types**
+
+  Transforms imported FQCN in docblocks to short version.
+
 * **phpdoc_indent** [@Symfony, @PhpCsFixer]
 
   Docblocks should have the same indentation as the documented subject.
