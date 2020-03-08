@@ -170,6 +170,7 @@ final class AssignNullCoalescingToCoalesceEqualFixerTest extends AbstractFixerTe
                 $b = $a ?? 1;
                 $b = $a ?? $b;
                 $d = $a + $c ; $c ?? $c;
+                $a = ($a ?? $b) && $c; // just to be sure
             ',
         ];
     }
