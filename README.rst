@@ -281,6 +281,10 @@ Choose from the list of available rules:
   - ``syntax`` (``'long'``, ``'short'``): whether to use the ``long`` or ``short`` array
     syntax; defaults to ``'long'``
 
+* **assign_null_coalescing_to_coalesce_equal**
+
+  Use the null coalescing assignment operator ``??=`` where possible.
+
 * **backtick_to_shell_exec** [@Symfony, @PhpCsFixer]
 
   Converts backtick operators to ``shell_exec`` calls.
