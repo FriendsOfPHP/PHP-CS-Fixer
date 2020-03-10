@@ -82,6 +82,7 @@ final class AssignNullCoalescingToCoalesceEqualFixer extends AbstractFixer
             }
 
             // get what is before '='
+
             $assignRange = $this->getBeforeOperator($tokens, $equalsIndex);
             $beforeAssignmentIndex = $tokens->getPrevMeaningfulToken($assignRange['start']);
 
@@ -91,21 +92,25 @@ final class AssignNullCoalescingToCoalesceEqualFixer extends AbstractFixer
                 continue;
             }
 
-            // if before and after are the same, remove the later
+            // make sure before and after are the same
 
-            if ($this->rangeEqualsRange($tokens, $assignRange, $beforeRange)) {
-                $tokens[$equalsIndex] = new Token([T_COALESCE_EQUAL, '??=']);
-                $tokens->clearTokenAndMergeSurroundingWhitespace($index);
-                $this->clearMeaningfulFromRange($tokens, $beforeRange);
+            if (!$this->rangeEqualsRange($tokens, $assignRange, $beforeRange)) {
+                continue;
+            }
 
-                foreach ([$equalsIndex, $assignRange['end']] as $i) {
-                    $i = $tokens->getNonEmptySibling($i, 1);
+            // make sure after '??" does not contain '? :'
 
-                    if ($tokens[$i]->isWhitespace(" \t")) {
-                        $tokens[$i] = new Token([T_WHITESPACE, ' ']);
-                    } elseif (!$tokens[$i]->isWhitespace()) {
-                        $tokens->insertAt($i, new Token([T_WHITESPACE, ' ']));
-                    }
+            $tokens[$equalsIndex] = new Token([T_COALESCE_EQUAL, '??=']);
+            $tokens->clearTokenAndMergeSurroundingWhitespace($index);
+            $this->clearMeaningfulFromRange($tokens, $beforeRange);
+
+            foreach ([$equalsIndex, $assignRange['end']] as $i) {
+                $i = $tokens->getNonEmptySibling($i, 1);
+
+                if ($tokens[$i]->isWhitespace(" \t")) {
+                    $tokens[$i] = new Token([T_WHITESPACE, ' ']);
+                } elseif (!$tokens[$i]->isWhitespace()) {
+                    $tokens->insertAt($i, new Token([T_WHITESPACE, ' ']));
                 }
             }
         }

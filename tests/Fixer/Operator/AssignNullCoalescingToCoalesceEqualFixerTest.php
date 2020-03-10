@@ -173,5 +173,9 @@ final class AssignNullCoalescingToCoalesceEqualFixerTest extends AbstractFixerTe
                 $a = ($a ?? $b) && $c; // just to be sure
             ',
         ];
+
+        yield 'do not fix because of precedence' => [
+            '<?php $a = $a ?? $b ? $c : $d;',
+        ];
     }
 }
