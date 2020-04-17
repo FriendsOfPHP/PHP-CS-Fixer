@@ -90,19 +90,21 @@ final class PhpdocAlignFixer extends AbstractFixer implements ConfigurationDefin
         $tagsWithoutNameToAlign = array_diff($this->configuration['tags'], $tagsWithNameToAlign, $tagsWithMethodSignatureToAlign);
         $types = [];
 
+        $type = '\S(?:[^<\s]|<[^>]*>)*';
         $indent = '(?P<indent>(?: {2}|\t)*)';
+
         // e.g. @param <hint> <$var>
-        if (!empty($tagsWithNameToAlign)) {
-            $types[] = '(?P<tag>'.implode('|', $tagsWithNameToAlign).')\s+(?P<hint>[^$]+?)\s+(?P<var>(?:&|\.{3})?\$[^\s]+)';
+        if ([] !== $tagsWithNameToAlign) {
+            $types[] = '(?P<tag>'.implode('|', $tagsWithNameToAlign).')\s+(?P<hint>(?:'.$type.')?)\s+(?P<var>(?:&|\.{3})?\$\S+)';
         }
 
         // e.g. @return <hint>
-        if (!empty($tagsWithoutNameToAlign)) {
-            $types[] = '(?P<tag2>'.implode('|', $tagsWithoutNameToAlign).')\s+(?P<hint2>[^\s]+?)';
+        if ([] !== $tagsWithoutNameToAlign) {
+            $types[] = '(?P<tag2>'.implode('|', $tagsWithoutNameToAlign).')\s+(?P<hint2>(?:'.$type.')?)';
         }
 
         // e.g. @method <hint> <signature>
-        if (!empty($tagsWithMethodSignatureToAlign)) {
+        if ([] !== $tagsWithMethodSignatureToAlign) {
             $types[] = '(?P<tag3>'.implode('|', $tagsWithMethodSignatureToAlign).')(\s+(?P<hint3>[^\s(]+)|)\s+(?P<signature>.+\))';
         }
 
