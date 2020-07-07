@@ -13,6 +13,7 @@
 namespace PhpCsFixer\Fixer\Phpdoc;
 
 use PhpCsFixer\AbstractFixer;
+use PhpCsFixer\DocBlock\Annotation;
 use PhpCsFixer\DocBlock\DocBlock;
 use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
 use PhpCsFixer\Fixer\WhitespacesAwareFixerInterface;
@@ -90,17 +91,16 @@ final class PhpdocAlignFixer extends AbstractFixer implements ConfigurationDefin
         $tagsWithoutNameToAlign = array_diff($this->configuration['tags'], $tagsWithNameToAlign, $tagsWithMethodSignatureToAlign);
         $types = [];
 
-        $type = '\S(?:[^<\s]|<[^>]*>)*';
-        $indent = '(?P<indent>(?: {2}|\t)*)';
+        $indent = '(?P<indent>(?:\ {2}|\t)*)';
 
         // e.g. @param <hint> <$var>
         if ([] !== $tagsWithNameToAlign) {
-            $types[] = '(?P<tag>'.implode('|', $tagsWithNameToAlign).')\s+(?P<hint>(?:'.$type.')?)\s+(?P<var>(?:&|\.{3})?\$\S+)';
+            $types[] = '(?P<tag>'.implode('|', $tagsWithNameToAlign).')\s+(?P<hint>(?:'.Annotation::REGEX_TYPES.')?)\s+(?P<var>(?:&|\.{3})?\$\S+)';
         }
 
         // e.g. @return <hint>
         if ([] !== $tagsWithoutNameToAlign) {
-            $types[] = '(?P<tag2>'.implode('|', $tagsWithoutNameToAlign).')\s+(?P<hint2>(?:'.$type.')?)';
+            $types[] = '(?P<tag2>'.implode('|', $tagsWithoutNameToAlign).')\s+(?P<hint2>(?:'.Annotation::REGEX_TYPES.')?)';
         }
 
         // e.g. @method <hint> <signature>
@@ -111,7 +111,7 @@ final class PhpdocAlignFixer extends AbstractFixer implements ConfigurationDefin
         // optional <desc>
         $desc = '(?:\s+(?P<desc>\V*))';
 
-        $this->regex = '/^'.$indent.' \* @(?:'.implode('|', $types).')'.$desc.'\s*$/u';
+        $this->regex = '/^'.$indent.'\ \*\ @(?J)(?:'.implode('|', $types).')'.$desc.'\s*$/ux';
         $this->regexCommentLine = '/^'.$indent.' \*(?! @)(?:\s+(?P<desc>\V+))(?<!\*\/)\r?$/u';
         $this->align = $this->configuration['align'];
     }
