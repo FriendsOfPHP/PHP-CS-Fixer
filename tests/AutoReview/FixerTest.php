@@ -26,6 +26,7 @@ use PhpCsFixer\FixerDefinition\FileSpecificCodeSampleInterface;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSampleInterface;
 use PhpCsFixer\FixerFactory;
 use PhpCsFixer\StdinFileInfo;
+use PhpCsFixer\Tests\Test\Assert\AssertTokensTrait;
 use PhpCsFixer\Tests\TestCase;
 use PhpCsFixer\Tokenizer\Tokens;
 
@@ -40,6 +41,8 @@ use PhpCsFixer\Tokenizer\Tokens;
  */
 final class FixerTest extends TestCase
 {
+    use AssertTokensTrait;
+
     // do not modify this structure without prior discussion
     private $allowedRequiredOptions = [
         'header_comment' => ['header' => true],
@@ -123,6 +126,28 @@ final class FixerTest extends TestCase
                 $duplicatedCodeSample,
                 sprintf('[%s] Sample #%d duplicates #%d.', $fixerName, $sampleCounter, $duplicatedCodeSample)
             );
+
+            $fixerNamesThatRemoveWindowsLineEndings = [
+                'line_ending',
+                'string_line_ending',
+            ];
+
+            if (!\in_array($fixerName, $fixerNamesThatRemoveWindowsLineEndings, true)) {
+                $fixedCodeWithWindowsLineEnding = str_replace("\n", "\r\n", $tokens->generateCode());
+
+                Tokens::clearCache();
+                $fixedTokensWithWindowsLineEnding = Tokens::fromCode($fixedCodeWithWindowsLineEnding);
+
+                $fixer->fix(
+                    $sample instanceof FileSpecificCodeSampleInterface ? $sample->getSplFileInfo() : $dummyFileInfo,
+                    $fixedTokensWithWindowsLineEnding
+                );
+
+                Tokens::clearCache();
+                $this->assertTokens(Tokens::fromCode($fixedCodeWithWindowsLineEnding), $fixedTokensWithWindowsLineEnding);
+
+                static::assertFalse($fixedTokensWithWindowsLineEnding->isChanged(), sprintf('[%s] Sample #%d fixed code must not change when with Windows line endings.', $fixerName, $sampleCounter));
+            }
         }
 
         if ($fixerIsConfigurable) {
