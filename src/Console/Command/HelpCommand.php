@@ -293,8 +293,7 @@ Exit code of the fix command is built using following bit flags:
 * 32 - Configuration error of a Fixer.
 * 64 - Exception raised within the application.
 
-EOF
-        ;
+EOF;
 
         return strtr($template, [
             '%%%CONFIG_INTERFACE_URL%%%' => sprintf(
@@ -318,8 +317,7 @@ EOF
     {
         return \is_array($value)
             ? static::arrayToString($value)
-            : static::scalarToString($value)
-        ;
+            : static::scalarToString($value);
     }
 
     /**
@@ -637,8 +635,7 @@ EOF
 
             $str .= \is_array($v)
                 ? static::arrayToString($v).', '
-                : static::scalarToString($v).', '
-            ;
+                : static::scalarToString($v).', ';
         }
 
         return substr($str, 0, -2).']';

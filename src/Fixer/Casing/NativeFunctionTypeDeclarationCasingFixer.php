@@ -170,8 +170,7 @@ final class NativeFunctionTypeDeclarationCasingFixer extends AbstractFixer
         $argumentStartIndex = $type->getStartIndex();
         $argumentExpectedEndIndex = $type->isNullable()
             ? $tokens->getNextMeaningfulToken($argumentStartIndex)
-            : $argumentStartIndex
-        ;
+            : $argumentStartIndex;
 
         if ($argumentExpectedEndIndex !== $type->getEndIndex()) {
             return; // the type to fix is always unqualified and so is always composed of one token and possible a nullable '?' one

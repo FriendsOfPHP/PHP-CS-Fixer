@@ -697,8 +697,7 @@ $foo = \json_encode($bar, JSON_PRESERVE_ZERO_FRACTION | JSON_PRETTY_PRINT);
                     if ($tokens[$i + 1]->isGivenKind([T_ARRAY, CT::T_ARRAY_SQUARE_BRACE_OPEN])) {
                         $arrayStartIndex = $tokens[$i + 1]->isGivenKind(T_ARRAY)
                             ? $tokens->getNextMeaningfulToken($i + 1)
-                            : $i + 1
-                        ;
+                            : $i + 1;
                         $blockType = Tokens::detectBlockType($tokens[$arrayStartIndex]);
                         $arrayEndIndex = $tokens->findBlockEnd($blockType['type'], $arrayStartIndex);
 

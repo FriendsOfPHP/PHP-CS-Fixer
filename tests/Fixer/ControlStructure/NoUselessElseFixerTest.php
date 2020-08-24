@@ -721,8 +721,7 @@ else?><?php echo 5;',
             else
                 $ret .= $value;
 
-            return $ret;'
-        ;
+            return $ret;';
 
         $ifElseIfTemplate = '<?php
             if ($a === false)
@@ -734,8 +733,7 @@ else?><?php echo 5;',
             else
                 $ret .= $value;
 
-            return $ret;'
-        ;
+            return $ret;';
 
         $ifElseTemplate = '<?php
             if ($a === false)
@@ -747,8 +745,7 @@ else?><?php echo 5;',
             else
                 $ret .= $value;
 
-            return $ret;'
-        ;
+            return $ret;';
 
         foreach ($statements as $statement) {
             $cases[] = [sprintf($ifTemplate, $statement)];

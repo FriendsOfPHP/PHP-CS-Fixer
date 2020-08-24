@@ -139,8 +139,7 @@ final class TokensAnalyzer
 
         $endIndex = $tokens[$index]->equals('(')
             ? $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $index)
-            : $tokens->findBlockEnd(Tokens::BLOCK_TYPE_ARRAY_SQUARE_BRACE, $index)
-        ;
+            : $tokens->findBlockEnd(Tokens::BLOCK_TYPE_ARRAY_SQUARE_BRACE, $index);
 
         for (++$index; $index < $endIndex; ++$index) {
             $token = $tokens[$index];

@@ -366,8 +366,7 @@ RST;
         $tokens = Tokens::fromCode($old);
         $file = $sample instanceof FileSpecificCodeSampleInterface
             ? $sample->getSplFileInfo()
-            : new StdinFileInfo()
-        ;
+            : new StdinFileInfo();
 
         if ($fixer instanceof ConfigurableFixerInterface) {
             $configuration = $sample->getConfiguration();

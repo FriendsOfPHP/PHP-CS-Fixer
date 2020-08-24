@@ -526,8 +526,7 @@ EOF;
 <?php
 
 $c = 1;
-EOF
-        ;
+EOF;
 
         $this->doTest($expected);
     }
@@ -1716,8 +1715,7 @@ EOF;
 <?php
 
 $c = 1;
-EOF
-        ;
+EOF;
 
         $this->doTest($expected);
     }

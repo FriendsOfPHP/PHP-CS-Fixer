@@ -162,8 +162,7 @@ class MyTest extends \\PhpUnit\\FrameWork\\TestCase
 
         return
             $this->isPHPDoc($tokens, $docBlockIndex) // If the function doesn't have test in its name, and no doc block, it's not a test
-            && false !== strpos($tokens[$docBlockIndex]->getContent(), '@test')
-        ;
+            && false !== strpos($tokens[$docBlockIndex]->getContent(), '@test');
     }
 
     /**

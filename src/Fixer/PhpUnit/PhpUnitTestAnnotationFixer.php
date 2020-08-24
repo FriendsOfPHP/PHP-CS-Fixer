@@ -198,8 +198,7 @@ public function testItDoesSomething() {}}'.$this->whitespacesConfig->getLineEndi
         // If the function doesn't have test in its name, and no doc block, its not a test
         return
             $this->isPHPDoc($tokens, $docBlockIndex)
-            && false !== strpos($tokens[$docBlockIndex]->getContent(), '@test')
-        ;
+            && false !== strpos($tokens[$docBlockIndex]->getContent(), '@test');
     }
 
     /**
