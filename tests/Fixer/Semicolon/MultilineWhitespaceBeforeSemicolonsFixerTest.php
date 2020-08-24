@@ -45,21 +45,32 @@ final class MultilineWhitespaceBeforeSemicolonsFixerTest extends AbstractFixerTe
         return [
             [
                 '<?php
-                    $foo->bar() // test
-;',
+                    $foo->bar(); // test',
                 '<?php
                     $foo->bar() // test
                     ;',
             ],
             [
+                '<?php echo(1); // test',
                 "<?php echo(1) // test\n;",
             ],
             [
+                "<?php echo(1); // test\n",
+            ],
+            [
+                '<?php
+                    $foo->bar(); # test',
                 '<?php
                     $foo->bar() # test
-;',
+
+
+                ;',
+            ],
+            [
                 '<?php
-                    $foo->bar() # test
+                    $foo->bar();// test',
+                '<?php
+                    $foo->bar()// test
 
 
                 ;',
@@ -126,16 +137,14 @@ $this
             ],
             [
                 '<?php
-                    Foo::bar() // test
-;',
+                    Foo::bar(); // test',
                 '<?php
                     Foo::bar() // test
                     ;',
             ],
             [
                 '<?php
-                    Foo::bar() # test
-;',
+                    Foo::bar(); # test',
                 '<?php
                     Foo::bar() # test
 
@@ -199,6 +208,46 @@ self
 
     ;',
             ],
+            [
+                '<?php
+$seconds = $minutes
+    * 60; // seconds in a minute',
+                '<?php
+$seconds = $minutes
+    * 60 // seconds in a minute
+;',
+            ],
+            [
+                '<?php
+$seconds = $minutes
+    * (int) \'60\'; // seconds in a minute',
+                '<?php
+$seconds = $minutes
+    * (int) \'60\' // seconds in a minute
+;',
+            ],
+            [
+                '<?php
+$secondsPerMinute = 60;
+$seconds = $minutes
+    * $secondsPerMinute; // seconds in a minute',
+                '<?php
+$secondsPerMinute = 60;
+$seconds = $minutes
+    * $secondsPerMinute // seconds in a minute
+;',
+            ],
+            [
+                '<?php
+$secondsPerMinute = 60;
+$seconds = $minutes
+    * 60 * (int) true; // seconds in a minute',
+                '<?php
+$secondsPerMinute = 60;
+$seconds = $minutes
+    * 60 * (int) true // seconds in a minute
+;',
+            ],
         ];
     }
 
@@ -220,6 +269,7 @@ self
     {
         return [
             [
+                '<?php echo(1); // test',
                 "<?php echo(1) // test\r\n;",
             ],
         ];
@@ -844,6 +894,108 @@ Service
                 '<?php $this
         ->methodA()
         ->methodB();',
+            ],
+            [
+                '<?php
+
+                    $foo->bar();
+
+                    Service::method1()
+                        ->method2()
+                        ->method3()->method4()
+                    ;
+                ?>',
+                '<?php
+
+                    $foo->bar()
+                    ;
+
+                    Service::method1()
+                        ->method2()
+                        ->method3()->method4();
+                ?>',
+            ],
+            [
+                '<?php
+
+                    $foo->bar();
+
+                    \Service::method1()
+                        ->method2()
+                        ->method3()->method4()
+                    ;
+                ?>',
+                '<?php
+
+                    $foo->bar()
+                    ;
+
+                    \Service::method1()
+                        ->method2()
+                        ->method3()->method4();
+                ?>',
+            ],
+            [
+                '<?php
+
+                    $foo->bar();
+
+                    Ns\Service::method1()
+                        ->method2()
+                        ->method3()->method4()
+                    ;
+                ?>',
+                '<?php
+
+                    $foo->bar()
+                    ;
+
+                    Ns\Service::method1()
+                        ->method2()
+                        ->method3()->method4();
+                ?>',
+            ],
+            [
+                '<?php
+
+                    $foo->bar();
+
+                    \Ns\Service::method1()
+                        ->method2()
+                        ->method3()->method4()
+                    ;
+                ?>',
+                '<?php
+
+                    $foo->bar()
+                    ;
+
+                    \Ns\Service::method1()
+                        ->method2()
+                        ->method3()->method4();
+                ?>',
+            ],
+            [
+                '<?php
+$this
+    ->setName(\'readme2\')
+    ->setDescription(\'Generates the README\')
+;
+',
+                '<?php
+$this
+    ->setName(\'readme2\')
+    ->setDescription(\'Generates the README\')
+    ;
+',
+            ],
+            [
+                '<?php
+$this
+    ->foo()
+    ->{$bar ? \'bar\' : \'baz\'}()
+;
+',
             ],
         ];
     }
