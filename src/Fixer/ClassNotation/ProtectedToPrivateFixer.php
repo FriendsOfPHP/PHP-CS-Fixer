@@ -52,7 +52,7 @@ final class Sample
     /**
      * {@inheritdoc}
      *
-     * Must run before OrderedClassElementsFixer.
+     * Must run before OrderedClassElementsFixer, StaticPrivateMethodFixer.
      * Must run after FinalInternalClassFixer.
      */
     public function getPriority()

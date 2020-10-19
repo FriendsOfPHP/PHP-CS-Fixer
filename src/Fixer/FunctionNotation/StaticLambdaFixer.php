@@ -60,6 +60,16 @@ final class StaticLambdaFixer extends AbstractFixer
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after StaticPrivateMethodFixer.
+     */
+    public function getPriority()
+    {
+        return parent::getPriority();
+    }
+
+    /**
+     * {@inheritdoc}
      */
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {

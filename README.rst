@@ -2080,6 +2080,12 @@ Choose from the list of available rules:
 
   *Risky rule: risky when using ``->bindTo`` on lambdas without referencing to ``$this``.*
 
+* **static_private_method**
+
+  Converts private methods to ``static`` where possible.
+
+  *Risky rule: risky when the method: contains dynamic generated calls to the instance, is dynamically referenced, is referenced inside a Trait the class uses.*
+
 * **strict_comparison** [@PhpCsFixer:risky]
 
   Comparisons should be strict.
