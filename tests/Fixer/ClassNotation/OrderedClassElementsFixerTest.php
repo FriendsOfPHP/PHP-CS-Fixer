@@ -147,7 +147,11 @@ abstract class Foo extends FooParent implements FooInterface1, FooInterface2
 
     protected function setUp() {}
 
+    protected function doSetUp() {}
+
     protected function tearDown() {}
+
+    protected function doTearDown() {}
 
     abstract public function foo1($a, $b = 1);
 
@@ -195,6 +199,10 @@ abstract class Foo extends FooParent implements FooInterface1, FooInterface2
     abstract public function foo1($a, $b = 1);
 
     protected function tearDown() {}
+
+    protected function doSetUp() {}
+
+    protected function doTearDown() {}
 
     public function __clone() {}
 
@@ -884,7 +892,7 @@ EOT
     public function testWrongConfig()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^\[ordered_class_elements\] Invalid configuration: The option "order" .*\.$/');
+        $this->expectExceptionMessageMatches('/^\[ordered_class_elements\] Invalid configuration: The option "order" .*\.$/');
 
         $this->fixer->configure(['order' => ['foo']]);
     }

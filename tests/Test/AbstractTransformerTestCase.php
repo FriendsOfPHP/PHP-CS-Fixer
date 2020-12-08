@@ -53,30 +53,30 @@ abstract class AbstractTransformerTestCase extends TestCase
 
     public function testGetPriority()
     {
-        static::assertInternalType('int', $this->transformer->getPriority(), $this->transformer->getName());
+        static::assertIsInt($this->transformer->getPriority(), $this->transformer->getName());
     }
 
     public function testGetName()
     {
         $name = $this->transformer->getName();
 
-        static::assertInternalType('string', $name);
-        static::assertRegExp('/^[a-z]+[a-z_]*[a-z]$/', $name);
+        static::assertIsString($name);
+        static::assertMatchesRegularExpression('/^[a-z]+[a-z_]*[a-z]$/', $name);
     }
 
     /**
      * @group legacy
-     * @expectedDeprecation PhpCsFixer\Tokenizer\TransformerInterface::getCustomTokens is deprecated and will be removed in 3.0.
+     * @expectedDeprecation PhpCsFixer\Tokenizer\AbstractTransformer::getCustomTokens is deprecated and will be removed in 3.0.
      */
     public function testGetCustomTokens()
     {
         $name = $this->transformer->getName();
         $customTokens = $this->transformer->getCustomTokens();
 
-        static::assertInternalType('array', $customTokens, $name);
+        static::assertIsArray($customTokens, $name);
 
         foreach ($customTokens as $customToken) {
-            static::assertInternalType('int', $customToken, $name);
+            static::assertIsInt($customToken, $name);
         }
     }
 
@@ -85,7 +85,7 @@ abstract class AbstractTransformerTestCase extends TestCase
         $name = $this->transformer->getName();
         $requiredPhpVersionId = $this->transformer->getRequiredPhpVersionId();
 
-        static::assertInternalType('int', $requiredPhpVersionId, $name);
+        static::assertIsInt($requiredPhpVersionId, $name);
         static::assertGreaterThanOrEqual(50000, $requiredPhpVersionId, $name);
     }
 
@@ -107,6 +107,7 @@ abstract class AbstractTransformerTestCase extends TestCase
             return;
         }
 
+        Tokens::clearCache();
         $tokens = Tokens::fromCode('<?php ');
 
         foreach ($tokens as $index => $token) {
@@ -118,6 +119,7 @@ abstract class AbstractTransformerTestCase extends TestCase
 
     protected function doTest($source, array $expectedTokens = [], array $observedKindsOrPrototypes = [])
     {
+        Tokens::clearCache();
         $tokens = Tokens::fromCode($source);
 
         static::assertSame(
@@ -136,7 +138,7 @@ abstract class AbstractTransformerTestCase extends TestCase
 
         foreach ($expectedTokens as $index => $tokenIdOrContent) {
             if (\is_string($tokenIdOrContent)) {
-                static::assertTrue($tokens[$index]->equals($tokenIdOrContent));
+                static::assertTrue($tokens[$index]->equals($tokenIdOrContent), sprintf('The token at index %d should be %s, got %s', $index, json_encode($tokenIdOrContent), $tokens[$index]->toJson()));
 
                 continue;
             }

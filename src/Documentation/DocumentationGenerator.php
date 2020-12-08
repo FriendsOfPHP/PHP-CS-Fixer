@@ -29,7 +29,9 @@ use PhpCsFixer\FixerDefinition\CodeSampleInterface;
 use PhpCsFixer\FixerDefinition\FileSpecificCodeSampleInterface;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSampleInterface;
 use PhpCsFixer\Preg;
-use PhpCsFixer\RuleSet;
+use PhpCsFixer\RuleSet\RuleSet;
+use PhpCsFixer\RuleSet\RuleSetDescriptionInterface;
+use PhpCsFixer\RuleSet\RuleSets;
 use PhpCsFixer\StdinFileInfo;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Utils;
@@ -53,7 +55,7 @@ final class DocumentationGenerator
             'toFile' => 'New',
         ]));
 
-        $this->path = \dirname(__DIR__, 2).'/doc/rules';
+        $this->path = \dirname(__DIR__, 2).'/doc';
     }
 
     /**
@@ -61,7 +63,7 @@ final class DocumentationGenerator
      */
     public function getFixersDocumentationDirectoryPath()
     {
-        return $this->path;
+        return $this->path.'/rules';
     }
 
     /**
@@ -69,7 +71,7 @@ final class DocumentationGenerator
      */
     public function getFixersDocumentationIndexFilePath()
     {
-        return "{$this->path}/index.rst";
+        return $this->getFixersDocumentationDirectoryPath().'/index.rst';
     }
 
     /**
@@ -127,11 +129,7 @@ RST;
                 $attributes = '';
             }
 
-            $path = Preg::replace(
-                '#^'.preg_quote($this->path, '#').'/#',
-                './',
-                $this->getFixerDocumentationFilePath($fixer)
-            );
+            $path = './'.$this->getFixerDocumentationFileRelativePath($fixer);
 
             $documentation .= <<<RST
 
@@ -148,13 +146,25 @@ RST;
      */
     public function getFixerDocumentationFilePath(FixerInterface $fixer)
     {
-        return $this->path.'/'.Preg::replaceCallback(
+        return $this->getFixersDocumentationDirectoryPath().'/'.Preg::replaceCallback(
             '/^.*\\\\(.+)\\\\(.+)Fixer$/',
             function (array $matches) {
                 return Utils::camelCaseToUnderscore($matches[1]).'/'.Utils::camelCaseToUnderscore($matches[2]);
             },
             \get_class($fixer)
         ).'.rst';
+    }
+
+    /**
+     * @return string
+     */
+    public function getFixerDocumentationFileRelativePath(FixerInterface $fixer)
+    {
+        return Preg::replace(
+            '#^'.preg_quote($this->getFixersDocumentationDirectoryPath(), '#').'/#',
+            '',
+            $this->getFixerDocumentationFilePath($fixer)
+        );
     }
 
     /**
@@ -302,13 +312,13 @@ RST;
                     }
                 }
 
-                $doc .= "\n".$this->generateSampleDiff($fixer, $sample, $index, $name);
+                $doc .= "\n".$this->generateSampleDiff($fixer, $sample, $index + 1, $name);
             }
         }
 
         $ruleSetConfigs = [];
 
-        foreach ((new RuleSet())->getSetDefinitionNames() as $set) {
+        foreach (RuleSets::getSetDefinitionNames() as $set) {
             $ruleSet = new RuleSet([$set => true]);
 
             if ($ruleSet->hasRule($name)) {
@@ -328,11 +338,14 @@ The rule is part of the following rule set{$plural}:
 RST;
 
             foreach ($ruleSetConfigs as $set => $config) {
+                $ruleSetPath = $this->getRuleSetsDocumentationFilePath($set);
+                $ruleSetPath = substr($ruleSetPath, strrpos($ruleSetPath, '/'));
+
                 $doc .= <<<RST
 
 
 {$set}
-  Using the ``{$set}`` rule set will enable the ``{$name}`` rule
+  Using the `{$set} <./../../ruleSets{$ruleSetPath}>`_ rule set will enable the ``{$name}`` rule
 RST;
 
                 if (null !== $config) {
@@ -348,13 +361,125 @@ RST;
         return "{$doc}\n";
     }
 
-    private function generateSampleDiff(FixerInterface $fixer, CodeSampleInterface $sample, $sampleIndex, $ruleName)
+    /**
+     * @return string
+     */
+    public function getRuleSetsDocumentationDirectoryPath()
+    {
+        return $this->path.'/ruleSets';
+    }
+
+    /**
+     * @return string
+     */
+    public function getRuleSetsDocumentationIndexFilePath()
+    {
+        return $this->getRuleSetsDocumentationDirectoryPath().'/index.rst';
+    }
+
+    /**
+     * @param AbstractFixer[] $fixers
+     *
+     * @return string
+     */
+    public function generateRuleSetsDocumentation(RuleSetDescriptionInterface $definition, array $fixers)
+    {
+        $fixerNames = [];
+        foreach ($fixers as $fixer) {
+            $fixerNames[$fixer->getName()] = $fixer;
+        }
+
+        $title = "Rule set ``{$definition->getName()}``";
+        $titleLine = str_repeat('=', \strlen($title));
+        $doc = "{$titleLine}\n{$title}\n{$titleLine}\n\n".$definition->getDescription();
+        if ($definition->isRisky()) {
+            $doc .= ' This set contains rules that are risky.';
+        }
+        $doc .= "\n\n";
+
+        $rules = $definition->getRules();
+
+        if (\count($rules) < 1) {
+            $doc .= 'This is an empty set.';
+        } else {
+            $doc .= "Rules\n-----\n";
+
+            foreach ($rules as $rule => $config) {
+                if ('@' === $rule[0]) {
+                    $ruleSetPath = $this->getRuleSetsDocumentationFilePath($rule);
+                    $ruleSetPath = substr($ruleSetPath, strrpos($ruleSetPath, '/'));
+
+                    $doc .= "\n- `{$rule} <.{$ruleSetPath}>`_";
+                } else {
+                    $path = Preg::replace(
+                        '#^'.preg_quote($this->getFixersDocumentationDirectoryPath(), '#').'/#',
+                        './../rules/',
+                        $this->getFixerDocumentationFilePath($fixerNames[$rule])
+                    );
+
+                    $doc .= "\n- `{$rule} <{$path}>`_";
+                }
+
+                if (!\is_bool($config)) {
+                    $doc .= "\n  config:\n  ``".HelpCommand::toString($config).'``';
+                }
+            }
+        }
+
+        return $doc."\n";
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    public function getRuleSetsDocumentationFilePath($name)
+    {
+        return $this->getRuleSetsDocumentationDirectoryPath().'/'.str_replace(':risky', 'Risky', ucfirst(substr($name, 1))).'.rst';
+    }
+
+    /**
+     * @return string
+     */
+    public function generateRuleSetsDocumentationIndex(array $setDefinitions)
+    {
+        $documentation = <<<'RST'
+===========================
+List of Available Rule sets
+===========================
+RST;
+        foreach ($setDefinitions as $name => $path) {
+            $path = substr($path, strrpos($path, '/'));
+            $documentation .= "\n- `{$name} <.{$path}>`_";
+        }
+
+        return $documentation."\n";
+    }
+
+    /**
+     * @param int    $sampleNumber
+     * @param string $ruleName
+     *
+     * @return string
+     */
+    private function generateSampleDiff(FixerInterface $fixer, CodeSampleInterface $sample, $sampleNumber, $ruleName)
     {
         if ($sample instanceof VersionSpecificCodeSampleInterface && !$sample->isSuitableFor(\PHP_VERSION_ID)) {
+            $existingFile = @file_get_contents($this->getFixerDocumentationFilePath($fixer));
+
+            if (false !== $existingFile) {
+                Preg::match("/\\RExample #{$sampleNumber}\\R.+?(?<diff>\\R\\.\\. code-block:: diff\\R\\R.*?)\\R(?:\\R\\S|$)/s", $existingFile, $matches);
+
+                if (isset($matches['diff'])) {
+                    return $matches['diff'];
+                }
+            }
+
             $error = <<<RST
 
 .. error::
-   Cannot generate diff for code sample #{$sampleIndex} of rule {$ruleName}:
+   Cannot generate diff for code sample #{$sampleNumber} of rule {$ruleName}:
    the sample is not suitable for current version of PHP (%s).
 RST;
 
@@ -400,6 +525,12 @@ RST;
 RST;
     }
 
+    /**
+     * @param string $string
+     * @param int    $indent
+     *
+     * @return string
+     */
     private function toRst($string, $indent = 0)
     {
         $string = wordwrap(Preg::replace('/(?<!`)(`.*?`)(?!`)/', '`$1`', $string), 80 - $indent);
@@ -411,6 +542,12 @@ RST;
         return $string;
     }
 
+    /**
+     * @param string $string
+     * @param int    $indent
+     *
+     * @return string
+     */
     private function indent($string, $indent)
     {
         return Preg::replace('/(\n)(?!\n|$)/', '$1'.str_repeat(' ', $indent), $string);

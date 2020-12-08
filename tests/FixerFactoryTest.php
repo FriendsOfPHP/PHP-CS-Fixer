@@ -13,7 +13,8 @@
 namespace PhpCsFixer\Tests;
 
 use PhpCsFixer\FixerFactory;
-use PhpCsFixer\RuleSet;
+use PhpCsFixer\RuleSet\RuleSet;
+use PhpCsFixer\RuleSet\RuleSetInterface;
 use PhpCsFixer\WhitespacesFixerConfig;
 use stdClass;
 
@@ -44,7 +45,7 @@ final class FixerFactoryTest extends TestCase
         );
         static::assertSame($factory, $testInstance);
 
-        $ruleSetProphecy = $this->prophesize(\PhpCsFixer\RuleSetInterface::class);
+        $ruleSetProphecy = $this->prophesize(RuleSetInterface::class);
         $ruleSetProphecy->getRules()->willReturn([]);
         $testInstance = $factory->useRuleSet(
             $ruleSetProphecy->reveal()
@@ -207,7 +208,7 @@ final class FixerFactoryTest extends TestCase
     public function testConflictingFixers(RuleSet $ruleSet)
     {
         $this->expectException(\UnexpectedValueException::class);
-        $this->expectExceptionMessageRegExp('#^Rule contains conflicting fixers:\n#');
+        $this->expectExceptionMessageMatches('#^Rule contains conflicting fixers:\n#');
 
         FixerFactory::create()->registerBuiltInFixers()->useRuleSet($ruleSet);
     }

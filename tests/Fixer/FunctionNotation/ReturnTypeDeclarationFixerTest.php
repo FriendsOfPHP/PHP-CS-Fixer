@@ -27,7 +27,7 @@ final class ReturnTypeDeclarationFixerTest extends AbstractFixerTestCase
     public function testInvalidConfiguration()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp(
+        $this->expectExceptionMessageMatches(
             '#^\[return_type_declaration\] Invalid configuration: The option "s" does not exist\. (Known|Defined) options are: "space_before"\.$#'
         );
 
@@ -189,6 +189,31 @@ string {}',
                 '<?php fn(): int => 1;',
                 '<?php fn():int => 1;',
             ],
+        ];
+    }
+
+    /**
+     * @param string $expected
+     * @param string $input
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php function foo(): mixed{}',
+            '<?php function foo()   :   mixed{}',
+        ];
+
+        yield [
+            '<?php class A { public function foo(): static{}}',
+            '<?php class A { public function foo()   :static{}}',
         ];
     }
 }

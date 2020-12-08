@@ -55,17 +55,9 @@ final class YodaStyleFixerTest extends AbstractFixerTestCase
         }
     }
 
-    /**
-     * @return array
-     */
     public function provideFixCases()
     {
-        return [
-            [
-                '<?php $a = ($b + $c) || 1 === true ? 1 : 2;',
-                null,
-                ['always_move_variable' => true],
-            ],
+        $tests = [
             [
                 '<?php $a = 1 + ($b + $c) === true ? 1 : 2;',
                 null,
@@ -621,10 +613,6 @@ $a#4
                 '<?php $a = reset($foo) === -/* bar */1;',
             ],
             [
-                '<?php $a **= 4 === $b ? 2 : 3;',
-                '<?php $a **= $b === 4 ? 2 : 3;',
-            ],
-            [
                 '<?php $a %= 4 === $b ? 2 : 3;',
                 '<?php $a %= $b === 4 ? 2 : 3;',
             ],
@@ -648,7 +636,37 @@ $a#4
                     // 1
                 ];',
             ],
+            [
+                '<?php $a = $b = null === $c;',
+                '<?php $a = $b = $c === null;',
+            ],
         ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        $template = '<?php $a = ($b + $c) %s 1 === true ? 1 : 2;';
+        $operators = ['||', '&&'];
+
+        foreach ($operators as $operator) {
+            yield [
+                sprintf($template, $operator),
+                null,
+                ['always_move_variable' => true],
+            ];
+        }
+
+        $templateExpected = '<?php $a %s 4 === $b ? 2 : 3;';
+        $templateInput = '<?php $a %s $b === 4 ? 2 : 3;';
+        $operators = ['**=', '*=', '|=', '+=', '-=', '^=', 'xor', 'or', 'and', '<<=', '>>=', '&=', '.=', '/=', '-=', '||', '&&'];
+
+        foreach ($operators as $operator) {
+            yield [
+                sprintf($templateExpected, $operator),
+                sprintf($templateInput, $operator),
+            ];
+        }
     }
 
     /**
@@ -677,9 +695,6 @@ $a#4
         $this->doTest($input, $expected);
     }
 
-    /**
-     * @return array<string[]>
-     */
     public function provideLessGreaterCases()
     {
         return [
@@ -728,7 +743,7 @@ $a#4
     public function testInvalidConfig(array $config, $expectedMessage)
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp("#^\\[{$this->fixer->getName()}\\] {$expectedMessage}$#");
+        $this->expectExceptionMessageMatches("#^\\[{$this->fixer->getName()}\\] {$expectedMessage}$#");
 
         $this->fixer->configure($config);
     }
@@ -782,9 +797,6 @@ $a#4
         }
     }
 
-    /**
-     * @return array<string[]>
-     */
     public function providePHP70Cases()
     {
         return [
@@ -845,9 +857,6 @@ function a() {
         }
     }
 
-    /**
-     * @return array<string[]>
-     */
     public function providePHP71Cases()
     {
         return [
@@ -1025,6 +1034,32 @@ while (2 !== $b = array_pop($c));
         yield [
             '<?php echo 1 === (unset) $a ? 8 : 7;',
             '<?php echo (unset) $a === 1 ? 8 : 7;',
+        ];
+    }
+
+    /**
+     * @param string $expected
+     * @param string $input
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php
+if ($a = true === $obj instanceof (foo())) {
+    echo 1;
+}',
+            '<?php
+if ($a = $obj instanceof (foo()) === true) {
+    echo 1;
+}',
         ];
     }
 }

@@ -45,6 +45,7 @@ final class NoBreakCommentFixerTest extends AbstractFixerTestCase
         $this->fixer->configure([
             'comment_text' => 'no break',
         ]);
+
         $this->doTest($expected, $input);
     }
 
@@ -734,19 +735,25 @@ switch ($foo) {
             [
                 '<?php
 switch ($foo) {
-    case 1:
+    case 1: {
         throw new \Exception();
+    }
     case 2:
+        ?>
+        <?php
         throw new \Exception();
     default:
         throw new \Exception();
 }',
                 '<?php
 switch ($foo) {
-    case 1:
+    case 1: {
         // no break
         throw new \Exception();
+    }
     case 2:
+        ?>
+        <?php
         // no break
         throw new \Exception();
     default:
@@ -852,6 +859,37 @@ switch ($foo) {
         bar();
 }',
             ],
+            [
+                '<?php
+switch ($a) {
+    case 1:
+        throw new \Exception("");
+    case 2;
+        throw new \Exception("");
+    case 3:
+        throw new \Exception("");
+    case 4;
+        throw new \Exception("");
+    case 5:
+        throw new \Exception("");
+    case 6;
+        throw new \Exception("");
+}
+                ',
+            ],
+            [
+                '<?php
+switch ($f) {
+    case 1:
+        if ($a) {
+            return "";
+        }
+
+        throw new $f();
+    case Z:
+        break;
+}',
+            ],
         ];
     }
 
@@ -931,6 +969,39 @@ switch ($foo) {
     case 2;
         bar();
 }',
+            ],
+            [
+                '<?php
+switch($a) {
+    case 1:
+        $a = function () { throw new \Exception(""); };
+        // no break
+    case 2:
+        $a = new class(){
+            public function foo () { throw new \Exception(""); }
+        };
+        // no break
+    case 3:
+        echo 5;
+        // no break
+    default:
+        echo 1;
+}
+                ',
+                '<?php
+switch($a) {
+    case 1:
+        $a = function () { throw new \Exception(""); };
+    case 2:
+        $a = new class(){
+            public function foo () { throw new \Exception(""); }
+        };
+    case 3:
+        echo 5;
+    default:
+        echo 1;
+}
+                ',
             ],
         ];
     }
@@ -1090,7 +1161,7 @@ switch ($foo) {
     public function testFixWithCommentTextContainingNewLines($text)
     {
         $this->expectException(InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^\[no_break_comment\] Invalid configuration: The comment text must not contain new lines\.$/');
+        $this->expectExceptionMessageMatches('/^\[no_break_comment\] Invalid configuration: The comment text must not contain new lines\.$/');
 
         $this->fixer->configure([
             'comment_text' => $text,
@@ -1109,8 +1180,58 @@ switch ($foo) {
     public function testConfigureWithInvalidOptions()
     {
         $this->expectException(InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^\[no_break_comment\] Invalid configuration: The option "foo" does not exist\. Defined options are: "comment_text"\.$/');
+        $this->expectExceptionMessageMatches('/^\[no_break_comment\] Invalid configuration: The option "foo" does not exist\. Defined options are: "comment_text"\.$/');
 
         $this->fixer->configure(['foo' => true]);
+    }
+
+    /**
+     * @param string $input
+     * @param string $expected
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php
+                switch ($foo) {
+                    case 1:
+                        foo() ?? throw new \Exception();
+                        // no break
+                    case 2:
+                        $a = $condition and throw new Exception();
+                        // no break
+                    case 3:
+                        $callable = fn() => throw new Exception();
+                        // no break
+                    case 4:
+                        $value = $falsableValue ?: throw new InvalidArgumentException();
+                        // no break
+                    default:
+                        echo "PHP8";
+                }
+            ',
+            '<?php
+                switch ($foo) {
+                    case 1:
+                        foo() ?? throw new \Exception();
+                    case 2:
+                        $a = $condition and throw new Exception();
+                    case 3:
+                        $callable = fn() => throw new Exception();
+                    case 4:
+                        $value = $falsableValue ?: throw new InvalidArgumentException();
+                    default:
+                        echo "PHP8";
+                }
+            ',
+        ];
     }
 }

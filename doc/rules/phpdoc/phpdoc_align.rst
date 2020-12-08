@@ -13,7 +13,7 @@ Configuration
 
 The tags that should be aligned.
 
-Allowed values: a subset of ``['param', 'property', 'return', 'throws', 'type', 'var', 'method']``
+Allowed values: a subset of ``['param', 'property', 'property-read', 'property-write', 'return', 'throws', 'type', 'var', 'method']``
 
 Default value: ``['param', 'return', 'throws', 'type', 'var']``
 
@@ -106,12 +106,12 @@ Rule sets
 
 The rule is part of the following rule sets:
 
-@Symfony
-  Using the ``@Symfony`` rule set will enable the ``phpdoc_align`` rule with the config below:
+@PhpCsFixer
+  Using the `@PhpCsFixer <./../../ruleSets/PhpCsFixer.rst>`_ rule set will enable the ``phpdoc_align`` rule with the config below:
 
   ``['tags' => ['method', 'param', 'property', 'return', 'throws', 'type', 'var']]``
 
-@PhpCsFixer
-  Using the ``@PhpCsFixer`` rule set will enable the ``phpdoc_align`` rule with the config below:
+@Symfony
+  Using the `@Symfony <./../../ruleSets/Symfony.rst>`_ rule set will enable the ``phpdoc_align`` rule with the config below:
 
   ``['tags' => ['method', 'param', 'property', 'return', 'throws', 'type', 'var']]``

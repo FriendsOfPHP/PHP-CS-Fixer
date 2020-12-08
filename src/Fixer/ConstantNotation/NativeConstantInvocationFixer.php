@@ -94,6 +94,16 @@ namespace {
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before GlobalNamespaceImportFixer.
+     */
+    public function getPriority()
+    {
+        return 10;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isCandidate(Tokens $tokens)
     {

@@ -70,4 +70,53 @@ final class LowercaseKeywordsFixerTest extends AbstractFixerTestCase
             ],
         ];
     }
+
+    /**
+     * @param string $expected
+     * @param string $input
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php
+echo match (1) {
+    1 => 9,
+    2 => 7,
+};',
+            '<?php
+echo MATCH (1) {
+    1 => 9,
+    2 => 7,
+};',
+        ];
+
+        yield [
+            '<?php
+class Point {
+    public function __construct(
+        public float $x = 0.0,
+        protected float $y = 0.0,
+        private float $z = 0.0,
+    ) {}
+}
+',
+            '<?php
+class Point {
+    public function __construct(
+        PUBLIC float $x = 0.0,
+        Protected float $y = 0.0,
+        privatE float $z = 0.0,
+    ) {}
+}
+',
+        ];
+    }
 }

@@ -340,12 +340,40 @@ A();
 
     public function provideIsGlobalFunctionCallPhp74Cases()
     {
-        return [
-            [
-                false,
-                '<?php $foo = fn() => false;',
-                5,
-            ],
+        yield [
+            false,
+            '<?php $foo = fn() => false;',
+            5,
+        ];
+    }
+
+    /**
+     * @param int[]  $globalFunctionIndexes
+     * @param string $code
+     *
+     * @dataProvider provideIsGlobalFunctionCallPhp80Cases
+     * @requires PHP 8.0
+     */
+    public function testIsGlobalFunctionCallPhp80(array $globalFunctionIndexes, $code)
+    {
+        $tokens = Tokens::fromCode($code);
+        $analyzer = new FunctionsAnalyzer();
+
+        foreach ($globalFunctionIndexes as $index) {
+            static::assertTrue($analyzer->isGlobalFunctionCall($tokens, $index));
+        }
+    }
+
+    public function provideIsGlobalFunctionCallPhp80Cases()
+    {
+        yield [
+            [8],
+            '<?php $a = new (foo());',
+        ];
+
+        yield [
+            [10],
+            '<?php $b = $foo instanceof (foo());',
         ];
     }
 
@@ -712,5 +740,48 @@ A();
             sprintf($template, 'Bar::'),
             24,
         ];
+    }
+
+    /**
+     * @param string $code
+     * @param int    $methodIndex
+     * @param array  $expected
+     *
+     * @dataProvider provideFunctionsWithArgumentsPhp80Cases
+     * @requires PHP 8.0
+     */
+    public function testFunctionArgumentInfoPhp80($code, $methodIndex, $expected)
+    {
+        $tokens = Tokens::fromCode($code);
+        $analyzer = new FunctionsAnalyzer();
+
+        static::assertSame(serialize($expected), serialize($analyzer->getFunctionArguments($tokens, $methodIndex)));
+    }
+
+    public function provideFunctionsWithArgumentsPhp80Cases()
+    {
+        yield ['<?php function($aa,){};', 1, [
+            '$aa' => new ArgumentAnalysis(
+                '$aa',
+                3,
+                null,
+                null
+            ),
+        ]];
+
+        yield ['<?php fn($a,    $bc  ,) => null;', 1, [
+            '$a' => new ArgumentAnalysis(
+                '$a',
+                3,
+                null,
+                null
+            ),
+            '$bc' => new ArgumentAnalysis(
+                '$bc',
+                6,
+                null,
+                null
+            ),
+        ]];
     }
 }

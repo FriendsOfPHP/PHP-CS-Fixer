@@ -69,7 +69,7 @@ final class ProjectCodeTest extends TestCase
      */
     public function testThatSrcClassHaveTestClass($className)
     {
-        $testClassName = str_replace('PhpCsFixer', 'PhpCsFixer\\Tests', $className).'Test';
+        $testClassName = 'PhpCsFixer\\Tests'.substr($className, 10).'Test';
 
         if (\in_array($className, self::$classesWithoutTests, true)) {
             static::assertFalse(class_exists($testClassName), sprintf('Class "%s" already has tests, so it should be removed from "%s::$classesWithoutTests".', $className, __CLASS__));
@@ -261,8 +261,8 @@ final class ProjectCodeTest extends TestCase
         }
 
         foreach ($publicMethods as $method) {
-            static::assertRegExp(
-                '/^(test|provide|setUpBeforeClass$|tearDownAfterClass$)/',
+            static::assertMatchesRegularExpression(
+                '/^(test|expect|provide|setUpBeforeClass$|tearDownAfterClass$)/',
                 $method->getName(),
                 sprintf('Public method "%s::%s" is not properly named.', $reflectionClass->getName(), $method->getName())
             );
@@ -285,7 +285,7 @@ final class ProjectCodeTest extends TestCase
         }
 
         foreach ($usedDataProviderMethodNames as $dataProviderMethodName) {
-            static::assertRegExp('/^provide[A-Z]\S+Cases$/', $dataProviderMethodName, sprintf(
+            static::assertMatchesRegularExpression('/^provide[A-Z]\S+Cases$/', $dataProviderMethodName, sprintf(
                 'Data provider in "%s" with name "%s" is not correctly named.',
                 $testClassName,
                 $dataProviderMethodName

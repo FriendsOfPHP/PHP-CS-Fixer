@@ -29,7 +29,7 @@ final class FunctionDeclarationFixerTest extends AbstractFixerTestCase
     public function testInvalidConfigurationClosureFunctionSpacing()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp(
+        $this->expectExceptionMessageMatches(
             '#^\[function_declaration\] Invalid configuration: The option "closure_function_spacing" with value "neither" is invalid\. Accepted values are: "none", "one"\.$#'
         );
 
@@ -442,6 +442,11 @@ foo#
                 self::$configurationClosureSpacingNone,
             ],
             [
+                '<?php fn&($a,$b) => null;',
+                '<?php fn &(  $a,$b  ) => null;',
+                self::$configurationClosureSpacingNone,
+            ],
+            [
                 '<?php $b = static fn ($a) => $a;',
                 '<?php $b = static     fn( $a )   => $a;',
             ],
@@ -450,6 +455,47 @@ foo#
                 '<?php $b = static     fn ( $a )   => $a;',
                 self::$configurationClosureSpacingNone,
             ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixPhp80Cases
+     * @requires PHP 8.0
+     */
+    public function testFixPhp80($expected, $input = null, array $configuration = [])
+    {
+        $this->fixer->configure($configuration);
+
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPhp80Cases()
+    {
+        yield [
+            '<?php function ($i,) {};',
+            '<?php function(   $i,   ) {};',
+        ];
+
+        yield [
+            '<?php
+                    $b = static function ($a,$b,) {
+                        echo $a;
+                    };
+                ',
+            '<?php
+                    $b = static     function(  $a,$b,   )   {
+                        echo $a;
+                    };
+                ',
+        ];
+
+        yield [
+            '<?php fn&($a,$b,) => null;',
+            '<?php fn &(  $a,$b,   ) => null;',
+            self::$configurationClosureSpacingNone,
         ];
     }
 }

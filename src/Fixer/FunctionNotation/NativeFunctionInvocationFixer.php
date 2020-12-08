@@ -162,6 +162,17 @@ $c = get_class($d);
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before GlobalNamespaceImportFixer.
+     * Must run after BacktickToShellExecFixer, StrictParamFixer.
+     */
+    public function getPriority()
+    {
+        return 1;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isCandidate(Tokens $tokens)
     {
@@ -174,16 +185,6 @@ $c = get_class($d);
     public function isRisky()
     {
         return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Must run after BacktickToShellExecFixer, StrictParamFixer.
-     */
-    public function getPriority()
-    {
-        return 1;
     }
 
     /**

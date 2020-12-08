@@ -67,14 +67,24 @@ class Foo {
     public function doFoo(Bar $bar, $baz): Baz {}
 }
 ', new VersionSpecification(70000)),
-                new VersionSpecificCodeSample('<?php
+                new CodeSample('<?php
 class Foo {
     /**
-     * @var Bar
+     * @inheritDoc
      */
-    private Bar $bar;
+    public function doFoo(Bar $bar, $baz) {}
 }
-', new VersionSpecification(70400)),
+', ['remove_inheritdoc' => true]),
+                new CodeSample('<?php
+class Foo {
+    /**
+     * @param Bar $bar
+     * @param mixed $baz
+     * @param string|int|null $qux
+     */
+    public function doFoo(Bar $bar, $baz /*, $qux = null */) {}
+}
+', ['allow_unused_params' => true]),
             ]
         );
     }
@@ -83,7 +93,7 @@ class Foo {
      * {@inheritdoc}
      *
      * Must run before NoEmptyPhpdocFixer, PhpdocAlignFixer, VoidReturnFixer.
-     * Must run after CommentToPhpdocFixer, FullyQualifiedStrictTypesFixer, PhpdocAddMissingParamAnnotationFixer, PhpdocIndentFixer, PhpdocReturnSelfReferenceFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocToReturnTypeFixer, PhpdocTypesFixer.
+     * Must run after CommentToPhpdocFixer, FullyQualifiedStrictTypesFixer, PhpdocAddMissingParamAnnotationFixer, PhpdocIndentFixer, PhpdocReturnSelfReferenceFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocToParamTypeFixer, PhpdocToReturnTypeFixer, PhpdocTypesFixer.
      */
     public function getPriority()
     {
@@ -125,10 +135,18 @@ class Foo {
 
             $token = $tokens[$documentedElementIndex];
 
+            if ($this->configuration['remove_inheritdoc']) {
+                $content = $this->removeSuperfluousInheritDoc($content);
+            }
+
             if ($token->isGivenKind(T_FUNCTION)) {
                 $content = $this->fixFunctionDocComment($content, $tokens, $index, $shortNames);
             } elseif ($token->isGivenKind(T_VARIABLE)) {
                 $content = $this->fixPropertyDocComment($content, $tokens, $index, $shortNames);
+            }
+
+            if ('' === $content) {
+                $content = '/**  */';
             }
 
             if ($content !== $initialContent) {
@@ -144,6 +162,14 @@ class Foo {
     {
         return new FixerConfigurationResolver([
             (new FixerOptionBuilder('allow_mixed', 'Whether type `mixed` without description is allowed (`true`) or considered superfluous (`false`)'))
+                ->setAllowedTypes(['bool'])
+                ->setDefault(false)
+                ->getOption(),
+            (new FixerOptionBuilder('remove_inheritdoc', 'Remove `@inheritDoc` tags'))
+                ->setAllowedTypes(['bool'])
+                ->setDefault(false)
+                ->getOption(),
+            (new FixerOptionBuilder('allow_unused_params', 'Whether `param` annotation without actual signature is allowed (`true`) or considered superfluous (`false`)'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
                 ->getOption(),
@@ -211,6 +237,10 @@ class Foo {
             }
 
             $argumentName = $matches[1];
+
+            if (!isset($argumentsInfo[$argumentName]) && $this->configuration['allow_unused_params']) {
+                continue;
+            }
 
             if (!isset($argumentsInfo[$argumentName]) || $this->annotationIsSuperfluous($annotation, $argumentsInfo[$argumentName], $shortNames)) {
                 $annotation->remove();
@@ -364,7 +394,7 @@ class Foo {
         if ('param' === $annotation->getTag()->getName()) {
             $regex = '/@param\s+(?:\S|\s(?!\$))++\s\$\S+\s+\S/';
         } elseif ('var' === $annotation->getTag()->getName()) {
-            $regex = '/@var\s+\S+(\s+\$\S+)?(\s+)([^$\s]+)/';
+            $regex = '/@var\s+\S+(\s+\$\S+)?(\s+)(?!\*+\/)([^$\s]+)/';
         } else {
             $regex = '/@return\s+\S+\s+\S/';
         }
@@ -420,5 +450,61 @@ class Foo {
         sort($normalized);
 
         return $normalized;
+    }
+
+    /**
+     * @param string $docComment
+     *
+     * @return string
+     */
+    private function removeSuperfluousInheritDoc($docComment)
+    {
+        return Preg::replace('~
+            # $1: before @inheritDoc tag
+            (
+                # beginning of comment or a PHPDoc tag
+                (?:
+                    ^/\*\*
+                    (?:
+                        \R
+                        [ \t]*(?:\*[ \t]*)?
+                    )*?
+                    |
+                    @\N+
+                )
+
+                # empty comment lines
+                (?:
+                    \R
+                    [ \t]*(?:\*[ \t]*?)?
+                )*
+            )
+
+            # spaces before @inheritDoc tag
+            [ \t]*
+
+            # @inheritDoc tag
+            (?:@inheritDocs?|\{@inheritDocs?\})
+
+            # $2: after @inheritDoc tag
+            (
+                # empty comment lines
+                (?:
+                    \R
+                    [ \t]*(?:\*[ \t]*)?
+                )*
+
+                # a PHPDoc tag or end of comment
+                (?:
+                    @\N+
+                    |
+                    (?:
+                        \R
+                        [ \t]*(?:\*[ \t]*)?
+                    )*
+                    [ \t]*\*/$
+                )
+            )
+        ~ix', '$1$2', $docComment);
     }
 }

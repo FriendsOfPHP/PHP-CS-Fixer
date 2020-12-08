@@ -296,18 +296,25 @@ final class TokensTest extends TestCase
     {
         $emptyToken = new Token('');
 
-        return [
+        $tests = [
             ['Invalid sequence.', []],
-            ['Non-meaningful token at position: "0".', [
-                [T_WHITESPACE, '   '],
-            ]],
-            ['Non-meaningful token at position: "1".', [
-                '{', [T_COMMENT, '// Foo'], '}',
-            ]],
-            ['Non-meaningful token at position: "2".', [
-                '{', '!', $emptyToken, '}',
-            ]],
+            [
+                'Non-meaningful token at position: "0".',
+                [[T_WHITESPACE, '   ']],
+            ],
+            [
+                'Non-meaningful token at position: "1".',
+                ['{', [T_COMMENT, '// Foo'], '}'],
+            ],
+            [
+                'Non-meaningful (empty) token at position: "2".',
+                ['{', '!', $emptyToken, '}'],
+            ],
         ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
     }
 
     public function testClearRange()
@@ -476,7 +483,7 @@ PHP;
         $tokens = Tokens::fromCode($source);
         /** @var Token[] $found */
         $found = $tokens->findGivenKind(T_CLASS);
-        static::assertInternalType('array', $found);
+        static::assertIsArray($found);
         static::assertCount(1, $found);
         static::assertArrayHasKey(1, $found);
         static::assertSame(T_CLASS, $found[1]->getId());
@@ -485,13 +492,13 @@ PHP;
         $found = $tokens->findGivenKind([T_CLASS, T_FUNCTION]);
         static::assertCount(2, $found);
         static::assertArrayHasKey(T_CLASS, $found);
-        static::assertInternalType('array', $found[T_CLASS]);
+        static::assertIsArray($found[T_CLASS]);
         static::assertCount(1, $found[T_CLASS]);
         static::assertArrayHasKey(1, $found[T_CLASS]);
         static::assertSame(T_CLASS, $found[T_CLASS][1]->getId());
 
         static::assertArrayHasKey(T_FUNCTION, $found);
-        static::assertInternalType('array', $found[T_FUNCTION]);
+        static::assertIsArray($found[T_FUNCTION]);
         static::assertCount(2, $found[T_FUNCTION]);
         static::assertArrayHasKey(9, $found[T_FUNCTION]);
         static::assertSame(T_FUNCTION, $found[T_FUNCTION][9]->getId());
@@ -749,10 +756,39 @@ PHP;
         ];
     }
 
+    /**
+     * @param int    $expectedIndex
+     * @param string $source
+     * @param int    $type
+     * @param int    $searchIndex
+     *
+     * @requires PHP 8.0
+     * @dataProvider provideFindBlockEnd80Cases
+     */
+    public function testFindBlockEnd80($expectedIndex, $source, $type, $searchIndex)
+    {
+        static::assertFindBlockEnd($expectedIndex, $source, $type, $searchIndex);
+    }
+
+    public function provideFindBlockEnd80Cases()
+    {
+        return [
+            [
+                9,
+                '<?php class Foo {
+                    #[Required]
+                    public $bar;
+                }',
+                Tokens::BLOCK_TYPE_ATTRIBUTE,
+                7,
+            ],
+        ];
+    }
+
     public function testFindBlockEndInvalidType()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/^Invalid param type: "-1"\.$/');
+        $this->expectExceptionMessageMatches('/^Invalid param type: "-1"\.$/');
 
         Tokens::clearCache();
         $tokens = Tokens::fromCode('<?php ');
@@ -762,7 +798,7 @@ PHP;
     public function testFindBlockEndInvalidStart()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/^Invalid param \$startIndex - not a proper block "start"\.$/');
+        $this->expectExceptionMessageMatches('/^Invalid param \$startIndex - not a proper block "start"\.$/');
 
         Tokens::clearCache();
         $tokens = Tokens::fromCode('<?php ');
@@ -1394,6 +1430,42 @@ $bar;',
     }
 
     /**
+     * @param null|int $expectIndex
+     * @param int      $index
+     * @param int      $direction
+     * @param string   $source
+     *
+     * @dataProvider provideGetMeaningfulTokenSiblingCases
+     */
+    public function testGetMeaningfulTokenSibling($expectIndex, $index, $direction, $source)
+    {
+        Tokens::clearCache();
+        $tokens = Tokens::fromCode($source);
+
+        static::assertSame($expectIndex, $tokens->getMeaningfulTokenSibling($index, $direction));
+    }
+
+    public function provideGetMeaningfulTokenSiblingCases()
+    {
+        yield [null, 0, 1, '<?php '];
+
+        yield [null, 1, 1, '<?php /**/ /**/ /**/ /**/#'];
+
+        for ($i = 0; $i < 3; ++$i) {
+            yield '>'.$i => [3, $i, 1, '<?php /**/ foo();'];
+        }
+
+        yield '>>' => [4, 3, 1, '<?php /**/ foo();'];
+        yield '@ end' => [null, 6, 1, '<?php /**/ foo();'];
+        yield 'over end' => [null, 888, 1, '<?php /**/ foo();'];
+
+        yield [0, 3, -1, '<?php /**/ foo();'];
+        yield [4, 5, -1, '<?php /**/ foo();'];
+        yield [5, 6, -1, '<?php /**/ foo();'];
+        yield [null, 0, -1, '<?php /**/ foo();'];
+    }
+
+    /**
      * @param int    $expectedIndex
      * @param string $source
      * @param int    $type
@@ -1408,14 +1480,14 @@ $bar;',
         static::assertSame($searchIndex, $tokens->findBlockStart($type, $expectedIndex));
 
         $detectedType = Tokens::detectBlockType($tokens[$searchIndex]);
-        static::assertInternalType('array', $detectedType);
+        static::assertIsArray($detectedType);
         static::assertArrayHasKey('type', $detectedType);
         static::assertArrayHasKey('isStart', $detectedType);
         static::assertSame($type, $detectedType['type']);
         static::assertTrue($detectedType['isStart']);
 
         $detectedType = Tokens::detectBlockType($tokens[$expectedIndex]);
-        static::assertInternalType('array', $detectedType);
+        static::assertIsArray($detectedType);
         static::assertArrayHasKey('type', $detectedType);
         static::assertArrayHasKey('isStart', $detectedType);
         static::assertSame($type, $detectedType['type']);

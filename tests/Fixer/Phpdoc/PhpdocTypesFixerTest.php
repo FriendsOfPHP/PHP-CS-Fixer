@@ -25,6 +25,14 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
  */
 final class PhpdocTypesFixerTest extends AbstractFixerTestCase
 {
+    public function testWindowsLinebreaks()
+    {
+        $this->doTest(
+            "<?php /**\r\n * @param string|string[] \$bar\r\n *\r\n * @return int[]\r\n */\r\n",
+            "<?php /**\r\n * @param STRING|String[] \$bar\r\n *\r\n * @return inT[]\r\n */\r\n"
+        );
+    }
+
     public function testConversion()
     {
         $expected = <<<'EOF'
@@ -247,7 +255,7 @@ EOF;
     public function testWrongConfig()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^\[phpdoc_types\] Invalid configuration: The option "groups" .*\.$/');
+        $this->expectExceptionMessageMatches('/^\[phpdoc_types\] Invalid configuration: The option "groups" .*\.$/');
 
         $this->fixer->configure(['groups' => ['__TEST__']]);
     }

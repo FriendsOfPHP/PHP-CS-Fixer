@@ -169,9 +169,10 @@ final class ArrayIndentationFixer extends AbstractFixer implements WhitespacesAw
         for ($searchEndIndex = $index + 1; $searchEndIndex < $parentScopeEndIndex; ++$searchEndIndex) {
             $searchEndToken = $tokens[$searchEndIndex];
 
-            if ($searchEndToken->equalsAny(['(', '{'])) {
+            if ($searchEndToken->equalsAny(['(', '{']) || $searchEndToken->isGivenKind(CT::T_ARRAY_SQUARE_BRACE_OPEN)) {
+                $type = Tokens::detectBlockType($searchEndToken);
                 $searchEndIndex = $tokens->findBlockEnd(
-                    $searchEndToken->equals('{') ? Tokens::BLOCK_TYPE_CURLY_BRACE : Tokens::BLOCK_TYPE_PARENTHESIS_BRACE,
+                    $type['type'],
                     $searchEndIndex
                 );
 
@@ -231,7 +232,7 @@ final class ArrayIndentationFixer extends AbstractFixer implements WhitespacesAw
 
     private function isNewLineToken(Tokens $tokens, $index)
     {
-        if (!$tokens[$index]->equalsAny([[T_WHITESPACE], [T_INLINE_HTML]])) {
+        if (!$tokens[$index]->isGivenKind([T_WHITESPACE, T_INLINE_HTML])) {
             return false;
         }
 

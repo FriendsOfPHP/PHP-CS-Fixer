@@ -487,7 +487,7 @@ $b = 1;
     public function testWrongConfig()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^\[no_extra_blank_lines\] Invalid configuration: The option "tokens" .*\.$/');
+        $this->expectExceptionMessageMatches('/^\[no_extra_blank_lines\] Invalid configuration: The option "tokens" .*\.$/');
 
         $this->fixer->configure(['tokens' => ['__TEST__']]);
     }
@@ -1229,6 +1229,37 @@ use const some\a\{ConstA,ConstB,ConstC
   '.'
 use const some\Z\{ConstX,ConstY,ConstZ,};
 ',
+        ];
+    }
+
+    /**
+     * @param string $expected
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected)
+    {
+        $this->fixer->configure(['tokens' => ['throw']]);
+
+        $this->doTest($expected);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php
+                $a = $bar ?? throw new \Exception();
+                $a = $bar ?? throw new \Exception();
+                $a = $bar ?? throw new \Exception();
+            ',
+            '<?php
+                $a = $bar ?? throw new \Exception();
+
+                $a = $bar ?? throw new \Exception();
+
+                $a = $bar ?? throw new \Exception();
+            ',
         ];
     }
 

@@ -1226,6 +1226,25 @@ final class Sample
 }
 ',
             ],
+            [
+                ['tags' => ['property', 'property-read', 'property-write']],
+                '<?php
+/**
+ * @property       string $myMagicProperty
+ * @property-read  string $myMagicReadyProperty
+ * @property-write string $myMagicWriteProperty
+ */
+class Foo {}
+',
+                '<?php
+/**
+ * @property string $myMagicProperty
+ * @property-read string $myMagicReadyProperty
+ * @property-write string $myMagicWriteProperty
+ */
+class Foo {}
+',
+            ],
         ];
     }
 

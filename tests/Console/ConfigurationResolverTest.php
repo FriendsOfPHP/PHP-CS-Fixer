@@ -37,7 +37,7 @@ final class ConfigurationResolverTest extends TestCase
     public function testSetOptionWithUndefinedOption()
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^Unknown option name: "foo"\.$/');
+        $this->expectExceptionMessageMatches('/^Unknown option name: "foo"\.$/');
 
         $this->createConfigurationResolver(['foo' => 'bar']);
     }
@@ -275,7 +275,7 @@ final class ConfigurationResolverTest extends TestCase
     public function testResolveConfigFileChooseFileWithInvalidFile()
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessageRegExp(
+        $this->expectExceptionMessageMatches(
             '#^The config file: ".+[\/\\\]Fixtures[\/\\\]ConfigurationResolverConfigFile[\/\\\]case_5[\/\\\]\.php_cs\.dist" does not return a "PhpCsFixer\\\ConfigInterface" instance\. Got: "string"\.$#'
         );
 
@@ -289,7 +289,7 @@ final class ConfigurationResolverTest extends TestCase
     public function testResolveConfigFileChooseFileWithInvalidFormat()
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^The format "xls" is not defined, supported are "checkstyle", "gitlab", "json", "junit", "txt", "xml"\.$/');
+        $this->expectExceptionMessageMatches('/^The format "xls" is not defined, supported are "checkstyle", "gitlab", "json", "junit", "txt", "xml"\.$/');
 
         $dirBase = $this->getFixtureDir();
 
@@ -301,7 +301,7 @@ final class ConfigurationResolverTest extends TestCase
     public function testResolveConfigFileChooseFileWithPathArrayWithoutConfig()
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^For multiple paths config parameter is required\.$/');
+        $this->expectExceptionMessageMatches('/^For multiple paths config parameter is required\.$/');
 
         $dirBase = $this->getFixtureDir();
 
@@ -854,14 +854,17 @@ final class ConfigurationResolverTest extends TestCase
         $cacheFile = 'foo/bar.baz';
 
         $config = new Config();
-        $config->setCacheFile($cacheFile);
+        $config
+            ->setUsingCache(false)
+            ->setCacheFile($cacheFile)
+        ;
 
         $resolver = $this->createConfigurationResolver(
             [],
             $config
         );
 
-        static::assertSame($cacheFile, $resolver->getCacheFile());
+        static::assertNull($resolver->getCacheFile());
 
         $cacheManager = $resolver->getCacheManager();
 
@@ -1157,7 +1160,7 @@ final class ConfigurationResolverTest extends TestCase
         ]);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('#^"diff\-format" must be any of "null", "sbd", "udiff", got "XXX"\.$#');
+        $this->expectExceptionMessageMatches('#^"diff\-format" must be any of "null", "sbd", "udiff", got "XXX"\.$#');
 
         $resolver->getDiffer();
     }
@@ -1207,7 +1210,7 @@ final class ConfigurationResolverTest extends TestCase
         $resolver = $this->createConfigurationResolver(['rules' => '']);
 
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^Empty rules value is not allowed\.$/');
+        $this->expectExceptionMessageMatches('/^Empty rules value is not allowed\.$/');
 
         $resolver->getRules();
     }
@@ -1250,29 +1253,32 @@ final class ConfigurationResolverTest extends TestCase
     }
 
     /**
-     * @dataProvider provideGetDirectoryCases
-     *
      * @param null|string $cacheFile
      * @param string      $file
      * @param string      $expectedPathRelativeToFile
+     *
+     * @dataProvider provideGetDirectoryCases
      */
     public function testGetDirectory($cacheFile, $file, $expectedPathRelativeToFile)
     {
         if (null !== $cacheFile) {
             $cacheFile = $this->normalizePath($cacheFile);
         }
+
         $file = $this->normalizePath($file);
         $expectedPathRelativeToFile = $this->normalizePath($expectedPathRelativeToFile);
 
         $config = new Config();
+
         if (null === $cacheFile) {
             $config->setUsingCache(false);
         } else {
             $config->setCacheFile($cacheFile);
         }
 
-        $resolver = new ConfigurationResolver($config, [], $this->normalizePath('/my/path'), new ToolInfo());
+        $resolver = new ConfigurationResolver($config, [], $this->normalizePath('/my/path'), new TestToolInfo());
         $directory = $resolver->getDirectory();
+
         static::assertSame($expectedPathRelativeToFile, $directory->getRelativePathTo($file));
     }
 
@@ -1304,7 +1310,7 @@ final class ConfigurationResolverTest extends TestCase
             $config,
             $options,
             $cwdPath,
-            new ToolInfo()
+            new TestToolInfo()
         );
     }
 }
