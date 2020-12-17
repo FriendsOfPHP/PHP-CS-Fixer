@@ -18,6 +18,7 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\VersionSpecification;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSample;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\TypeAnalysis;
+use PhpCsFixer\Tokenizer\Analyzer\ClassAnalyzer;
 use PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer;
 use PhpCsFixer\Tokenizer\Analyzer\NamespacesAnalyzer;
 use PhpCsFixer\Tokenizer\Analyzer\NamespaceUsesAnalyzer;
@@ -88,7 +89,7 @@ class SomeClass
      */
     public function isCandidate(Tokens $tokens)
     {
-        return $tokens->isTokenKindFound(T_FUNCTION) && (
+        return $tokens->findGivenKind([T_FUNCTION, T_CLASS, T_INTERFACE]) && (
             \count((new NamespacesAnalyzer())->getDeclarations($tokens)) ||
             \count((new NamespaceUsesAnalyzer())->getDeclarationsFromTokens($tokens))
         );
@@ -101,14 +102,33 @@ class SomeClass
     {
         $lastIndex = $tokens->count() - 1;
         for ($index = $lastIndex; $index >= 0; --$index) {
-            if (!$tokens[$index]->isGivenKind(T_FUNCTION)) {
+            if ($tokens[$index]->isGivenKind(T_FUNCTION)) {
+                $this->fixFunctionReturnType($tokens, $index);
+                $this->fixFunctionArguments($tokens, $index);
+
                 continue;
             }
 
-            // Return types are only available since PHP 7.0
-            $this->fixFunctionReturnType($tokens, $index);
-            $this->fixFunctionArguments($tokens, $index);
+            if ($tokens[$index]->isGivenKind([T_CLASS, T_INTERFACE])) {
+                $this->fixClassExtendsType($tokens, $index);
+
+                continue;
+            }
         }
+    }
+
+    /**
+     * @param int $index
+     */
+    private function fixClassExtendsType(Tokens $tokens, $index)
+    {
+        $extends = (new ClassAnalyzer())->getClassExtends($tokens, $index);
+
+        if (null === $extends) {
+            return;
+        }
+
+        $this->detectAndReplaceTypeWithShortType($tokens, $extends);
     }
 
     /**
