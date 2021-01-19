@@ -91,6 +91,10 @@ foreach($connections as $key => $sqlite) {
                 continue;
             }
 
+            if ($commentsAnalyzer->isAnnotation($token)) {
+                continue;
+            }
+
             $tokens[$index] = new Token([T_COMMENT, '/*'.ltrim($token->getContent(), '/*')]);
         }
     }
