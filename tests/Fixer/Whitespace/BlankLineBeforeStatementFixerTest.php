@@ -406,7 +406,7 @@ switch ($a) {
     public function testFixWithDocCommentCases($expected, $input = null)
     {
         $this->fixer->configure([
-            'statements' => ['doccomment'],
+            'statements' => ['doc_comment'],
         ]);
 
         $this->doTest($expected, $input);
