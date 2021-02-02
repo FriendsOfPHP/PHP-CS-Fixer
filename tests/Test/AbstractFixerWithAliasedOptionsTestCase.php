@@ -12,6 +12,7 @@
 
 namespace PhpCsFixer\Tests\Test;
 
+use PhpCsFixer\AbstractFixer;
 use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
 use PhpCsFixer\FixerConfiguration\AliasedFixerOption;
 
@@ -19,8 +20,6 @@ use PhpCsFixer\FixerConfiguration\AliasedFixerOption;
  * @author ntzm
  *
  * @internal
- *
- * @todo 3.0 Drop this class
  */
 abstract class AbstractFixerWithAliasedOptionsTestCase extends AbstractFixerTestCase
 {
@@ -29,9 +28,9 @@ abstract class AbstractFixerWithAliasedOptionsTestCase extends AbstractFixerTest
      */
     private $fixerWithAliasedConfig;
 
-    protected function tearDown()
+    protected function doTearDown()
     {
-        parent::tearDown();
+        parent::doTearDown();
 
         $this->fixerWithAliasedConfig = null;
     }
@@ -41,6 +40,10 @@ abstract class AbstractFixerWithAliasedOptionsTestCase extends AbstractFixerTest
         parent::doTest($expected, $input, $file);
 
         if (null !== $this->fixerWithAliasedConfig) {
+            if (!$this->fixerWithAliasedConfig instanceof AbstractFixer) {
+                throw new \LogicException();
+            }
+
             $fixer = $this->fixer;
             $fixerWithAliasedConfig = $this->fixerWithAliasedConfig;
 
@@ -57,7 +60,7 @@ abstract class AbstractFixerWithAliasedOptionsTestCase extends AbstractFixerTest
     protected function configureFixerWithAliasedOptions(array $configuration)
     {
         if (!$this->fixer instanceof ConfigurationDefinitionFixerInterface) {
-            throw new \LogicException('Fixer is not configurable');
+            throw new \LogicException('Fixer is not configurable.');
         }
 
         $this->fixer->configure($configuration);
@@ -80,7 +83,7 @@ abstract class AbstractFixerWithAliasedOptionsTestCase extends AbstractFixerTest
         }
 
         if (!$hasAliasedOptions) {
-            throw new \LogicException('Fixer has no aliased options');
+            throw new \LogicException('Fixer has no aliased options.');
         }
 
         $this->fixerWithAliasedConfig = clone $this->fixer;

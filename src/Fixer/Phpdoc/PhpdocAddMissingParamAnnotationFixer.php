@@ -77,11 +77,12 @@ function f9(string $foo, $bar, $baz) {}
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before NoEmptyPhpdocFixer, NoSuperfluousPhpdocTagsFixer, PhpdocAlignFixer, PhpdocAlignFixer, PhpdocOrderFixer.
+     * Must run after CommentToPhpdocFixer, GeneralPhpdocTagRenameFixer, PhpdocIndentFixer, PhpdocNoAliasTagFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocTypesFixer.
      */
     public function getPriority()
     {
-        // must be run after PhpdocNoAliasTagFixer
-        // must be run before PhpdocAlignFixer and PhpdocNoEmptyReturnFixer
         return 10;
     }
 
@@ -96,20 +97,11 @@ function f9(string $foo, $bar, $baz) {}
     /**
      * {@inheritdoc}
      */
-    public function isRisky()
-    {
-        return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
         $argumentsAnalyzer = new ArgumentsAnalyzer();
 
         for ($index = 0, $limit = $tokens->count(); $index < $limit; ++$index) {
-            $mainIndex = $index;
             $token = $tokens[$index];
 
             if (!$token->isGivenKind(T_DOC_COMMENT)) {
@@ -127,6 +119,7 @@ function f9(string $foo, $bar, $baz) {}
                 continue;
             }
 
+            $mainIndex = $index;
             $index = $tokens->getNextMeaningfulToken($index);
 
             if (null === $index) {
@@ -232,9 +225,8 @@ function f9(string $foo, $bar, $baz) {}
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $start
-     * @param int    $end
+     * @param int $start
+     * @param int $end
      *
      * @return array
      */

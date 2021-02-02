@@ -27,20 +27,20 @@ use Symfony\Component\Console\Formatter\OutputFormatter;
 final class XmlReporterTest extends AbstractReporterTestCase
 {
     /**
-     * @var string
+     * @var null|string
      */
     private static $xsd;
 
-    public static function setUpBeforeClass()
+    public static function doSetUpBeforeClass()
     {
-        parent::setUpBeforeClass();
+        parent::doSetUpBeforeClass();
 
-        self::$xsd = file_get_contents(__DIR__.'/../../doc/xml.xsd');
+        self::$xsd = file_get_contents(__DIR__.'/../../doc/report-schema/xml.xsd');
     }
 
-    public static function tearDownAfterClass()
+    public static function doTearDownAfterClass()
     {
-        parent::tearDownAfterClass();
+        parent::doTearDownAfterClass();
 
         self::$xsd = null;
     }

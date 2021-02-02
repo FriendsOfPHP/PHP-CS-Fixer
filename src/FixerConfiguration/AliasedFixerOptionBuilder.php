@@ -16,8 +16,6 @@ namespace PhpCsFixer\FixerConfiguration;
  * @author ntzm
  *
  * @internal
- *
- * @todo 3.0 Drop this class
  */
 final class AliasedFixerOptionBuilder
 {
@@ -62,8 +60,6 @@ final class AliasedFixerOptionBuilder
     }
 
     /**
-     * @param array $allowedValues
-     *
      * @return $this
      */
     public function setAllowedValues(array $allowedValues)
@@ -74,8 +70,6 @@ final class AliasedFixerOptionBuilder
     }
 
     /**
-     * @param \Closure $normalizer
-     *
      * @return $this
      */
     public function setNormalizer(\Closure $normalizer)

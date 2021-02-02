@@ -158,10 +158,11 @@ use Bar;
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after GlobalNamespaceImportFixer, NoLeadingImportSlashFixer.
      */
     public function getPriority()
     {
-        // should be run after the NoLeadingImportSlashFixer
         return -30;
     }
 
@@ -333,8 +334,7 @@ use Bar;
     }
 
     /**
-     * @param int[]  $uses
-     * @param Tokens $tokens
+     * @param int[] $uses
      *
      * @return array
      */
@@ -347,7 +347,7 @@ use Bar;
         for ($i = \count($uses) - 1; $i >= 0; --$i) {
             $index = $uses[$i];
 
-            $startIndex = $tokens->getTokenNotOfKindSibling($index + 1, 1, [[T_WHITESPACE]]);
+            $startIndex = $tokens->getTokenNotOfKindsSibling($index + 1, 1, [T_WHITESPACE]);
             $endIndex = $tokens->getNextTokenOfKind($startIndex, [';', [T_CLOSE_TAG]]);
             $previous = $tokens->getPrevMeaningfulToken($endIndex);
 
@@ -390,6 +390,7 @@ use Bar;
                         $firstIndent = '';
                         $separator = ', ';
                         $lastIndent = '';
+                        $hasGroupTrailingComma = false;
 
                         for ($k1 = $k + 1; $k1 < $namespaceTokensCount; ++$k1) {
                             $comment = '';
@@ -407,9 +408,9 @@ use Bar;
 
                                 // if there is any line ending inside the group import, it should be indented properly
                                 if (
-                                    '' === $firstIndent &&
-                                    $namespaceTokens[$k2]->isWhitespace() &&
-                                    false !== strpos($namespaceTokens[$k2]->getContent(), $lineEnding)
+                                    '' === $firstIndent
+                                    && $namespaceTokens[$k2]->isWhitespace()
+                                    && false !== strpos($namespaceTokens[$k2]->getContent(), $lineEnding)
                                 ) {
                                     $lastIndent = $lineEnding;
                                     $firstIndent = $lineEnding.$this->whitespacesConfig->getIndent();
@@ -420,6 +421,12 @@ use Bar;
                             }
 
                             $namespacePart = trim($namespacePart);
+                            if ('' === $namespacePart) {
+                                $hasGroupTrailingComma = true;
+
+                                continue;
+                            }
+
                             $comment = trim($comment);
                             if ('' !== $comment) {
                                 $namespacePart .= ' '.$comment;
@@ -437,7 +444,7 @@ use Bar;
                         if ($sortedParts === $parts) {
                             $namespace = Tokens::fromArray($namespaceTokens)->generateCode();
                         } else {
-                            $namespace .= $firstIndent.implode($separator, $parts).$lastIndent.'}';
+                            $namespace .= $firstIndent.implode($separator, $parts).($hasGroupTrailingComma ? ',' : '').$lastIndent.'}';
                         }
                     } else {
                         $namespace = Tokens::fromArray($namespaceTokens)->generateCode();

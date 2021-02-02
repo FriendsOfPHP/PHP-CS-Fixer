@@ -34,6 +34,7 @@ final class PhpUnitTargetVersion
     const VERSION_5_7 = '5.7';
     const VERSION_6_0 = '6.0';
     const VERSION_7_5 = '7.5';
+    const VERSION_8_4 = '8.4';
     const VERSION_NEWEST = 'newest';
 
     private function __construct()
@@ -49,7 +50,7 @@ final class PhpUnitTargetVersion
     public static function fulfills($candidate, $target)
     {
         if (self::VERSION_NEWEST === $target) {
-            throw new \LogicException(sprintf('Parameter `target` shall not be provided as `%s`, determine proper target for tested PHPUnit feature instead.', self::VERSION_NEWEST));
+            throw new \LogicException(sprintf('Parameter `target` shall not be provided as "%s", determine proper target for tested PHPUnit feature instead.', self::VERSION_NEWEST));
         }
 
         if (self::VERSION_NEWEST === $candidate) {

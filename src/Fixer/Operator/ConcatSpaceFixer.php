@@ -68,6 +68,16 @@ final class ConcatSpaceFixer extends AbstractFixer implements ConfigurationDefin
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after SingleLineThrowFixer.
+     */
+    public function getPriority()
+    {
+        return 0;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isCandidate(Tokens $tokens)
     {
@@ -101,8 +111,7 @@ final class ConcatSpaceFixer extends AbstractFixer implements ConfigurationDefin
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  index of concatenation '.' token
+     * @param int $index index of concatenation '.' token
      */
     private function fixConcatenationToNoSpace(Tokens $tokens, $index)
     {
@@ -117,8 +126,7 @@ final class ConcatSpaceFixer extends AbstractFixer implements ConfigurationDefin
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  index of concatenation '.' token
+     * @param int $index index of concatenation '.' token
      */
     private function fixConcatenationToSingleSpace(Tokens $tokens, $index)
     {
@@ -127,9 +135,8 @@ final class ConcatSpaceFixer extends AbstractFixer implements ConfigurationDefin
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  index of concatenation '.' token
-     * @param int    $offset 1 or -1
+     * @param int $index  index of concatenation '.' token
+     * @param int $offset 1 or -1
      */
     private function fixWhiteSpaceAroundConcatToken(Tokens $tokens, $index, $offset)
     {

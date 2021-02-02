@@ -56,11 +56,12 @@ class Bar {}
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before HeaderCommentFixer, PhpdocAlignFixer, SingleBlankLineBeforeNamespaceFixer.
+     * Must run after CommentToPhpdocFixer, PhpdocIndentFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocTypesFixer.
      */
     public function getPriority()
     {
-        // should be run before the SingleBlankLineBeforeNamespaceFixer.
-        // should be run after the NoWhitespaceInBlankLineFixer.
         return -20;
     }
 
@@ -79,6 +80,7 @@ class Bar {}
             T_CONTINUE,
             T_BREAK,
             T_DECLARE,
+            T_USE,
         ];
 
         foreach ($tokens as $index => $token) {
@@ -97,8 +99,7 @@ class Bar {}
     /**
      * Cleanup a whitespace token.
      *
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      */
     private function fixWhitespace(Tokens $tokens, $index)
     {

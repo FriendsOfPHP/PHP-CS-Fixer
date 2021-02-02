@@ -1,20 +1,34 @@
 {
     "symbol-whitelist" : [
-        "Symfony\\Contracts\\EventDispatcher\\EventDispatcherInterface",
+        "LegacyPHPUnit\\TestCase",
+        "PhpCsFixer\\PhpunitConstraintIsIdenticalString\\Constraint\\IsIdenticalString",
         "PhpCsFixer\\Tests\\Test\\Constraint\\SameStringsConstraint",
+        "PhpCsFixer\\Tests\\Test\\IsIdenticalConstraint",
         "PHPUnit\\Framework\\Constraint\\IsIdentical",
         "PHPUnit\\Framework\\TestCase",
         "PHPUnit\\Runner\\Version",
+        "PHPUnitGoodPractices\\Polyfill\\PolyfillTrait",
         "PHPUnitGoodPractices\\Traits\\ExpectationViaCodeOverAnnotationTrait",
         "PHPUnitGoodPractices\\Traits\\ExpectOverSetExceptionTrait",
         "PHPUnitGoodPractices\\Traits\\IdentityOverEqualityTrait",
         "PHPUnitGoodPractices\\Traits\\ProphecyOverMockObjectTrait",
         "PHPUnitGoodPractices\\Traits\\ProphesizeOnlyInterfaceTrait",
         "Prophecy\\Argument",
+        "Prophecy\\PhpUnit\\ProphecyTrait",
+        "Symfony\\Component\\EventDispatcher\\Event",
+        "Symfony\\Contracts\\EventDispatcher\\Event",
+        "Symfony\\Contracts\\EventDispatcher\\EventDispatcherInterface",
 
         "null", "true", "false",
         "static", "self", "parent",
-        "array", "string", "int", "float", "bool", "iterable", "callable", "void"
+        "array", "string", "int", "float", "bool", "iterable", "callable", "void",
+        "T_ATTRIBUTE",
+        "T_COALESCE_EQUAL",
+        "T_FN",
+        "T_MATCH",
+        "T_NAME_FULLY_QUALIFIED",
+        "T_NAME_QUALIFIED",
+        "T_NAME_RELATIVE"
     ],
     "php-core-extensions" : [
         "dom", "mbstring", "Phar",

@@ -100,8 +100,7 @@ SAMPLE
     /**
      * Method to fix spacing in array declaration.
      *
-     * @param int    $index
-     * @param Tokens $tokens
+     * @param int $index
      */
     private function fixSpacing($index, Tokens $tokens)
     {
@@ -119,8 +118,8 @@ SAMPLE
             $prevIndex = $tokens->getPrevNonWhitespace($i - 1);
 
             if (
-                $currentToken->equals(',') && !$tokens[$prevIndex]->isComment() &&
-                ($this->configuration['after_heredoc'] || !$tokens[$prevIndex]->equals([T_END_HEREDOC]))
+                $currentToken->equals(',') && !$tokens[$prevIndex]->isComment()
+                && ($this->configuration['after_heredoc'] || !$tokens[$prevIndex]->equals([T_END_HEREDOC]))
             ) {
                 $tokens->removeLeadingWhitespace($i);
             }
@@ -130,8 +129,7 @@ SAMPLE
     /**
      * Method to move index over the non-array elements like function calls or function declarations.
      *
-     * @param int    $index
-     * @param Tokens $tokens
+     * @param int $index
      *
      * @return int New index
      */

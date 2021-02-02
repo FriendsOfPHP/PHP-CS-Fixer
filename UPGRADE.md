@@ -12,7 +12,7 @@ Default ruleset was changed from Symfony standard to more generic PSR2. You can 
 The term of risky fixers was introduced. Risky fixer is a fixer that may change the meaning of code (like `StrictComparisonFixer` fixer, which will change `==` into `===`). No rules that are followed by risky fixers are run by default. You need to explicitly permit risky fixers to run them.
 
 Default configuration changes
-----------------------------
+-----------------------------
 By default, PSR2 rules are used instead of Symfony rules.
 Files that will be fixed are php/phpt/twig instead of php/twig/xml/yml.
 Finally, the caching mechanism is enabled by default.
@@ -108,6 +108,7 @@ multiple_use                                   | single_import_per_statement
 namespace_no_leading_whitespace                | no_leading_namespace_whitespace
 newline_after_open_tag                         | linebreak_after_opening_tag
 no_empty_lines_after_phpdocs                   | no_blank_lines_after_phpdoc
+no_short_echo_tag                              | echo_tag_syntax
 object_operator                                | object_operator_without_whitespace
 operators_spaces                               | binary_operator_spaces
 ordered_use                                    | ordered_imports
@@ -169,7 +170,7 @@ $config = Symfony\CS\Config\Config::create()
 ```
 <?php
 // phpcs-fixer v2.*
-$config = PhpCsFixer\Config::create()
+$config = (new PhpCsFixer\Config())
     ->registerCustomFixers([
         new ShopSys\CodingStandards\CsFixer\MissingButtonTypeFixer(),
         new ShopSys\CodingStandards\CsFixer\OrmJoinColumnRequireNullableFixer(),

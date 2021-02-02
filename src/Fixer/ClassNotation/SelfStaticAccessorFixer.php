@@ -34,7 +34,7 @@ final class SelfStaticAccessorFixer extends AbstractFixer
     public function getDefinition()
     {
         return new FixerDefinition(
-            'Inside a final class or anonymous class `self` should be preferred to `static`.',
+            'Inside a `final` class or anonymous class `self` should be preferred to `static`.',
             [
                 new CodeSample(
                     '<?php
@@ -99,9 +99,13 @@ $a = new class() {
         return $tokens->isAllTokenKindsFound([T_CLASS, T_STATIC]) && $tokens->isAnyTokenKindsFound([T_DOUBLE_COLON, T_NEW, T_INSTANCEOF]);
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * Must run after FinalInternalClassFixer, FunctionToConstantFixer, PhpUnitTestCaseStaticMethodCallsFixer.
+     */
     public function getPriority()
     {
-        // must be run after FinalInternalClassFixer and FunctionToConstantFixer
         return -10;
     }
 
@@ -127,8 +131,7 @@ $a = new class() {
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return int
      */

@@ -62,6 +62,8 @@ final class PhpdocAlignFixer extends AbstractFixer implements ConfigurationDefin
     private static $alignableTags = [
         'param',
         'property',
+        'property-read',
+        'property-write',
         'return',
         'throws',
         'type',
@@ -143,6 +145,8 @@ EOF;
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after CommentToPhpdocFixer, CommentToPhpdocFixer, GeneralPhpdocAnnotationRemoveFixer, GeneralPhpdocTagRenameFixer, NoBlankLinesAfterPhpdocFixer, NoEmptyPhpdocFixer, NoSuperfluousPhpdocTagsFixer, PhpdocAddMissingParamAnnotationFixer, PhpdocAddMissingParamAnnotationFixer, PhpdocAnnotationWithoutDotFixer, PhpdocIndentFixer, PhpdocIndentFixer, PhpdocInlineTagFixer, PhpdocInlineTagNormalizerFixer, PhpdocLineSpanFixer, PhpdocNoAccessFixer, PhpdocNoAliasTagFixer, PhpdocNoEmptyReturnFixer, PhpdocNoPackageFixer, PhpdocNoUselessInheritdocFixer, PhpdocOrderByValueFixer, PhpdocOrderFixer, PhpdocReturnSelfReferenceFixer, PhpdocScalarFixer, PhpdocScalarFixer, PhpdocSeparationFixer, PhpdocSingleLineVarSpacingFixer, PhpdocSummaryFixer, PhpdocTagCasingFixer, PhpdocTagTypeFixer, PhpdocToCommentFixer, PhpdocToCommentFixer, PhpdocToParamTypeFixer, PhpdocToReturnTypeFixer, PhpdocTrimConsecutiveBlankLineSeparationFixer, PhpdocTrimFixer, PhpdocTypesFixer, PhpdocTypesFixer, PhpdocTypesOrderFixer, PhpdocVarAnnotationCorrectOrderFixer, PhpdocVarWithoutNameFixer.
      */
     public function getPriority()
     {
@@ -153,7 +157,7 @@ EOF;
          * annotations are of the correct type, and are grouped correctly
          * before running this fixer.
          */
-        return -21;
+        return -42;
     }
 
     /**
@@ -216,9 +220,6 @@ EOF;
         return new FixerConfigurationResolver([$tags->getOption(), $align->getOption()]);
     }
 
-    /**
-     * @param DocBlock $docBlock
-     */
     private function fixDocBlock(DocBlock $docBlock)
     {
         $lineEnding = $this->whitespacesConfig->getLineEnding();
@@ -332,7 +333,7 @@ EOF;
      * @param string $line
      * @param bool   $matchCommentOnly
      *
-     * @return null|string[]
+     * @return null|array<string, null|string>
      */
     private function getMatches($line, $matchCommentOnly = false)
     {
@@ -363,6 +364,8 @@ EOF;
 
             return $matches;
         }
+
+        return null;
     }
 
     /**

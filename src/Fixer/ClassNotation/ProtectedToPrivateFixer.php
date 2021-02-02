@@ -49,9 +49,14 @@ final class Sample
         );
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * Must run before OrderedClassElementsFixer.
+     * Must run after FinalInternalClassFixer.
+     */
     public function getPriority()
     {
-        // must run before OrderedClassElementsFixer.
         return 66;
     }
 
@@ -86,9 +91,8 @@ final class Sample
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $classOpenIndex
-     * @param int    $classCloseIndex
+     * @param int $classOpenIndex
+     * @param int $classCloseIndex
      */
     private function fixClass(Tokens $tokens, $classOpenIndex, $classCloseIndex)
     {
@@ -110,10 +114,9 @@ final class Sample
     /**
      * Decide whether or not skip the fix for given class.
      *
-     * @param Tokens $tokens
-     * @param int    $classIndex
-     * @param int    $classOpenIndex
-     * @param int    $classCloseIndex
+     * @param int $classIndex
+     * @param int $classOpenIndex
+     * @param int $classCloseIndex
      *
      * @return bool
      */

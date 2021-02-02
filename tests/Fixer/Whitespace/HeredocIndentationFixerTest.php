@@ -48,8 +48,9 @@ TEST
      * @dataProvider provideFixCases
      * @requires PHP 7.3
      */
-    public function testFix($expected, $input = null)
+    public function testFix($expected, $input = null, array $config = [])
     {
+        $this->fixer->configure($config);
         $this->doTest($expected, $input);
     }
 
@@ -76,7 +77,26 @@ INPUT
                 <<<'EXPECTED'
 <?php
     foo(<<<EOD
+
+        EOD
+    );
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+    foo(<<<EOD
+
+EOD
+    );
+INPUT
+                ,
+            ],
+            [
+                <<<'EXPECTED'
+<?php
+    foo(<<<EOD
         abc
+
             def
         EOD
     );
@@ -86,6 +106,7 @@ EXPECTED
 <?php
     foo(<<<EOD
 abc
+
     def
 EOD
     );
@@ -96,8 +117,10 @@ INPUT
                 <<<'EXPECTED'
 <?php
     foo(<<<'EOD'
+
         abc
             def
+
         EOD
     );
 EXPECTED
@@ -105,8 +128,10 @@ EXPECTED
                 <<<'INPUT'
 <?php
     foo(<<<'EOD'
+
 abc
     def
+
 EOD
     );
 INPUT
@@ -175,6 +200,110 @@ FOO;
 EOD;
 INPUT
                 ,
+            ],
+            [
+                /* EXPECTED */ '
+<?php
+    foo(<<<EOD
+          '.'
+        abc
+          '.'
+        def
+          '.'
+        EOD
+    );',
+                /* INPUT */ '
+<?php
+    foo(<<<EOD
+        '.'
+      abc
+        '.'
+      def
+        '.'
+      EOD
+    );',
+            ],
+            [
+                /* EXPECTED */ '
+<?php
+    foo(<<<EOD
+
+        abc
+
+        def
+
+        EOD
+    );',
+                /* INPUT */ '
+<?php
+    foo(<<<EOD
+  '.'
+      abc
+  '.'
+      def
+  '.'
+      EOD
+    );',
+            ],
+            [
+                <<<'EXPECTED'
+<?php foo(<<<EOD
+    EOD
+);
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php foo(<<<EOD
+EOD
+);
+INPUT
+                ,
+            ],
+            [
+                <<<'EXPECTED'
+<?php
+    foo(<<<EOD
+    abc
+
+        def
+    EOD
+    );
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+    foo(<<<EOD
+abc
+
+    def
+EOD
+    );
+INPUT
+                ,
+                ['indentation' => 'same_as_start'],
+            ],
+            [
+                <<<'EXPECTED'
+<?php
+    foo(<<<EOD
+    abc
+
+        def
+    EOD
+    );
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+    foo(<<<EOD
+        abc
+
+            def
+        EOD
+    );
+INPUT
+                ,
+                ['indentation' => 'same_as_start'],
             ],
         ];
     }

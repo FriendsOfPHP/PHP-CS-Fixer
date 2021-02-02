@@ -43,10 +43,11 @@ final class BlankLineAfterNamespaceFixer extends AbstractFixer implements Whites
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after NoUnusedImportsFixer.
      */
     public function getPriority()
     {
-        // should be run after the NoUnusedImportsFixer
         return -20;
     }
 
@@ -91,8 +92,7 @@ final class BlankLineAfterNamespaceFixer extends AbstractFixer implements Whites
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return int
      */

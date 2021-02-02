@@ -39,10 +39,12 @@ final class PhpdocSingleLineVarSpacingFixer extends AbstractFixer
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before PhpdocAlignFixer.
+     * Must run after CommentToPhpdocFixer, PhpdocIndentFixer, PhpdocNoAliasTagFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocTypesFixer.
      */
     public function getPriority()
     {
-        // should be run after PhpdocNoAliasTagFixer.
         return -10;
     }
 
@@ -61,18 +63,13 @@ final class PhpdocSingleLineVarSpacingFixer extends AbstractFixer
     {
         /** @var Token $token */
         foreach ($tokens as $index => $token) {
-            if ($token->isGivenKind(T_DOC_COMMENT)) {
-                $tokens[$index] = new Token([T_DOC_COMMENT, $this->fixTokenContent($token->getContent())]);
-
-                continue;
-            }
-
-            if (!$token->isGivenKind(T_COMMENT)) {
+            if (!$token->isComment()) {
                 continue;
             }
 
             $content = $token->getContent();
             $fixedContent = $this->fixTokenContent($content);
+
             if ($content !== $fixedContent) {
                 $tokens[$index] = new Token([T_DOC_COMMENT, $fixedContent]);
             }
@@ -87,18 +84,17 @@ final class PhpdocSingleLineVarSpacingFixer extends AbstractFixer
     private function fixTokenContent($content)
     {
         return Preg::replaceCallback(
-            '#^/\*\*[ \t]*@var[ \t]+(\S+)[ \t]*(\$\S+)?[ \t]*([^\n]*)\*/$#',
+            '#^/\*\*\h*@var\h+(\S+)\h*(\$\S+)?\h*([^\n]*)\*/$#',
             static function (array $matches) {
                 $content = '/** @var';
+
                 for ($i = 1, $m = \count($matches); $i < $m; ++$i) {
                     if ('' !== $matches[$i]) {
                         $content .= ' '.$matches[$i];
                     }
                 }
 
-                $content = rtrim($content);
-
-                return $content.' */';
+                return rtrim($content).' */';
             },
             $content
         );

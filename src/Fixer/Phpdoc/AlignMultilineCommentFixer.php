@@ -85,10 +85,12 @@ with a line not prefixed with asterisk
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before PhpdocTrimConsecutiveBlankLineSeparationFixer.
+     * Must run after ArrayIndentationFixer.
      */
     public function getPriority()
     {
-        // Should run after ArrayIndentationFixer
         return -40;
     }
 
@@ -121,7 +123,7 @@ with a line not prefixed with asterisk
                 $whitespace = Preg::replace('/\S/', '', $tokens[$previousIndex]->getContent()).$whitespace;
             }
 
-            if (1 !== Preg::match('/\R([ \t]*)$/', $whitespace, $matches)) {
+            if (1 !== Preg::match('/\R(\h*)$/', $whitespace, $matches)) {
                 continue;
             }
 

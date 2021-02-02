@@ -55,10 +55,11 @@ EOT
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before EscapeImplicitBackslashesFixer, ExplicitStringVariableFixer, NativeFunctionInvocationFixer, SingleQuoteFixer.
      */
     public function getPriority()
     {
-        // Should run before escape_implicit_backslashes
         return 2;
     }
 
@@ -90,9 +91,6 @@ EOT
 
     /**
      * Override backtick code with corresponding double-quoted string.
-     *
-     * @param Tokens $tokens
-     * @param array  $backtickTokens
      */
     private function fixBackticks(Tokens $tokens, array $backtickTokens)
     {

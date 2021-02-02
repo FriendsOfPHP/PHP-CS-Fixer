@@ -506,12 +506,15 @@ $bar = null;
 EOF
                 ,
             ],
-            'property_name' => [
+            'property name, method name, static method call, static property' => [
                 <<<'EOF'
 <?php
 
 
 $foo->bar = null;
+$foo->bar();
+$foo::bar();
+$foo::bar;
 EOF
                 ,
                 <<<'EOF'
@@ -520,6 +523,9 @@ EOF
 use Foo\Bar;
 
 $foo->bar = null;
+$foo->bar();
+$foo::bar();
+$foo::bar;
 EOF
                 ,
             ],
@@ -688,32 +694,6 @@ EOF
             'close_tag_3' => [
                 '<?php ?>',
                 '<?php use A\B?>',
-            ],
-            'with_comments' => [
-                '<?php
-# 1
-# 2
-# 3
-# 4
-  use /**/A\B/**/;
-  echo 1;
-  new B();
-',
-                '<?php
-use# 1
-\# 2
-Exception# 3
-# 4
-
-
-
-
-
-  ;
-use /**/A\B/**/;
-  echo 1;
-  new B();
-',
             ],
             'with_matches_in_comments' => [
                 '<?php
@@ -1040,6 +1020,72 @@ class UsesTraits
 
 EOF
             ],
+            'imported_name_is_part_of_namespace' => [
+                <<<'EOF'
+<?php
+
+namespace App\Foo;
+
+
+class Baz
+{
+}
+
+EOF
+                ,
+                <<<'EOF'
+<?php
+
+namespace App\Foo;
+
+use Foo\Bar\App;
+
+class Baz
+{
+}
+
+EOF
+            ],
+            'imported_name_is_part_of_namespace with closing tag' => [
+                <<<'EOF'
+<?php
+    namespace A\B {?>
+<?php
+    require_once __DIR__.'/test2.php' ?>
+<?php
+    use X\Z\Y
+?>
+<?php
+    $y = new Y() ?>
+<?php
+    var_dump($y);}
+EOF
+            ],
+            [
+                '<?php
+use App\Http\Requests\StoreRequest;
+
+class StoreController
+{
+    /**
+     * @param \App\Http\Requests\StoreRequest $request
+     */
+    public function __invoke(StoreRequest $request)
+    {}
+}',
+                '<?php
+use App\Http\Requests\StoreRequest;
+use Illuminate\Http\Request;
+
+class StoreController
+{
+    /**
+     * @param \App\Http\Requests\StoreRequest $request
+     */
+    public function __invoke(StoreRequest $request)
+    {}
+}',
+            ],
         ];
     }
 
@@ -1102,5 +1148,38 @@ use Z;
 ',
             ],
         ];
+    }
+
+    /**
+     * @requires PHP <8.0
+     */
+    public function testFixPrePHP80()
+    {
+        $this->doTest(
+            '<?php
+# 1
+# 2
+# 3
+# 4
+  use /**/A\B/**/;
+  echo 1;
+  new B();
+',
+            '<?php
+use# 1
+\# 2
+Exception# 3
+# 4
+
+
+
+
+
+  ;
+use /**/A\B/**/;
+  echo 1;
+  new B();
+'
+        );
     }
 }

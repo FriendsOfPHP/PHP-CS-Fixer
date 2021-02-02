@@ -20,7 +20,7 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
  * @internal
  *
  * @requires PHP 7.1
- * @covers   \PhpCsFixer\Fixer\FunctionNotation\VoidReturnFixer
+ * @covers \PhpCsFixer\Fixer\FunctionNotation\VoidReturnFixer
  */
 final class VoidReturnFixerTest extends AbstractFixerTestCase
 {
@@ -89,28 +89,28 @@ final class VoidReturnFixerTest extends AbstractFixerTestCase
                 '<?php trait Test { public function foo($param) {} }',
             ],
             [
-                '<?php usort([], function ($a, $b): void {});',
-                '<?php usort([], function ($a, $b) {});',
+                '<?php $arr = []; usort($arr, function ($a, $b): void {});',
+                '<?php $arr = []; usort($arr, function ($a, $b) {});',
             ],
             [
-                '<?php $param = 1; usort([], function ($a, $b) use ($param): void {});',
-                '<?php $param = 1; usort([], function ($a, $b) use ($param) {});',
+                '<?php $arr = []; $param = 1; usort($arr, function ($a, $b) use ($param): void {});',
+                '<?php $arr = []; $param = 1; usort($arr, function ($a, $b) use ($param) {});',
             ],
             [
                 '<?php function foo($param) { return function($a) use ($param): void {}; }',
                 '<?php function foo($param) { return function($a) use ($param) {}; }',
             ],
             [
-                '<?php function foo($param): void { usort([], function ($a, $b) use ($param): void {}); }',
-                '<?php function foo($param) { usort([], function ($a, $b) use ($param) {}); }',
+                '<?php function foo($param): void { $arr = []; usort($arr, function ($a, $b) use ($param): void {}); }',
+                '<?php function foo($param) { $arr = []; usort($arr, function ($a, $b) use ($param) {}); }',
             ],
             [
-                '<?php function foo() { return usort([], new class { public function __invoke($a, $b): void {} }); }',
-                '<?php function foo() { return usort([], new class { public function __invoke($a, $b) {} }); }',
+                '<?php function foo() { $arr = []; return usort($arr, new class { public function __invoke($a, $b): void {} }); }',
+                '<?php function foo() { $arr = []; return usort($arr, new class { public function __invoke($a, $b) {} }); }',
             ],
             [
-                '<?php function foo(): void { usort([], new class { public function __invoke($a, $b): void {} }); }',
-                '<?php function foo() { usort([], new class { public function __invoke($a, $b) {} }); }',
+                '<?php function foo(): void { $arr = []; usort($arr, new class { public function __invoke($a, $b): void {} }); }',
+                '<?php function foo() { $arr = []; usort($arr, new class { public function __invoke($a, $b) {} }); }',
             ],
             [
                 '<?php
@@ -202,7 +202,7 @@ final class VoidReturnFixerTest extends AbstractFixerTestCase
                     /**
                      * @return void
                      */
-                    abstract private function foo($param): void;
+                    abstract protected function foo($param): void;
                 }',
 
                 '<?php
@@ -210,8 +210,35 @@ final class VoidReturnFixerTest extends AbstractFixerTestCase
                     /**
                      * @return void
                      */
-                    abstract private function foo($param);
+                    abstract protected function foo($param);
                 }',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideFixPhp74Cases
+     * @requires PHP 7.4
+     *
+     * @param string      $expected
+     * @param null|string $input
+     */
+    public function testFixPhp74($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPhp74Cases()
+    {
+        return [
+            [
+                '<?php fn($a) => null;',
+            ],
+            [
+                '<?php fn($a) => 1;',
+            ],
+            [
+                '<?php fn($a) => var_dump($a);',
             ],
         ];
     }

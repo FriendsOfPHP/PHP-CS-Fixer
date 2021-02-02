@@ -181,7 +181,7 @@ $bar) {}',
     /**
      * @return array
      */
-    public function provideFix56cases()
+    public function provideFix56Cases()
     {
         return [
             [
@@ -209,7 +209,7 @@ $bar) {}',
     /**
      * @return array
      */
-    public function provideFix71cases()
+    public function provideFix71Cases()
     {
         return [
             [
@@ -218,6 +218,31 @@ $bar) {}',
             ],
             [
                 '<?php function foo (?Foo $bar = null, ?Baz $baz = null) {}',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideFix74Cases
+     * @requires PHP 7.4
+     *
+     * @param string      $expected
+     * @param null|string $input
+     */
+    public function testFix74($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    /**
+     * @return array
+     */
+    public function provideFix74Cases()
+    {
+        return [
+            [
+                '<?php $fn = fn ($a, $b) => null;',
+                '<?php $fn = fn ($a = 1, $b) => null;',
             ],
         ];
     }

@@ -74,14 +74,6 @@ final class NoNullPropertyInitializationFixerTest extends AbstractFixerTestCase
                 '<?php class Foo { public $bar = \null; }',
             ],
             [
-                '<?php class Foo { public $bar; }',
-                '<?php class Foo { public $bar = \     null; }',
-            ],
-            [
-                '<?php class Foo { public $bar/* oh hai! */; }',
-                '<?php class Foo { public $bar = \/* oh hai! */null; }',
-            ],
-            [
                 '<?php class Foo {/* */public/* A */$bar/* B *//** C */;/* D */}',
                 '<?php class Foo {/* */public/* A */$bar/* B */=/** C */null;/* D */}',
             ],
@@ -198,5 +190,72 @@ null;#13
                 '<?php class Foo { public const FOO = null; }',
             ],
         ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFix74Cases
+     * @requires PHP 7.4
+     */
+    public function testFix74($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix74Cases()
+    {
+        yield [
+            '<?php class Foo { protected ?int $bar = null; }',
+        ];
+        yield [
+            '<?php class Foo { protected ? string $bar = null; }',
+        ];
+        yield [
+            '<?php class Foo { protected ? array $bar = null; }',
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixPrePHP80Cases
+     *
+     * @requires PHP <8.0
+     */
+    public function testFixPrePHP80($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPrePHP80Cases()
+    {
+        yield [
+            '<?php class Foo { public $bar; }',
+            '<?php class Foo { public $bar = \     null; }',
+        ];
+
+        yield [
+            '<?php class Foo { public $bar/* oh hai! */; }',
+            '<?php class Foo { public $bar = \/* oh hai! */null; }',
+        ];
+    }
+
+    /**
+     * @requires PHP 8.0
+     */
+    public function testFixPhp80()
+    {
+        $this->doTest('<?php
+class Point {
+    public function __construct(
+        public ?float $x = null,
+        protected ?float $y = null,
+        private ?float $z = null,
+    ) {}
+}
+');
     }
 }

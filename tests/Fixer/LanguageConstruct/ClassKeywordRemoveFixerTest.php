@@ -38,16 +38,6 @@ final class ClassKeywordRemoveFixerTest extends AbstractFixerTestCase
     {
         return [
             [
-                "<?php echo 'DateTime'
-# a
- /* b */?>
-",
-                '<?php echo \
-DateTime:: # a
- /* b */ class?>
-',
-            ],
-            [
                 "<?php
                 use Foo\\Bar\\Thing;
 
@@ -69,6 +59,18 @@ DateTime:: # a
                 use Foo\Bar;
             '.'
                 echo Bar\Thing::class;
+                ',
+            ],
+            [
+                "<?php
+                namespace Foo;
+                use Foo\\Bar;
+                echo 'Foo\\Bar\\Baz';
+                ",
+                '<?php
+                namespace Foo;
+                use Foo\\Bar;
+                echo \\Foo\\Bar\\Baz::class;
                 ',
             ],
             [
@@ -199,6 +201,42 @@ DateTime:: # a
                 }
                 ',
             ],
+            [
+                '<?php
+                namespace Foo;
+                class Bar extends Baz {
+                    public function a() {
+                        return self::class;
+                    }
+                    public function b() {
+                        return static::class;
+                    }
+                    public function c() {
+                        return parent::class;
+                    }
+                }
+                ',
+            ],
+            [
+                "<?php
+                namespace Foo;
+                var_dump('Foo\\Bar\\Baz');
+                ",
+                '<?php
+                namespace Foo;
+                var_dump(Bar\\Baz::class);
+                ',
+            ],
+            [
+                "<?php
+                namespace Foo\\Bar;
+                var_dump('Foo\\Bar\\Baz');
+                ",
+                '<?php
+                namespace Foo\\Bar;
+                var_dump(Baz::class);
+                ',
+            ],
         ];
     }
 
@@ -234,7 +272,79 @@ DateTime:: # a
                 echo ClassB::class;
                 echo C::class;
                 ',
+                "<?php
+                namespace {
+                    var_dump('Foo');
+                }
+                namespace A {
+                    use B\\C;
+                    var_dump('B\\C');
+                }
+                namespace {
+                    var_dump('Bar\\Baz');
+                }
+                namespace B {
+                    use A\\C\\D;
+                    var_dump('A\\C\\D');
+                }
+                namespace {
+                    var_dump('Qux\\Quux');
+                }
+                ",
+                '<?php
+                namespace {
+                    var_dump(Foo::class);
+                }
+                namespace A {
+                    use B\\C;
+                    var_dump(C::class);
+                }
+                namespace {
+                    var_dump(Bar\\Baz::class);
+                }
+                namespace B {
+                    use A\\C\\D;
+                    var_dump(D::class);
+                }
+                namespace {
+                    var_dump(Qux\\Quux::class);
+                }
+                ',
             ],
         ];
+    }
+
+    /**
+     * @requires PHP <8.0
+     */
+    public function testFixPrePHP80()
+    {
+        $this->doTest(
+            "<?php echo 'DateTime'
+# a
+ /* b */?>
+",
+            '<?php echo \
+DateTime:: # a
+ /* b */ class?>
+'
+        );
+    }
+
+    /**
+     * @requires PHP 8.0
+     */
+    public function testNotFixPHP8()
+    {
+        $this->doTest(
+            "<?php
+            echo 'Thing';
+            echo \$thing::class;
+            ",
+            '<?php
+            echo Thing::class;
+            echo $thing::class;
+            '
+        );
     }
 }

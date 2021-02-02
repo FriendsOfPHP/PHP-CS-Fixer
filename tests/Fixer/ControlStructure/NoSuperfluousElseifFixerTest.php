@@ -17,6 +17,7 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 /**
  * @internal
  *
+ * @covers \PhpCsFixer\AbstractNoUselessElseFixer
  * @covers \PhpCsFixer\Fixer\ControlStructure\NoSuperfluousElseifFixer
  */
 final class NoSuperfluousElseifFixerTest extends AbstractFixerTestCase
@@ -35,6 +36,12 @@ final class NoSuperfluousElseifFixerTest extends AbstractFixerTestCase
     public function provideFixCases()
     {
         return [
+            [
+                '<?php
+if ($some) { return 1; } if ($a == 6){ $test = false; } //',
+                '<?php
+if ($some) { return 1; } elseif ($a == 6){ $test = false; } //',
+            ],
             [
                 '<?php
 
@@ -131,6 +138,9 @@ final class NoSuperfluousElseifFixerTest extends AbstractFixerTestCase
                             }
                             '.'
                             continue;
+
+
+
                         }
                         if (6) {
                             return null;
@@ -160,6 +170,9 @@ final class NoSuperfluousElseifFixerTest extends AbstractFixerTestCase
                             }
                             '.'
                             continue;
+
+
+
                         } else if (6) {
                             return null;
                         } else {
@@ -221,6 +234,74 @@ final class NoSuperfluousElseifFixerTest extends AbstractFixerTestCase
                     echo 2;
                 }',
             ],
+        ];
+    }
+
+    /**
+     * @param string $expected
+     * @param string $input
+     *
+     * @dataProvider provideFix70Cases
+     * @requires PHP 7.0
+     */
+    public function testFix70($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix70Cases()
+    {
+        return [
+            [
+                '<?php
+
+                if ($foo) {
+                    return 1;
+                }
+                if ($bar) {
+                    return 2;
+                }
+                if ($baz) {
+                    throw new class extends Exception{};
+                } else {
+                    return 4;
+                }',
+                '<?php
+
+                if ($foo) {
+                    return 1;
+                } elseif ($bar) {
+                    return 2;
+                } else if ($baz) {
+                    throw new class extends Exception{};
+                } else {
+                    return 4;
+                }',
+            ],
+        ];
+    }
+
+    /**
+     * @param string $expected
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected)
+    {
+        $this->doTest($expected);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php
+            if ($foo) {
+                $a = $bar ?? throw new \Exception();
+            } elseif ($bar) {
+                echo 1;
+            }
+            ',
         ];
     }
 }

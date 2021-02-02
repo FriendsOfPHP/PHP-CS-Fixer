@@ -83,10 +83,10 @@ function Foo(/**/ARRAY/**/$bar) {
             ],
             [
                 '<?php
-function Foo(array $a, callable $b, self $c) {}
+class Bar { function Foo(array $a, callable $b, self $c) {} }
                 ',
                 '<?php
-function Foo(ARRAY $a, CALLABLE $b, Self $c) {}
+class Bar { function Foo(ARRAY $a, CALLABLE $b, Self $c) {} }
                 ',
             ],
             [
@@ -118,13 +118,13 @@ function Foo(INTEGER $a) {}
     }
 
     /**
-     * @param string $expected
-     * @param string $input
+     * @param string      $expected
+     * @param null|string $input
      *
      * @dataProvider provideFix70Cases
      * @requires PHP 7.0
      */
-    public function testFix70($expected, $input)
+    public function testFix70($expected, $input = null)
     {
         $this->doTest($expected, $input);
     }
@@ -140,6 +140,9 @@ function Foo(INTEGER $a) {}
                 '<?php function Foo(bool $A, float $B, int $C, string $D): int {}',
                 '<?php function Foo(BOOL $A, FLOAT $B, INT $C, STRING $D): INT {}',
             ],
+            [
+                '<?php function Foo(): Foo\A { return new Foo(); }',
+            ],
         ];
     }
 
@@ -147,7 +150,7 @@ function Foo(INTEGER $a) {}
      * @param string $expected
      * @param string $input
      *
-     * @dataProvider provideFix70Cases
+     * @dataProvider provideFix71Cases
      * @requires PHP 7.1
      */
     public function testFix71($expected, $input)
@@ -166,6 +169,14 @@ function Foo(INTEGER $a) {}
                 '<?php function Foo(iterable $A): void {}',
                 '<?php function Foo(ITERABLE $A): VOID {}',
             ],
+            [
+                '<?php function Foo(?int $A): void {}',
+                '<?php function Foo(?INT $A): VOID {}',
+            ],
+            [
+                '<?php function Foo(string $A): ?/* */int {}',
+                '<?php function Foo(STRING $A): ?/* */INT {}',
+            ],
         ];
     }
 
@@ -173,7 +184,7 @@ function Foo(INTEGER $a) {}
      * @param string $expected
      * @param string $input
      *
-     * @dataProvider provideFix70Cases
+     * @dataProvider provideFix72Cases
      * @requires PHP 7.2
      */
     public function testFix72($expected, $input)
@@ -188,6 +199,36 @@ function Foo(INTEGER $a) {}
                 '<?php function Foo(object $A): void {}',
                 '<?php function Foo(OBJECT $A): VOID {}',
             ],
+        ];
+    }
+
+    /**
+     * @param string $expected
+     * @param string $input
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php class T { public function Foo(object $A): static {}}',
+            '<?php class T { public function Foo(object $A): StatiC {}}',
+        ];
+
+        yield [
+            '<?php class T { public function Foo(object $A): ?static {}}',
+            '<?php class T { public function Foo(object $A): ?StatiC {}}',
+        ];
+
+        yield [
+            '<?php class T { public function Foo(mixed $A): mixed {}}',
+            '<?php class T { public function Foo(Mixed $A): MIXED {}}',
         ];
     }
 }

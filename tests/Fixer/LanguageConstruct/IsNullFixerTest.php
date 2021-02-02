@@ -40,7 +40,7 @@ final class IsNullFixerTest extends AbstractFixerTestCase
     public function testConfigurationWrongValue()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessage('[is_null] Invalid configuration: The option "use_yoda_style" with value -1 is expected to be of type "bool", but is of type "integer".');
+        $this->expectExceptionMessageMatches('#^\[is_null\] Invalid configuration: The option "use_yoda_style" with value -1 is expected to be of type "bool", but is of type "(int|integer)"\.$#');
         $this->fixer->configure(['use_yoda_style' => -1]);
     }
 
@@ -52,7 +52,11 @@ final class IsNullFixerTest extends AbstractFixerTestCase
     {
         $this->fixer->configure(['use_yoda_style' => false]);
 
-        $configuration = static::getObjectAttribute($this->fixer, 'configuration');
+        $reflectionProperty = new \ReflectionProperty($this->fixer, 'configuration');
+        $reflectionProperty->setAccessible(true);
+
+        $configuration = $reflectionProperty->getValue($this->fixer);
+
         static::assertFalse($configuration['use_yoda_style']);
     }
 

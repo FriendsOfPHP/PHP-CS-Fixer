@@ -14,6 +14,7 @@ namespace PhpCsFixer\Tests\Smoke;
 
 use Keradus\CliExecutor\CommandExecutor;
 use Keradus\CliExecutor\ScriptExecutor;
+use PhpCsFixer\Console\Application;
 
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
@@ -29,9 +30,9 @@ final class CiIntegrationTest extends AbstractSmokeTest
 {
     public static $fixtureDir;
 
-    public static function setUpBeforeClass()
+    public static function doSetUpBeforeClass()
     {
-        parent::setUpBeforeClass();
+        parent::doSetUpBeforeClass();
 
         self::$fixtureDir = __DIR__.'/../Fixtures/ci-integration';
 
@@ -61,16 +62,16 @@ final class CiIntegrationTest extends AbstractSmokeTest
         }
     }
 
-    public static function tearDownAfterClass()
+    public static function doTearDownAfterClass()
     {
-        parent::tearDownAfterClass();
+        parent::doTearDownAfterClass();
 
         self::executeCommand('rm -rf .git');
     }
 
-    protected function tearDown()
+    protected function doTearDown()
     {
-        parent::tearDown();
+        parent::doTearDown();
 
         self::executeScript([
             'git reset . -q',
@@ -103,7 +104,7 @@ final class CiIntegrationTest extends AbstractSmokeTest
             $caseCommands
         ));
 
-        $integrationScript = explode("\n", str_replace('vendor/bin/', './../../../', file_get_contents(__DIR__.'/../../dev-tools/ci-integration.sh')));
+        $integrationScript = explode("\n", str_replace('vendor/bin/', './../../../', file_get_contents(__DIR__.'/../../ci-integration.sh')));
         $steps = [
             "COMMIT_RANGE=\"master..{$branchName}\"",
             "{$integrationScript[3]}\n{$integrationScript[4]}",
@@ -139,7 +140,8 @@ final class CiIntegrationTest extends AbstractSmokeTest
             $steps[4],
         ]);
 
-        $optionalIncompatibilityWarning = 'PHP needs to be a minimum version of PHP 5.6.0 and maximum version of PHP 7.3.*.
+        $optionalIncompatibilityWarning = 'PHP needs to be a minimum version of PHP 5.6.0 and maximum version of PHP 7.4.*.
+Current PHP version: '.PHP_VERSION.'.
 Ignoring environment requirements because `PHP_CS_FIXER_IGNORE_ENV` is set. Execution may be unstable.
 ';
 
@@ -148,15 +150,17 @@ If you need help while solving warnings, ask at https://gitter.im/PHP-CS-Fixer, 
 ';
 
         $pattern = sprintf(
-            '/^(?:%s)?(?:%s)?%s\n([\.S]{%d})\n%s$/',
+            '/^(?:%s)?(?:%s)?%s\n%s\n%s\n([\.S]{%d})\n%s$/',
             preg_quote($optionalIncompatibilityWarning, '/'),
             preg_quote($optionalXdebugWarning, '/'),
+            'PHP CS Fixer '.preg_quote(Application::VERSION, '/').' '.preg_quote(Application::VERSION_CODENAME, '/').' by Fabien Potencier and Dariusz Ruminski',
+            preg_quote(sprintf('Runtime: PHP %s', PHP_VERSION), '/'),
             preg_quote('Loaded config default from ".php_cs.dist".', '/'),
             \strlen($expectedResult3Files),
-            preg_quote('Legend: ?-unknown, I-invalid file syntax, file ignored, S-Skipped, .-no changes, F-fixed, E-error', '/')
+            preg_quote('Legend: ?-unknown, I-invalid file syntax (file ignored), S-skipped (cached or empty file), .-no changes, F-fixed, E-error', '/')
         );
 
-        static::assertRegExp($pattern, $result3->getError());
+        static::assertMatchesRegularExpression($pattern, $result3->getError());
 
         preg_match($pattern, $result3->getError(), $matches);
 
@@ -164,7 +168,7 @@ If you need help while solving warnings, ask at https://gitter.im/PHP-CS-Fixer, 
         static::assertSame(substr_count($expectedResult3Files, '.'), substr_count($matches[1], '.'));
         static::assertSame(substr_count($expectedResult3Files, 'S'), substr_count($matches[1], 'S'));
 
-        static::assertRegExp(
+        static::assertMatchesRegularExpression(
             '/^\s*Checked all files in \d+\.\d+ seconds, \d+\.\d+ MB memory used\s*$/',
             $result3->getOutput()
         );

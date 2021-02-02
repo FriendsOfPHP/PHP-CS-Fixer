@@ -14,6 +14,7 @@ namespace PhpCsFixer\Fixer\ClassNotation;
 
 use PhpCsFixer\AbstractFixer;
 use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
+use PhpCsFixer\FixerConfiguration\AliasedFixerOptionBuilder;
 use PhpCsFixer\FixerConfiguration\AllowedValueSubset;
 use PhpCsFixer\FixerConfiguration\FixerConfigurationResolverRootless;
 use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
@@ -30,6 +31,7 @@ final class OrderedClassElementsFixer extends AbstractFixer implements Configura
 {
     /** @internal */
     const SORT_ALPHA = 'alpha';
+
     /** @internal */
     const SORT_NONE = 'none';
 
@@ -54,10 +56,15 @@ final class OrderedClassElementsFixer extends AbstractFixer implements Configura
         'property_protected_static' => ['property_static', 'property_protected'],
         'property_private_static' => ['property_static', 'property_private'],
         'method' => null,
+        'method_abstract' => ['method'],
         'method_static' => ['method'],
         'method_public' => ['method', 'public'],
         'method_protected' => ['method', 'protected'],
         'method_private' => ['method', 'private'],
+        'method_public_abstract' => ['method_abstract', 'method_public'],
+        'method_protected_abstract' => ['method_abstract', 'method_protected'],
+        'method_public_abstract_static' => ['method_abstract', 'method_static', 'method_public'],
+        'method_protected_abstract_static' => ['method_abstract', 'method_static', 'method_protected'],
         'method_public_static' => ['method_static', 'method_public'],
         'method_protected_static' => ['method_static', 'method_protected'],
         'method_private_static' => ['method_static', 'method_private'],
@@ -202,7 +209,7 @@ class Example
     public function C(){}
 }
 ',
-                    ['order' => ['method_public'], 'sortAlgorithm' => 'alpha']
+                    ['order' => ['method_public'], 'sort_algorithm' => 'alpha']
                 ),
             ]
         );
@@ -210,11 +217,12 @@ class Example
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before ClassAttributesSeparationFixer, MethodSeparationFixer, NoBlankLinesAfterClassOpeningFixer, SpaceAfterSemicolonFixer.
+     * Must run after NoPhp4ConstructorFixer, ProtectedToPrivateFixer.
      */
     public function getPriority()
     {
-        // must run before MethodSeparationFixer, NoBlankLinesAfterClassOpeningFixer and SpaceAfterSemicolonFixer.
-        // must run after ProtectedToPrivateFixer.
         return 65;
     }
 
@@ -231,7 +239,7 @@ class Example
             $i = $tokens->getNextTokenOfKind($i, ['{']);
             $elements = $this->getElements($tokens, $i);
 
-            if (!$elements) {
+            if (0 === \count($elements)) {
                 continue;
             }
 
@@ -272,7 +280,10 @@ class Example
                     'method_private',
                 ])
                 ->getOption(),
-            (new FixerOptionBuilder('sortAlgorithm', 'How multiple occurrences of same type statements should be sorted'))
+            (new AliasedFixerOptionBuilder(
+                new FixerOptionBuilder('sort_algorithm', 'How multiple occurrences of same type statements should be sorted'),
+                'sortAlgorithm'
+            ))
                 ->setAllowedValues($this->supportedSortAlgorithms)
                 ->setDefault(self::SORT_NONE)
                 ->getOption(),
@@ -280,8 +291,7 @@ class Example
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $startIndex
+     * @param int $startIndex
      *
      * @return array[]
      */
@@ -296,6 +306,7 @@ class Example
             $element = [
                 'start' => $startIndex,
                 'visibility' => 'public',
+                'abstract' => false,
                 'static' => false,
             ];
 
@@ -305,6 +316,12 @@ class Example
                 // class end
                 if ($token->equals('}')) {
                     return $elements;
+                }
+
+                if ($token->isGivenKind(T_ABSTRACT)) {
+                    $element['abstract'] = true;
+
+                    continue;
                 }
 
                 if ($token->isGivenKind(T_STATIC)) {
@@ -333,7 +350,7 @@ class Example
 
                 if ('property' === $element['type']) {
                     $element['name'] = $tokens[$i]->getContent();
-                } elseif (\in_array($element['type'], ['use_trait', 'constant', 'method', 'magic'], true)) {
+                } elseif (\in_array($element['type'], ['use_trait', 'constant', 'method', 'magic', 'construct', 'destruct'], true)) {
                     $element['name'] = $tokens[$tokens->getNextMeaningfulToken($i)]->getContent();
                 }
 
@@ -348,8 +365,7 @@ class Example
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return array|string type or array of type and name
      */
@@ -382,9 +398,13 @@ class Example
         if (
             $nameToken->equalsAny([
                 [T_STRING, 'setUpBeforeClass'],
+                [T_STRING, 'doSetUpBeforeClass'],
                 [T_STRING, 'tearDownAfterClass'],
+                [T_STRING, 'doTearDownAfterClass'],
                 [T_STRING, 'setUp'],
+                [T_STRING, 'doSetUp'],
                 [T_STRING, 'tearDown'],
+                [T_STRING, 'doTearDown'],
             ], false)
         ) {
             return ['phpunit', strtolower($nameToken->getContent())];
@@ -398,8 +418,7 @@ class Example
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return int
      */
@@ -427,9 +446,13 @@ class Example
     {
         static $phpunitPositions = [
             'setupbeforeclass' => 1,
-            'teardownafterclass' => 2,
-            'setup' => 3,
-            'teardown' => 4,
+            'dosetupbeforeclass' => 2,
+            'teardownafterclass' => 3,
+            'doteardownafterclass' => 4,
+            'setup' => 5,
+            'dosetup' => 6,
+            'teardown' => 7,
+            'doteardown' => 8,
         ];
 
         foreach ($elements as &$element) {
@@ -450,6 +473,9 @@ class Example
 
             if (\in_array($type, ['constant', 'property', 'method'], true)) {
                 $type .= '_'.$element['visibility'];
+                if ($element['abstract']) {
+                    $type .= '_abstract';
+                }
                 if ($element['static']) {
                     $type .= '_static';
                 }
@@ -472,7 +498,7 @@ class Example
 
     private function sortGroupElements(array $a, array $b)
     {
-        $selectedSortAlgorithm = $this->configuration['sortAlgorithm'];
+        $selectedSortAlgorithm = $this->configuration['sort_algorithm'];
 
         if (self::SORT_ALPHA === $selectedSortAlgorithm) {
             return strcasecmp($a['name'], $b['name']);
@@ -482,7 +508,6 @@ class Example
     }
 
     /**
-     * @param Tokens  $tokens
      * @param int     $startIndex
      * @param int     $endIndex
      * @param array[] $elements

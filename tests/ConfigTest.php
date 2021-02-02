@@ -17,6 +17,8 @@ use PhpCsFixer\Console\Application;
 use PhpCsFixer\Console\Command\FixCommand;
 use PhpCsFixer\Console\ConfigurationResolver;
 use PhpCsFixer\Finder;
+use PhpCsFixer\Fixer\ArrayNotation\NoWhitespaceBeforeCommaInArrayFixer;
+use PhpCsFixer\Fixer\ControlStructure\IncludeFixer;
 use PhpCsFixer\Fixer\FixerInterface;
 use PhpCsFixer\ToolInfo;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -42,7 +44,7 @@ final class ConfigTest extends TestCase
             new ToolInfo()
         );
 
-        static::assertArraySubset(
+        static::assertSame(
             [
                 'cast_spaces' => true,
                 'braces' => true,
@@ -63,7 +65,7 @@ final class ConfigTest extends TestCase
             new ToolInfo()
         );
 
-        static::assertArraySubset(
+        static::assertSame(
             [
                 'array_syntax' => [
                     'syntax' => 'short',
@@ -134,7 +136,7 @@ final class ConfigTest extends TestCase
         $finder = new Finder();
         $finder->in(__DIR__.'/Fixtures/FinderDirectory');
 
-        $config = Config::create()->setFinder($finder);
+        $config = (new Config())->setFinder($finder);
 
         $items = iterator_to_array(
             $config->getFinder(),
@@ -150,7 +152,7 @@ final class ConfigTest extends TestCase
         $finder = new SymfonyFinder();
         $finder->in(__DIR__.'/Fixtures/FinderDirectory');
 
-        $config = Config::create()->setFinder($finder);
+        $config = (new Config())->setFinder($finder);
 
         $items = iterator_to_array(
             $config->getFinder(),
@@ -188,7 +190,7 @@ final class ConfigTest extends TestCase
     public function testRegisterCustomFixersWithInvalidArgument()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/^Argument must be an array or a Traversable, got "\w+"\.$/');
+        $this->expectExceptionMessageMatches('/^Argument must be an array or a Traversable, got "\w+"\.$/');
 
         $config = new Config();
         $config->registerCustomFixers('foo');
@@ -208,19 +210,89 @@ final class ConfigTest extends TestCase
         static::assertSame($expected, $config->getCustomFixers());
     }
 
+    public function testConfigDefault()
+    {
+        $config = new Config();
+
+        static::assertSame('.php_cs.cache', $config->getCacheFile());
+        static::assertSame([], $config->getCustomFixers());
+        static::assertSame('txt', $config->getFormat());
+        static::assertFalse($config->getHideProgress());
+        static::assertSame('    ', $config->getIndent());
+        static::assertSame("\n", $config->getLineEnding());
+        static::assertSame('default', $config->getName());
+        static::assertNull($config->getPhpExecutable());
+        static::assertFalse($config->getRiskyAllowed());
+        static::assertSame(['@PSR2' => true], $config->getRules());
+        static::assertTrue($config->getUsingCache());
+
+        $finder = $config->getFinder();
+        static::assertInstanceOf(Finder::class, $finder);
+
+        $config->setFormat('xml');
+        static::assertSame('xml', $config->getFormat());
+
+        $config->setHideProgress(true);
+        static::assertTrue($config->getHideProgress());
+
+        $config->setIndent("\t");
+        static::assertSame("\t", $config->getIndent());
+
+        $finder = new Finder();
+        $config->setFinder($finder);
+        static::assertSame($finder, $config->getFinder());
+
+        $config->setLineEnding("\r\n");
+        static::assertSame("\r\n", $config->getLineEnding());
+
+        $config->setPhpExecutable(null);
+        static::assertNull($config->getPhpExecutable());
+
+        $config->setUsingCache(false);
+        static::assertFalse($config->getUsingCache());
+    }
+
+    public function testSetInvalidFinder()
+    {
+        $config = new Config();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^Argument must be an array or a Traversable, got "integer"\.$/');
+
+        $config->setFinder(123);
+    }
+
     /**
      * @return array
      */
     public function provideRegisterCustomFixersCases()
     {
         $fixers = [
-            new \PhpCsFixer\Fixer\ArrayNotation\NoWhitespaceBeforeCommaInArrayFixer(),
-            new \PhpCsFixer\Fixer\ControlStructure\IncludeFixer(),
+            new NoWhitespaceBeforeCommaInArrayFixer(),
+            new IncludeFixer(),
         ];
 
         return [
             [$fixers, $fixers],
             [$fixers, new \ArrayIterator($fixers)],
         ];
+    }
+
+    public function testConfigConstructorWithName()
+    {
+        $anonymousConfig = new Config();
+        $namedConfig = new Config('foo');
+
+        static::assertSame($anonymousConfig->getName(), 'default');
+        static::assertSame($namedConfig->getName(), 'foo');
+    }
+
+    /**
+     * @group legacy
+     * @expectedDeprecation PhpCsFixer\Config::create is deprecated since 2.17 and will be removed in 3.0.
+     */
+    public function testDeprecatedConstructor()
+    {
+        Config::create();
     }
 }

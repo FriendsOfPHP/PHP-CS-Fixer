@@ -29,7 +29,6 @@ final class PhpUnitTestAnnotationFixerTest extends AbstractFixerTestCase
      *
      * @param string      $expected
      * @param null|string $input
-     * @param array       $config
      */
     public function testFix($expected, $input = null, array $config = [])
     {
@@ -98,7 +97,7 @@ if (1) {
 }',
                 ['style' => 'annotation'],
             ],
-            'Annotation is not used, but should be, and there is already a docBlcok' => [
+            'Annotation is not used, but should be, and there is already a docBlock' => [
                 '<?php
 class Test extends \PhpUnit\FrameWork\TestCase
 {
@@ -726,8 +725,18 @@ class Test extends \PhpUnit\FrameWork\TestCase
                 '<?php
 class Test extends \PhpUnit\FrameWork\TestCase
 {
-    public function testItDoesSomething() {}
-    }',
+    public function testItDoesSomethingWithoutPhpDoc() {}
+    /**
+     * No annotation, just text
+     */
+    public function testItDoesSomethingWithPhpDoc() {}
+
+    public function testingItDoesSomethingWithoutPhpDoc() {}
+    /**
+     * No annotation, just text
+     */
+    public function testingItDoesSomethingWithPhpDoc() {}
+}',
             ],
             'Annotation is added when it is already present in a weird place' => [
                 '<?php
@@ -811,14 +820,14 @@ abstract class Test extends \PhpUnit\FrameWork\TestCase
 }',
                 ['style' => 'prefix'],
             ],
-            'Annotation present, but method does not actually have test prefix' => [
+            'Annotation present, but method already have test prefix' => [
                 '<?php
 class Test extends \PhpUnit\FrameWork\TestCase
 {
     /**
      *
      */
-    public function testTestarossaIsFromItaly() {}
+    public function testarossaIsFromItaly() {}
 }',
                 '<?php
 class Test extends \PhpUnit\FrameWork\TestCase
@@ -881,7 +890,7 @@ class Test extends \PhpUnit\FrameWork\TestCase
 }',
                 ['style' => 'annotation'],
             ],
-            'Annotation missing, method qualifies as test, but does not actually have test prefix' => [
+            'Annotation missing, but there is a lowercase character after the test prefix so it keeps the prefix' => [
                 '<?php
 class Test extends \PhpUnit\FrameWork\TestCase
 {
@@ -897,7 +906,7 @@ class Test extends \PhpUnit\FrameWork\TestCase
 }',
                 ['style' => 'annotation'],
             ],
-            'Annotation present, method qualifies as test, but does not actually have test prefix' => [
+            'Annotation present, but there is a lowercase character after the test prefix so it keeps the prefix' => [
                 '<?php
 class Test extends \PhpUnit\FrameWork\TestCase
 {
@@ -953,6 +962,22 @@ class Test extends \PhpUnit\FrameWork\TestCase
                 null,
                 ['style' => 'annotation'],
             ],
+            'Annotation missing, method after fix still has "test" prefix' => [
+                '<?php
+class Test extends \PhpUnit\FrameWork\TestCase
+{
+    /**
+     * @test
+     */
+    public function test_foo() {}
+}',
+                '<?php
+class Test extends \PhpUnit\FrameWork\TestCase
+{
+    public function test_test_foo() {}
+}',
+                ['style' => 'annotation'],
+            ],
         ];
     }
 
@@ -963,7 +988,6 @@ class Test extends \PhpUnit\FrameWork\TestCase
      *
      * @param string      $expected
      * @param null|string $input
-     * @param null|array  $config
      */
     public function testFixLegacyCaseOption($expected, $input = null, array $config = [])
     {
@@ -1190,7 +1214,6 @@ class Test extends \PhpUnit\FrameWork\TestCase
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $config
      *
      * @dataProvider provideMessyWhitespacesCases
      */

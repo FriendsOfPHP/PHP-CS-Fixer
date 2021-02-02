@@ -27,9 +27,9 @@ class InvalidConfigurationException extends \InvalidArgumentException
     /**
      * @param string          $message
      * @param null|int        $code
-     * @param null|\Exception $previous
+     * @param null|\Throwable $previous
      */
-    public function __construct($message, $code = null, \Exception $previous = null)
+    public function __construct($message, $code = null, $previous = null)
     {
         parent::__construct(
             $message,

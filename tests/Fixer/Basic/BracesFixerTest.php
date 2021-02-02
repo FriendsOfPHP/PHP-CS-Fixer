@@ -31,7 +31,7 @@ final class BracesFixerTest extends AbstractFixerTestCase
     public function testInvalidConfigurationClassyConstructs()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('#^\[braces\] Invalid configuration: The option "position_after_functions_and_oop_constructs" with value "neither" is invalid\. Accepted values are: "next", "same"\.$#');
+        $this->expectExceptionMessageMatches('#^\[braces\] Invalid configuration: The option "position_after_functions_and_oop_constructs" with value "neither" is invalid\. Accepted values are: "next", "same"\.$#');
 
         $this->fixer->configure(['position_after_functions_and_oop_constructs' => 'neither']);
     }
@@ -39,7 +39,6 @@ final class BracesFixerTest extends AbstractFixerTestCase
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixControlContinuationBracesCases
      */
@@ -763,30 +762,6 @@ function foo()
             ],
             [
                 '<?php
-function test()
-{
-//    $closure = function ($callback) use ($query) {
-//        doSomething();
-//
-//        return true;
-//    };
-    $a = 3;
-}',
-            ],
-            [
-                '<?php
-function test()
-{
-//    $closure = function ($callback) use ($query) {
-//        doSomething();
-//        '.'
-//        return true;
-//    };
-    $a = 3;
-}',
-            ],
-            [
-                '<?php
 class Foo
 {
     public function bar()
@@ -820,7 +795,6 @@ echo 2;
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixMissingBracesAndIndentCases
      */
@@ -2591,166 +2565,12 @@ function D() /**
 }',
                 self::$configurationOopPositionSameLine,
             ],
-            [
-                '<?php
-if ($foo) {
-    foo();
-
-//    if ($bar === \'bar\') {
-//        return [];
-//    }
-} else {
-    bar();
-}
-',
-            ],
-            [
-                '<?php
-if ($foo) {
-    foo();
-
-//    if ($bar === \'bar\') {
-    //        return [];
-//    }
-} else {
-    bar();
-}
-',
-            ],
-            [
-                '<?php
-if ($foo) {
-    foo();
-
-//    if ($bar === \'bar\') {
-//        return [];
-//    }
-    '.'
-    $bar = \'bar\';
-} else {
-    bar();
-}
-',
-            ],
-            [
-                '<?php
-if ($foo) {
-    foo();
-
-//    bar();
-    '.'
-    $bar = \'bar\';
-} else {
-    bar();
-}
-',
-            ],
-            [
-                '<?php
-if ($foo) {
-    foo();
-//    bar();
-    '.'
-    $bar = \'bar\';
-} else {
-    bar();
-}
-',
-            ],
-            [
-                '<?php
-if ($foo) {
-    foo();
-    '.'
-//    bar();
-    $bar = \'bar\';
-} else {
-    bar();
-}
-',
-            ],
-            [
-                '<?php
-if ($foo) {
-    foo();
-    '.'
-//    bar();
-} else {
-    bar();
-}
-',
-            ],
-            [
-                '<?php
-function foo()
-{
-    $a = 1;
-    // we will return sth
-    return $a;
-}
-',
-                '<?php
-function foo()
-{
-    $a = 1;
-// we will return sth
-    return $a;
-}
-',
-            ],
-            [
-                '<?php
-function foo()
-{
-    $a = 1;
-    '.'
-//    bar();
-    // we will return sth
-    return $a;
-}
-',
-                '<?php
-function foo()
-{
-    $a = 1;
-    '.'
-//    bar();
-// we will return sth
-    return $a;
-}
-',
-            ],
-            [
-                '<?php
-function foo()
-{
-    $a = 1;
-//    if ($a === \'bar\') {
-//        return [];
-//    }
-    // we will return sth
-    return $a;
-}
-',
-                '<?php
-function foo()
-{
-    $a = 1;
-//    if ($a === \'bar\') {
-//        return [];
-//    }
-// we will return sth
-    return $a;
-}
-',
-            ],
         ];
     }
 
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixClassyBracesCases
      */
@@ -2935,7 +2755,6 @@ function foo()
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixAnonFunctionInShortArraySyntaxCases
      */
@@ -3053,7 +2872,6 @@ function foo()
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixCommentBeforeBraceCases
      */
@@ -3160,7 +2978,6 @@ if ($a) { /* */ /* */ /* */ /* */ /* */
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixCommentBeforeBrace70Cases
      * @requires PHP 7.0
@@ -3204,7 +3021,6 @@ if ($a) { /* */ /* */ /* */ /* */ /* */
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixWhitespaceBeforeBraceCases
      */
@@ -3423,7 +3239,6 @@ if ($a) { /* */ /* */ /* */ /* */ /* */
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixFunctionsCases
      */
@@ -3785,7 +3600,6 @@ class Foo
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixMultiLineStructuresCases
      */
@@ -3907,7 +3721,6 @@ class Foo
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixSpaceAroundTokenCases
      */
@@ -4106,7 +3919,6 @@ declare   (   ticks   =   1   )   {
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFinallyCases
      */
@@ -4207,7 +4019,6 @@ declare   (   ticks   =   1   )   {
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFunctionImportCases
      */
@@ -4259,7 +4070,6 @@ declare   (   ticks   =   1   )   {
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFix70Cases
      * @requires PHP 7.0
@@ -4908,13 +4718,53 @@ use const some\a\{ConstA, ConstB, ConstC};
                 null,
                 self::$configurationOopPositionSameLine + self::$configurationAnonymousPositionNextLine,
             ],
+            [
+                '<?php
+$foo = new class () extends \Exception {
+};
+',
+                '<?php
+$foo = new class () extends \Exception {};
+',
+            ],
+            [
+                '<?php
+$foo = new class () extends \Exception {};
+',
+                null,
+                ['allow_single_line_anonymous_class_with_empty_body' => true],
+            ],
+            [
+                '<?php
+$foo = new class() {}; // comment
+',
+                null,
+                ['allow_single_line_anonymous_class_with_empty_body' => true],
+            ],
+            [
+                '<?php
+$foo = new class() { /* comment */ }; // another comment
+',
+                null,
+                ['allow_single_line_anonymous_class_with_empty_body' => true],
+            ],
+            [
+                '<?php
+$foo = new class () extends \Exception {
+    protected $message = "Surprise";
+};
+',
+                '<?php
+$foo = new class () extends \Exception { protected $message = "Surprise"; };
+',
+                ['allow_single_line_anonymous_class_with_empty_body' => true],
+            ],
         ];
     }
 
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider providePreserveLineAfterControlBraceCases
      */
@@ -5034,7 +4884,6 @@ if (true) {
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixWithAllowOnelineLambdaCases
      */
@@ -5114,7 +4963,6 @@ if (true)
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideMessyWhitespacesCases
      */
@@ -5244,6 +5092,387 @@ HEREDOC;
 EOT
                 ,
             ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixCommentsCases
+     */
+    public function testFixComments($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+        $this->doTest(str_replace('//', '#', $expected), null === $input ? null : str_replace('//', '#', $input));
+    }
+
+    public function provideFixCommentsCases()
+    {
+        return [
+            [
+                '<?php
+function test()
+{
+//    $closure = function ($callback) use ($query) {
+//        doSomething();
+//
+//        return true;
+//    };
+    $a = 3;
+}',
+            ],
+            [
+                '<?php
+function test()
+{
+//    $closure = function ($callback) use ($query) {
+//        doSomething();
+//        '.'
+//        return true;
+//    };
+    $a = 3;
+}',
+            ],
+            [
+                '<?php
+if ($foo) {
+    foo();
+
+//    if ($bar === \'bar\') {
+//        return [];
+//    }
+} else {
+    bar();
+}
+',
+            ],
+            [
+                '<?php
+if ($foo) {
+    foo();
+
+//    if ($bar === \'bar\') {
+    //        return [];
+//    }
+} else {
+    bar();
+}
+',
+            ],
+            [
+                '<?php
+if ($foo) {
+    foo();
+
+//    if ($bar === \'bar\') {
+//        return [];
+//    }
+    '.'
+    $bar = \'bar\';
+} else {
+    bar();
+}
+',
+            ],
+            [
+                '<?php
+if ($foo) {
+    foo();
+
+//    bar();
+    '.'
+    $bar = \'bar\';
+} else {
+    bar();
+}
+',
+            ],
+            [
+                '<?php
+if ($foo) {
+    foo();
+//    bar();
+    '.'
+    $bar = \'bar\';
+} else {
+    bar();
+}
+',
+            ],
+            [
+                '<?php
+if ($foo) {
+    foo();
+    '.'
+//    bar();
+    $bar = \'bar\';
+} else {
+    bar();
+}
+',
+            ],
+            [
+                '<?php
+if ($foo) {
+    foo();
+    '.'
+//    bar();
+} else {
+    bar();
+}
+',
+            ],
+            [
+                '<?php
+function foo()
+{
+    $a = 1;
+    // we will return sth
+    return $a;
+}
+',
+                '<?php
+function foo()
+{
+    $a = 1;
+// we will return sth
+    return $a;
+}
+',
+            ],
+            [
+                '<?php
+function foo()
+{
+    $a = 1;
+    '.'
+//    bar();
+    // we will return sth
+    return $a;
+}
+',
+                '<?php
+function foo()
+{
+    $a = 1;
+    '.'
+//    bar();
+// we will return sth
+    return $a;
+}
+',
+            ],
+            [
+                '<?php
+function foo()
+{
+    $a = 1;
+//    if ($a === \'bar\') {
+//        return [];
+//    }
+    // we will return sth
+    return $a;
+}
+',
+                '<?php
+function foo()
+{
+    $a = 1;
+//    if ($a === \'bar\') {
+//        return [];
+//    }
+// we will return sth
+    return $a;
+}
+',
+            ],
+        ];
+    }
+
+    public function testDynamicStaticMethodCallNotTouched()
+    {
+        $this->doTest(
+            '<?php
+SomeClass::{$method}(new \stdClass());
+SomeClass::{\'test\'}(new \stdClass());
+
+function example()
+{
+    SomeClass::{$method}(new \stdClass());
+    SomeClass::{\'test\'}(new \stdClass());
+}'
+        );
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideIndentCommentCases
+     */
+    public function testIndentComment($expected, $input, WhitespacesFixerConfig $config = null)
+    {
+        if (null !== $config) {
+            $this->fixer->setWhitespacesConfig($config);
+        }
+
+        $this->doTest($expected, $input);
+    }
+
+    public function provideIndentCommentCases()
+    {
+        yield [
+            "<?php
+if (true) {
+\t\$i += 2;
+\treturn foo(\$i);
+\t/*
+\t \$i += 3;
+
+\t // 1
+  "."
+\t   return foo(\$i);
+\t */
+}",
+            '<?php
+if (true) {
+    $i += 2;
+    return foo($i);
+/*
+ $i += 3;
+
+ // 1
+  '.'
+   return foo($i);
+ */
+}',
+            new WhitespacesFixerConfig("\t", "\n"),
+        ];
+
+        yield [
+            '<?php
+class MyClass extends SomeClass
+{
+    /*	public function myFunction() {
+
+    		$MyItems = [];
+
+    		return $MyItems;
+    	}
+    */
+}',
+            '<?php
+class MyClass extends SomeClass {
+/*	public function myFunction() {
+
+		$MyItems = [];
+
+		return $MyItems;
+	}
+*/
+}',
+        ];
+
+        yield [
+            '<?php
+if (true) {
+    $i += 2;
+    return foo($i);
+    /*
+    $i += 3;
+
+    return foo($i);
+     */
+}',
+            '<?php
+if (true) {
+    $i += 2;
+    return foo($i);
+/*
+$i += 3;
+
+return foo($i);
+ */
+}',
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixAlternativeSyntaxCases
+     */
+    public function testFixAlternativeSyntax($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixAlternativeSyntaxCases()
+    {
+        yield [
+            '<?php if (foo()) {
+    while (bar()) {
+    }
+}',
+            '<?php if (foo()) while (bar()) {}',
+        ];
+
+        yield [
+            '<?php if ($a) {
+    foreach ($b as $c) {
+    }
+}',
+            '<?php if ($a) foreach ($b as $c) {}',
+        ];
+
+        yield [
+            '<?php if ($a) foreach ($b as $c): ?> X <?php endforeach; ?>',
+        ];
+
+        yield [
+            '<?php if ($a) while ($b): ?> X <?php endwhile; ?>',
+        ];
+
+        yield [
+            '<?php if ($a) for (;;): ?> X <?php endfor; ?>',
+        ];
+
+        yield [
+            '<?php if ($a) switch ($a): case 1: ?> X <?php endswitch; ?>',
+        ];
+
+        yield [
+            '<?php if ($a): elseif ($b): for (;;): ?> X <?php endfor; endif; ?>',
+        ];
+
+        yield [
+            '<?php switch ($a): case 1: for (;;): ?> X <?php endfor; endswitch; ?>,',
+        ];
+
+        yield [
+            '<?php
+if ($a) foreach ($b as $c): ?>
+    <?php if ($a) for (;;): ?>
+        <?php if ($a) foreach ($b as $c): ?>
+            <?php if ($a) for (;;): ?>
+                <?php if ($a) while ($b): ?>
+                    <?php if ($a) while ($b): ?>
+                        <?php if ($a) foreach ($b as $c): ?>
+                            <?php if ($a) for (;;): ?>
+                                <?php if ($a) while ($b): ?>
+                                    <?php if ($a) while ($b): ?>
+                                    <?php endwhile; ?>
+                                <?php endwhile; ?>
+                            <?php endfor; ?>
+                        <?php endforeach; ?>
+                    <?php endwhile; ?>
+                <?php endwhile; ?>
+            <?php endfor; ?>
+        <?php endforeach; ?>
+    <?php endfor; ?>
+<?php endforeach; ?>',
         ];
     }
 }

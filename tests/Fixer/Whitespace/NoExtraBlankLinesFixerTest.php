@@ -35,7 +35,7 @@ class Test {
     public function testThrow($a)
     {
         if ($a) {
-            throw new InvalidArgumentException('test'); // test
+            throw new InvalidArgumentException('test.'); // test
 
         }
         $date = new DateTime();
@@ -101,8 +101,7 @@ EOF;
     }
 
     /**
-     * @param int[]         $lineNumberRemoved Line numbers expected to be removed after fixing
-     * @param null|string[] $config
+     * @param int[] $lineNumberRemoved Line numbers expected to be removed after fixing
      *
      * @group legacy
      * @dataProvider provideWithConfigCases
@@ -116,8 +115,7 @@ EOF;
     }
 
     /**
-     * @param int[]         $lineNumberRemoved Line numbers expected to be removed after fixing
-     * @param null|string[] $config
+     * @param int[] $lineNumberRemoved Line numbers expected to be removed after fixing
      *
      * @dataProvider provideWithConfigCases
      */
@@ -489,7 +487,7 @@ $b = 1;
     public function testWrongConfig()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/^\[no_extra_blank_lines\] Invalid configuration: The option "tokens" .*\.$/');
+        $this->expectExceptionMessageMatches('/^\[no_extra_blank_lines\] Invalid configuration: The option "tokens" .*\.$/');
 
         $this->fixer->configure(['tokens' => ['__TEST__']]);
     }
@@ -668,10 +666,74 @@ $a = new Qux();',
         ];
     }
 
-    public function testRemoveBetweenUseTraits()
+    /**
+     * @dataProvider provideRemoveBetweenUseTraitsCases
+     *
+     * @param string $expected
+     * @param string $input
+     */
+    public function testRemoveBetweenUseTraits($expected, $input)
     {
         $this->fixer->configure(['tokens' => ['use_trait']]);
-        $this->doTest(
+
+        $this->doTest($expected, $input);
+    }
+
+    public function provideRemoveBetweenUseTraitsCases()
+    {
+        yield [
+            '<?php
+class Foo
+{
+    use Z; // 123
+    use Bar;/* */use Baz;
+
+    public function baz() {}
+
+    use Bar1; use Baz1;
+
+    public function baz1() {}
+}
+',
+            '<?php
+class Foo
+{
+    use Z; // 123
+
+    use Bar;/* */use Baz;
+
+    public function baz() {}
+
+    use Bar1; use Baz1;
+
+    public function baz1() {}
+}
+',
+        ];
+
+        yield [
+            '<?php
+class Foo
+{
+    use Bar;use Baz;
+    use Bar1;use Baz1;
+
+    public function baz() {}
+}
+',
+            '<?php
+class Foo
+{
+    use Bar;use Baz;
+
+    use Bar1;use Baz1;
+
+    public function baz() {}
+}
+',
+        ];
+
+        yield [
             '<?php
             namespace T\A;
             use V;
@@ -710,8 +772,8 @@ $a = new Qux();',
                     $b = function() use ($b) { echo $b;};
 
                 }
-            }'
-        );
+            }',
+        ];
     }
 
     /**
@@ -787,21 +849,31 @@ $a = new Qux();',
 
     public function provideOneAndInLineCases()
     {
-        return [
+        $tests = [
             [
                 "<?php\n\n\$a = function() use (\$b) { while(3<1)break; \$c = \$b[1]; while(\$b<1)continue; if (true) throw \$e; return 1; };\n\n",
             ],
             [
-                "<?php throw new \\Exception('do not import');\n",
-                "<?php throw new \\Exception('do not import');\n\n",
+                "<?php throw new \\Exception('do not import.');\n",
+                "<?php throw new \\Exception('do not import.');\n\n",
             ],
             [
-                "<?php\n\n\$a = \$b{0};\n\n",
+                "<?php\n\n\$a = \$b[0];\n\n",
             ],
             [
                 "<?php\n\n\$a->{'Test'};\nfunction test(){}\n",
             ],
         ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        if (\PHP_VERSION_ID < 80000) {
+            yield [
+                "<?php\n\n\$a = \$b{0};\n\n",
+            ];
+        }
     }
 
     /**
@@ -936,7 +1008,6 @@ class Foo
     }
 
     /**
-     * @param array       $config
      * @param string      $expected
      * @param null|string $input
      *
@@ -977,7 +1048,6 @@ class Foo
     }
 
     /**
-     * @param array       $config
      * @param string      $expected
      * @param null|string $input
      *
@@ -1119,13 +1189,13 @@ class Foo {}'
     }
 
     /**
-     * @param string $expected
-     * @param string $input
+     * @param string      $expected
+     * @param null|string $input
      *
      * @dataProvider provideFix72Cases
      * @requires PHP 7.2
      */
-    public function testFix72($expected, $input)
+    public function testFix72($expected, $input = null)
     {
         $this->fixer->configure(['tokens' => ['use']]);
         $this->doTest($expected, $input);
@@ -1133,17 +1203,23 @@ class Foo {}'
 
     public function provideFix72Cases()
     {
-        return [
-            [
-                '<?php
+        yield [
+            '<?php
+use function A; use function B;
+
+echo 1;',
+        ];
+
+        yield [
+            '<?php
 use some\a\{ClassA, ClassB, ClassC as C,};
 use function some\a\{fn_a, fn_b, fn_c,};
 use const some\a\{ConstA,ConstB,ConstC
 ,
 };
-use const some\Z\{ConstA,ConstB,ConstC,};
+use const some\Z\{ConstX,ConstY,ConstZ,};
 ',
-                '<?php
+            '<?php
 use some\a\{ClassA, ClassB, ClassC as C,};
 
 
@@ -1153,9 +1229,43 @@ use const some\a\{ConstA,ConstB,ConstC
 ,
 };
   '.'
-use const some\Z\{ConstA,ConstB,ConstC,};
+use const some\Z\{ConstX,ConstY,ConstZ,};
 ',
-            ],
+        ];
+    }
+
+    /**
+     * @param string $expected
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected)
+    {
+        $this->fixer->configure(['tokens' => ['throw']]);
+
+        $this->doTest($expected);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php
+                $a = $bar ?? throw new \Exception();
+
+                $a = $bar ?? throw new \Exception();
+
+                $a = $bar ?? throw new \Exception();
+            ',
+        ];
+
+        yield [
+            '<?php
+                $a = $bar ?? throw new \Exception();
+
+                // Now, we gonna use it!
+                var_dump($a);
+            ',
         ];
     }
 

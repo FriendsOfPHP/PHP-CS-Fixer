@@ -39,11 +39,12 @@ final class MethodChainingIndentationFixer extends AbstractFixer implements Whit
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before ArrayIndentationFixer, MethodArgumentSpaceFixer.
+     * Must run after BracesFixer.
      */
     public function getPriority()
     {
-        // Should run after BracesFixer
-        // Should run before ArrayIndentationFixer
         return -29;
     }
 
@@ -90,8 +91,7 @@ final class MethodChainingIndentationFixer extends AbstractFixer implements Whit
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  index of the first token on the line to indent
+     * @param int $index index of the first token on the line to indent
      *
      * @return string
      */
@@ -121,8 +121,7 @@ final class MethodChainingIndentationFixer extends AbstractFixer implements Whit
     }
 
     /**
-     * @param int    $index  position of the T_OBJECT_OPERATOR token
-     * @param Tokens $tokens
+     * @param int $index position of the T_OBJECT_OPERATOR token
      *
      * @return bool
      */
@@ -147,14 +146,13 @@ final class MethodChainingIndentationFixer extends AbstractFixer implements Whit
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  index of the indentation token
+     * @param int $index index of the indentation token
      *
      * @return null|string
      */
     private function getIndentAt(Tokens $tokens, $index)
     {
-        if (1 === Preg::match('/\R{1}([ \t]*)$/', $this->getIndentContentAt($tokens, $index), $matches)) {
+        if (1 === Preg::match('/\R{1}(\h*)$/', $this->getIndentContentAt($tokens, $index), $matches)) {
             return $matches[1];
         }
 
@@ -181,9 +179,8 @@ final class MethodChainingIndentationFixer extends AbstractFixer implements Whit
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $start  index of first meaningful token on previous line
-     * @param int    $end    index of last token on previous line
+     * @param int $start index of first meaningful token on previous line
+     * @param int $end   index of last token on previous line
      *
      * @return bool
      */

@@ -18,12 +18,18 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+use PhpCsFixer\Tokenizer\TokensAnalyzer;
 
 /**
  * @author SpacePossum
  */
 final class ReturnAssignmentFixer extends AbstractFixer
 {
+    /**
+     * @var TokensAnalyzer
+     */
+    private $tokensAnalyzer;
+
     /**
      * {@inheritdoc}
      */
@@ -37,11 +43,12 @@ final class ReturnAssignmentFixer extends AbstractFixer
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before BlankLineBeforeStatementFixer.
+     * Must run after NoEmptyStatementFixer, NoUnneededCurlyBracesFixer.
      */
     public function getPriority()
     {
-        // must run after the NoEmptyStatementFixer
-        // must run before BlankLineBeforeStatementFixer
         return -15;
     }
 
@@ -59,6 +66,7 @@ final class ReturnAssignmentFixer extends AbstractFixer
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
         $tokenCount = \count($tokens);
+        $this->tokensAnalyzer = new TokensAnalyzer($tokens);
 
         for ($index = 1; $index < $tokenCount; ++$index) {
             if (!$tokens[$index]->isGivenKind(T_FUNCTION)) {
@@ -73,24 +81,28 @@ final class ReturnAssignmentFixer extends AbstractFixer
             }
 
             $functionCloseIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $functionOpenIndex);
+            $totalTokensAdded = 0;
 
-            $tokensAdded = $this->fixFunction(
-                $tokens,
-                $index,
-                $functionOpenIndex,
-                $functionCloseIndex
-            );
+            do {
+                $tokensAdded = $this->fixFunction(
+                    $tokens,
+                    $index,
+                    $functionOpenIndex,
+                    $functionCloseIndex
+                );
 
-            $index = $functionCloseIndex + $tokensAdded;
-            $tokenCount += $tokensAdded;
+                $totalTokensAdded += $tokensAdded;
+            } while ($tokensAdded > 0);
+
+            $index = $functionCloseIndex + $totalTokensAdded;
+            $tokenCount += $totalTokensAdded;
         }
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $functionIndex      token index of T_FUNCTION
-     * @param int    $functionOpenIndex  token index of the opening brace token of the function
-     * @param int    $functionCloseIndex token index of the closing brace token of the function
+     * @param int $functionIndex      token index of T_FUNCTION
+     * @param int $functionOpenIndex  token index of the opening brace token of the function
+     * @param int $functionCloseIndex token index of the closing brace token of the function
      *
      * @return int >= 0 number of tokens inserted into the Tokens collection
      */
@@ -183,7 +195,7 @@ final class ReturnAssignmentFixer extends AbstractFixer
                 }
             }
 
-            if ($this->isSuperGlobal($tokens[$index])) {
+            if ($this->tokensAnalyzer->isSuperGlobal($index)) {
                 $isRisky = true;
 
                 continue;
@@ -216,6 +228,16 @@ final class ReturnAssignmentFixer extends AbstractFixer
             }
 
             // Note: here we are @ "; return $a;" (or "; return $a ? >")
+            do {
+                $prevMeaningFul = $tokens->getPrevMeaningfulToken($assignVarEndIndex);
+
+                if (!$tokens[$prevMeaningFul]->equals(')')) {
+                    break;
+                }
+
+                $assignVarEndIndex = $tokens->findBlockStart(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $prevMeaningFul);
+            } while (true);
+
             $assignVarOperatorIndex = $tokens->getPrevTokenOfKind(
                 $assignVarEndIndex,
                 ['=', ';', '{', [T_OPEN_TAG], [T_OPEN_TAG_WITH_ECHO]]
@@ -251,11 +273,10 @@ final class ReturnAssignmentFixer extends AbstractFixer
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $assignVarIndex
-     * @param int    $assignVarOperatorIndex
-     * @param int    $returnIndex
-     * @param int    $returnVarEndIndex
+     * @param int $assignVarIndex
+     * @param int $assignVarOperatorIndex
+     * @param int $returnIndex
+     * @param int $returnVarEndIndex
      *
      * @return int >= 0 number of tokens inserted into the Tokens collection
      */
@@ -332,31 +353,5 @@ final class ReturnAssignmentFixer extends AbstractFixer
         }
 
         $tokens->clearTokenAndMergeSurroundingWhitespace($index);
-    }
-
-    /**
-     * @param Token $token
-     *
-     * @return bool
-     */
-    private function isSuperGlobal(Token $token)
-    {
-        static $superNames = [
-            '$_COOKIE' => true,
-            '$_ENV' => true,
-            '$_FILES' => true,
-            '$_GET' => true,
-            '$_POST' => true,
-            '$_REQUEST' => true,
-            '$_SERVER' => true,
-            '$_SESSION' => true,
-            '$GLOBALS' => true,
-        ];
-
-        if (!$token->isGivenKind(T_VARIABLE)) {
-            return false;
-        }
-
-        return isset($superNames[strtoupper($token->getContent())]);
     }
 }

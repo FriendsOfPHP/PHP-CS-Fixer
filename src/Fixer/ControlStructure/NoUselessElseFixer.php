@@ -45,6 +45,17 @@ final class NoUselessElseFixer extends AbstractNoUselessElseFixer
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before BracesFixer, CombineConsecutiveUnsetsFixer, NoBreakCommentFixer, NoExtraBlankLinesFixer, NoTrailingWhitespaceFixer, NoUselessReturnFixer, NoWhitespaceInBlankLineFixer, SimplifiedIfReturnFixer.
+     * Must run after NoAlternativeSyntaxFixer, NoEmptyStatementFixer, NoUnneededCurlyBracesFixer.
+     */
+    public function getPriority()
+    {
+        return parent::getPriority();
+    }
+
+    /**
+     * {@inheritdoc}
      */
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
@@ -74,12 +85,12 @@ final class NoUselessElseFixer extends AbstractNoUselessElseFixer
     /**
      * Remove tokens part of an `else` statement if not empty (i.e. no meaningful tokens inside).
      *
-     * @param Tokens $tokens
-     * @param int    $index  T_ELSE index
+     * @param int $index T_ELSE index
      */
     private function fixEmptyElse(Tokens $tokens, $index)
     {
         $next = $tokens->getNextMeaningfulToken($index);
+
         if ($tokens[$next]->equals('{')) {
             $close = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $next);
             if (1 === $close - $next) { // '{}'
@@ -99,8 +110,7 @@ final class NoUselessElseFixer extends AbstractNoUselessElseFixer
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  index of T_ELSE
+     * @param int $index index of T_ELSE
      */
     private function clearElse(Tokens $tokens, $index)
     {
@@ -108,6 +118,7 @@ final class NoUselessElseFixer extends AbstractNoUselessElseFixer
 
         // clear T_ELSE and the '{' '}' if there are any
         $next = $tokens->getNextMeaningfulToken($index);
+
         if (!$tokens[$next]->equals('{')) {
             return;
         }

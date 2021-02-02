@@ -29,7 +29,9 @@ interface TransformerInterface
     /**
      * Get tokens created by Transformer.
      *
-     * @return array
+     * @return int[]
+     *
+     * @deprecated will be removed in 3.0
      */
     public function getCustomTokens();
 
@@ -66,9 +68,7 @@ interface TransformerInterface
     /**
      * Process Token to transform it into custom token when needed.
      *
-     * @param Tokens $tokens
-     * @param Token  $token
-     * @param int    $index
+     * @param int $index
      */
     public function process(Tokens $tokens, Token $token, $index);
 }

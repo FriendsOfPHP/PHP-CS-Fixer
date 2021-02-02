@@ -48,42 +48,38 @@ final class WhitespaceAfterCommaInArrayFixer extends AbstractFixer
      */
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
+        $tokensToInsert = [];
+
         for ($index = $tokens->count() - 1; $index >= 0; --$index) {
-            if ($tokens[$index]->isGivenKind([T_ARRAY, CT::T_ARRAY_SQUARE_BRACE_OPEN])) {
-                $this->fixSpacing($index, $tokens);
+            if (!$tokens[$index]->isGivenKind([T_ARRAY, CT::T_ARRAY_SQUARE_BRACE_OPEN])) {
+                continue;
+            }
+
+            if ($tokens[$index]->isGivenKind(CT::T_ARRAY_SQUARE_BRACE_OPEN)) {
+                $startIndex = $index;
+                $endIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_ARRAY_SQUARE_BRACE, $startIndex);
+            } else {
+                $startIndex = $tokens->getNextTokenOfKind($index, ['(']);
+                $endIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $startIndex);
+            }
+
+            for ($i = $endIndex - 1; $i > $startIndex; --$i) {
+                $i = $this->skipNonArrayElements($i, $tokens);
+                if ($tokens[$i]->equals(',') && !$tokens[$i + 1]->isWhitespace()) {
+                    $tokensToInsert[$i + 1] = new Token([T_WHITESPACE, ' ']);
+                }
             }
         }
-    }
 
-    /**
-     * Method to fix spacing in array declaration.
-     *
-     * @param int    $index
-     * @param Tokens $tokens
-     */
-    private function fixSpacing($index, Tokens $tokens)
-    {
-        if ($tokens[$index]->isGivenKind(CT::T_ARRAY_SQUARE_BRACE_OPEN)) {
-            $startIndex = $index;
-            $endIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_ARRAY_SQUARE_BRACE, $startIndex);
-        } else {
-            $startIndex = $tokens->getNextTokenOfKind($index, ['(']);
-            $endIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $startIndex);
-        }
-
-        for ($i = $endIndex - 1; $i > $startIndex; --$i) {
-            $i = $this->skipNonArrayElements($i, $tokens);
-            if ($tokens[$i]->equals(',') && !$tokens[$i + 1]->isWhitespace()) {
-                $tokens->insertAt($i + 1, new Token([T_WHITESPACE, ' ']));
-            }
+        if ([] !== $tokensToInsert) {
+            $tokens->insertSlices($tokensToInsert);
         }
     }
 
     /**
      * Method to move index over the non-array elements like function calls or function declarations.
      *
-     * @param int    $index
-     * @param Tokens $tokens
+     * @param int $index
      *
      * @return int New index
      */

@@ -40,10 +40,10 @@ final class ClassDefinitionFixerTest extends AbstractFixerWithAliasedOptionsTest
 
         $fixer = new ClassDefinitionFixer();
         $fixer->configure($defaultConfig);
-        static::assertAttributeSame($defaultConfig, 'configuration', $fixer);
+        static::assertConfigurationSame($defaultConfig, $fixer);
 
         $fixer->configure(null);
-        static::assertAttributeSame($defaultConfig, 'configuration', $fixer);
+        static::assertConfigurationSame($defaultConfig, $fixer);
     }
 
     public function testConfigureDefaultToNull()
@@ -56,10 +56,10 @@ final class ClassDefinitionFixerTest extends AbstractFixerWithAliasedOptionsTest
 
         $fixer = new ClassDefinitionFixer();
         $fixer->configure($defaultConfig);
-        static::assertAttributeSame($defaultConfig, 'configuration', $fixer);
+        static::assertConfigurationSame($defaultConfig, $fixer);
 
         $fixer->configure([]);
-        static::assertAttributeSame($defaultConfig, 'configuration', $fixer);
+        static::assertConfigurationSame($defaultConfig, $fixer);
     }
 
     /**
@@ -134,7 +134,7 @@ final class ClassDefinitionFixerTest extends AbstractFixerWithAliasedOptionsTest
     public function testInvalidConfigurationKey()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp(
+        $this->expectExceptionMessageMatches(
             '/^\[class_definition\] Invalid configuration: The option "a" does not exist\. Defined options are: "multi_line_extends_each_single_line", "single_item_single_line", "single_line"\.$/'
         );
 
@@ -145,12 +145,12 @@ final class ClassDefinitionFixerTest extends AbstractFixerWithAliasedOptionsTest
     public function testInvalidConfigurationValueType()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp(
+        $this->expectExceptionMessageMatches(
             '/^\[class_definition\] Invalid configuration: The option "single_line" with value "z" is expected to be of type "bool", but is of type "string"\.$/'
         );
 
         $fixer = new ClassDefinitionFixer();
-        $fixer->configure(['singleLine' => 'z']);
+        $fixer->configure(['single_line' => 'z']);
     }
 
     public function provideAnonymousClassesCases()
@@ -163,7 +163,7 @@ final class ClassDefinitionFixerTest extends AbstractFixerWithAliasedOptionsTest
             [
                 '<?php $a = new class(1) extends SomeClass implements SomeInterface, D {};',
                 "<?php \$a = new    class(1)     extends\nSomeClass\timplements    SomeInterface, D {};",
-                ['singleLine' => true],
+                ['single_line' => true],
             ],
             [
                 "<?php \$a = new class('1a') implements\nA\n{};",
@@ -172,7 +172,7 @@ final class ClassDefinitionFixerTest extends AbstractFixerWithAliasedOptionsTest
             [
                 "<?php \$a = new class('1a') implements A {};",
                 "<?php \$a = new class('1a')   implements\nA{};",
-                ['singleItemSingleLine' => true],
+                ['single_item_single_line' => true],
             ],
             [
                 '<?php $a = new class {};',
@@ -289,7 +289,7 @@ A#
 #
 }#
 ;",
-                ['singleItemSingleLine' => true],
+                ['single_item_single_line' => true],
             ],
             [
                 '<?php $a = new class() #
@@ -315,45 +315,45 @@ A#
             [
                 "<?php class configA implements B, C\n{}",
                 "<?php class configA implements\nB, C{}",
-                ['singleLine' => true],
+                ['single_line' => true],
             ],
             [
                 "<?php class configA1 extends B\n{}",
                 "<?php class configA1\n extends\nB{}",
-                ['singleLine' => true],
+                ['single_line' => true],
             ],
             [
                 "<?php class configA1a extends B\n{}",
                 "<?php class configA1a\n extends\nB{}",
-                ['singleLine' => false, 'singleItemSingleLine' => true],
+                ['single_line' => false, 'single_item_single_line' => true],
             ],
             [
                 "<?php class configA2 extends D implements B, C\n{}",
                 "<?php class configA2 extends D implements\nB,\nC{}",
-                ['singleLine' => true],
+                ['single_line' => true],
             ],
             [
                 "<?php class configA3 extends D implements B, C\n{}",
                 "<?php class configA3\n extends\nD\n\t implements\nB,\nC{}",
-                ['singleLine' => true],
+                ['single_line' => true],
             ],
             [
                 "<?php class configA4 extends D implements B, #\nC\n{}",
                 "<?php class configA4\n extends\nD\n\t implements\nB,#\nC{}",
-                ['singleLine' => true],
+                ['single_line' => true],
             ],
             [
                 "<?php class configA5 implements A\n{}",
                 "<?php class configA5 implements\nA{}",
-                ['singleLine' => false, 'singleItemSingleLine' => true],
+                ['single_line' => false, 'single_item_single_line' => true],
             ],
             [
                 "<?php interface TestWithMultiExtendsMultiLine extends\n    A,\nAb,\n    C,\n    D\n{}",
                 "<?php interface TestWithMultiExtendsMultiLine extends A,\nAb,C,D\n{}",
                 [
-                    'singleLine' => false,
-                    'singleItemSingleLine' => false,
-                    'multiLineExtendsEachSingleLine' => true,
+                    'single_line' => false,
+                    'single_item_single_line' => false,
+                    'multi_line_extends_each_single_line' => true,
                 ],
             ],
         ];
@@ -402,8 +402,7 @@ TestInterface3, /**/     TestInterface4   ,
     }
 
     /**
-     * @param string $source   PHP source code
-     * @param array  $expected
+     * @param string $source PHP source code
      *
      * @dataProvider provideClassyDefinitionInfoCases
      */
@@ -490,9 +489,8 @@ TestInterface3, /**/     TestInterface4   ,
     }
 
     /**
-     * @param string $source   PHP source code
+     * @param string $source PHP source code
      * @param string $label
-     * @param array  $expected
      *
      * @dataProvider provideClassyImplementsInfoCases
      */
@@ -502,9 +500,8 @@ TestInterface3, /**/     TestInterface4   ,
     }
 
     /**
-     * @param string $source   PHP source code
+     * @param string $source PHP source code
      * @param string $label
-     * @param array  $expected
      *
      * @requires PHP 7.0
      * @dataProvider provideClassyInheritanceInfo7Cases
@@ -516,8 +513,8 @@ TestInterface3, /**/     TestInterface4   ,
 
     public function provideClassyImplementsInfoCases()
     {
-        return [
-            [
+        $tests = [
+            '1' => [
                 '<?php
 class X11 implements    Z   , T,R
 {
@@ -525,7 +522,7 @@ class X11 implements    Z   , T,R
                 'numberOfImplements',
                 ['start' => 5, 'numberOfImplements' => 3, 'multiLine' => false],
             ],
-            [
+            '2' => [
                 '<?php
 class X10 implements    Z   , T,R    //
 {
@@ -533,25 +530,32 @@ class X10 implements    Z   , T,R    //
                 'numberOfImplements',
                 ['start' => 5, 'numberOfImplements' => 3, 'multiLine' => false],
             ],
-            [
+            '3' => [
                 '<?php class A implements B {}',
                 'numberOfImplements',
                 ['start' => 5, 'numberOfImplements' => 1, 'multiLine' => false],
             ],
-            [
-                "<?php class A implements B,\n C{}",
+            '4' => [
+                "<?php class A implements B,\n I{}",
                 'numberOfImplements',
                 ['start' => 5, 'numberOfImplements' => 2, 'multiLine' => true],
             ],
-            [
+            '5' => [
                 "<?php class A implements Z\\C\\B,C,D  {\n\n\n}",
                 'numberOfImplements',
                 ['start' => 5, 'numberOfImplements' => 3, 'multiLine' => false],
             ],
-            [
-                '<?php
+        ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        if (\PHP_VERSION_ID < 80000) {
+            $multiLine = true;
+            $code = '<?php
 namespace A {
-    interface C {}
+    interface X {}
 }
 
 namespace {
@@ -568,10 +572,34 @@ namespace {
 
     $a = new A();
     $a->test();
-}',
-                'numberOfImplements',
-                ['start' => 36, 'numberOfImplements' => 2, 'multiLine' => true],
-            ],
+}';
+        } else {
+            $multiLine = false;
+            $code = '<?php
+namespace A {
+    interface X {}
+}
+
+namespace {
+    class B{}
+
+    class A extends //
+        B     implements /*  */ \A\C, Z{
+        public function test()
+        {
+            echo 1;
+        }
+    }
+
+    $a = new A();
+    $a->test();
+}';
+        }
+
+        yield [
+            $code,
+            'numberOfImplements',
+            ['start' => 36, 'numberOfImplements' => 2, 'multiLine' => $multiLine],
         ];
     }
 
@@ -668,6 +696,14 @@ $a = new class implements
                 "<?php\r\nclass Aaa implements\r\n\tBbb, Ccc,\r\n\tDdd\r\n\t{\r\n\t}",
             ],
         ];
+    }
+
+    private static function assertConfigurationSame(array $expected, ClassDefinitionFixer $fixer)
+    {
+        $reflectionProperty = new \ReflectionProperty($fixer, 'configuration');
+        $reflectionProperty->setAccessible(true);
+
+        static::assertSame($expected, $reflectionProperty->getValue($fixer));
     }
 
     private function doTestClassyInheritanceInfo($source, $label, array $expected)

@@ -25,7 +25,6 @@ final class NamespacedStringTokenGeneratorTest extends TestCase
 {
     /**
      * @param string $input
-     * @param array  $expected
      *
      * @dataProvider provideGeneratorCases
      */
@@ -35,7 +34,7 @@ final class NamespacedStringTokenGeneratorTest extends TestCase
         static::assertSame(
             $expected,
             array_map(
-                function (Token $token) {
+                static function (Token $token) {
                     return $token->getContent();
                 },
                 $generator->generate($input)

@@ -30,8 +30,7 @@ final class CommentsAnalyzer
     const TYPE_SLASH_ASTERISK = 3;
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return bool
      */
@@ -41,9 +40,28 @@ final class CommentsAnalyzer
             throw new \InvalidArgumentException('Given index must point to a comment.');
         }
 
-        $prevIndex = $tokens->getPrevMeaningfulToken($index);
+        if (null === $tokens->getNextMeaningfulToken($index)) {
+            return false;
+        }
 
-        return $tokens[$prevIndex]->isGivenKind(T_OPEN_TAG) && null !== $tokens->getNextMeaningfulToken($index);
+        $prevIndex = $tokens->getPrevNonWhitespace($index);
+
+        if ($tokens[$prevIndex]->equals(';')) {
+            $braceCloseIndex = $tokens->getPrevMeaningfulToken($prevIndex);
+            if (!$tokens[$braceCloseIndex]->equals(')')) {
+                return false;
+            }
+
+            $braceOpenIndex = $tokens->findBlockStart(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $braceCloseIndex);
+            $declareIndex = $tokens->getPrevMeaningfulToken($braceOpenIndex);
+            if (!$tokens[$declareIndex]->isGivenKind(T_DECLARE)) {
+                return false;
+            }
+
+            $prevIndex = $tokens->getPrevNonWhitespace($declareIndex);
+        }
+
+        return $tokens[$prevIndex]->isGivenKind(T_OPEN_TAG);
     }
 
     /**
@@ -51,8 +69,7 @@ final class CommentsAnalyzer
      *
      * @see https://github.com/php-fig/fig-standards/blob/master/proposed/phpdoc.md#3-definitions
      *
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return bool
      */
@@ -67,6 +84,13 @@ final class CommentsAnalyzer
         $nextIndex = $index;
         do {
             $nextIndex = $tokens->getNextMeaningfulToken($nextIndex);
+
+            if (\defined('T_ATTRIBUTE')) {
+                while (null !== $nextIndex && $tokens[$nextIndex]->isGivenKind(T_ATTRIBUTE)) {
+                    $nextIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_ATTRIBUTE, $nextIndex);
+                    $nextIndex = $tokens->getNextMeaningfulToken($nextIndex);
+                }
+            }
         } while (null !== $nextIndex && $tokens[$nextIndex]->equals('('));
 
         if (null === $nextIndex || $tokens[$nextIndex]->equals('}')) {
@@ -97,8 +121,7 @@ final class CommentsAnalyzer
     /**
      * Return array of indices that are part of a comment started at given index.
      *
-     * @param Tokens $tokens
-     * @param int    $index  T_COMMENT index
+     * @param int $index T_COMMENT index
      *
      * @return null|array
      */
@@ -140,8 +163,6 @@ final class CommentsAnalyzer
     /**
      * @see https://github.com/phpDocumentor/fig-standards/blob/master/proposed/phpdoc.md#3-definitions
      *
-     * @param Token $token
-     *
      * @return bool
      */
     private function isStructuralElement(Token $token)
@@ -169,9 +190,8 @@ final class CommentsAnalyzer
     /**
      * Checks control structures (for, foreach, if, switch, while) for correct docblock usage.
      *
-     * @param Tokens $tokens
-     * @param Token  $docsToken    docs Token
-     * @param int    $controlIndex index of control structure Token
+     * @param Token $docsToken    docs Token
+     * @param int   $controlIndex index of control structure Token
      *
      * @return bool
      */
@@ -197,8 +217,8 @@ final class CommentsAnalyzer
             $token = $tokens[$index];
 
             if (
-                $token->isGivenKind(T_VARIABLE) &&
-                false !== strpos($docsContent, $token->getContent())
+                $token->isGivenKind(T_VARIABLE)
+                && false !== strpos($docsContent, $token->getContent())
             ) {
                 return true;
             }
@@ -210,9 +230,8 @@ final class CommentsAnalyzer
     /**
      * Checks variable assignments through `list()`, `print()` etc. calls for correct docblock usage.
      *
-     * @param Tokens $tokens
-     * @param Token  $docsToken              docs Token
-     * @param int    $languageConstructIndex index of variable Token
+     * @param Token $docsToken              docs Token
+     * @param int   $languageConstructIndex index of variable Token
      *
      * @return bool
      */
@@ -231,8 +250,7 @@ final class CommentsAnalyzer
 
         $endKind = $tokens[$languageConstructIndex]->isGivenKind(CT::T_DESTRUCTURING_SQUARE_BRACE_OPEN)
             ? [CT::T_DESTRUCTURING_SQUARE_BRACE_CLOSE]
-            : ')'
-        ;
+            : ')';
 
         $endIndex = $tokens->getNextTokenOfKind($languageConstructIndex, [$endKind]);
 
@@ -252,8 +270,7 @@ final class CommentsAnalyzer
     /**
      * Checks variable assignments for correct docblock usage.
      *
-     * @param Tokens $tokens
-     * @param int    $index  index of variable Token
+     * @param int $index index of variable Token
      *
      * @return bool
      */
@@ -287,9 +304,8 @@ final class CommentsAnalyzer
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $whiteStart
-     * @param int    $whiteEnd
+     * @param int $whiteStart
+     * @param int $whiteEnd
      *
      * @return int
      */

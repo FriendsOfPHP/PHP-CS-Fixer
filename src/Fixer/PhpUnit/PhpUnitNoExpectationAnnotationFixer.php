@@ -12,17 +12,17 @@
 
 namespace PhpCsFixer\Fixer\PhpUnit;
 
-use PhpCsFixer\AbstractFixer;
 use PhpCsFixer\DocBlock\Annotation;
 use PhpCsFixer\DocBlock\DocBlock;
+use PhpCsFixer\Fixer\AbstractPhpUnitFixer;
 use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
 use PhpCsFixer\Fixer\WhitespacesAwareFixerInterface;
 use PhpCsFixer\FixerConfiguration\FixerConfigurationResolver;
 use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
-use PhpCsFixer\Indicator\PhpUnitTestCaseIndicator;
 use PhpCsFixer\Preg;
+use PhpCsFixer\Tokenizer\Analyzer\WhitespacesAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
@@ -30,7 +30,7 @@ use PhpCsFixer\Tokenizer\TokensAnalyzer;
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
-final class PhpUnitNoExpectationAnnotationFixer extends AbstractFixer implements ConfigurationDefinitionFixerInterface, WhitespacesAwareFixerInterface
+final class PhpUnitNoExpectationAnnotationFixer extends AbstractPhpUnitFixer implements ConfigurationDefinitionFixerInterface, WhitespacesAwareFixerInterface
 {
     /**
      * @var bool
@@ -104,19 +104,12 @@ final class MyTest extends \PHPUnit_Framework_TestCase
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before NoEmptyPhpdocFixer, PhpUnitExpectationFixer.
      */
     public function getPriority()
     {
-        // should be run before the PhpUnitExpectationFixer, NoEmptyPhpdocFixer
         return 10;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isCandidate(Tokens $tokens)
-    {
-        return $tokens->isAllTokenKindsFound([T_CLASS, T_DOC_COMMENT]);
     }
 
     /**
@@ -125,17 +118,6 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     public function isRisky()
     {
         return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function applyFix(\SplFileInfo $file, Tokens $tokens)
-    {
-        $phpUnitTestCaseIndicator = new PhpUnitTestCaseIndicator();
-        foreach ($phpUnitTestCaseIndicator->findPhpUnitClasses($tokens) as $indexes) {
-            $this->fixPhpUnitClass($tokens, $indexes[0], $indexes[1]);
-        }
     }
 
     /**
@@ -157,28 +139,9 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    private function detectIndent(Tokens $tokens, $index)
-    {
-        if (!$tokens[$index - 1]->isWhitespace()) {
-            return ''; // cannot detect indent
-        }
-
-        $explodedContent = explode("\n", $tokens[$index - 1]->getContent());
-
-        return end($explodedContent);
-    }
-
-    /**
-     * @param Tokens $tokens
-     * @param int    $startIndex
-     * @param int    $endIndex
-     */
-    private function fixPhpUnitClass(Tokens $tokens, $startIndex, $endIndex)
+    protected function applyPhpUnitClassFix(Tokens $tokens, $startIndex, $endIndex)
     {
         $tokensAnalyzer = new TokensAnalyzer($tokens);
 
@@ -226,7 +189,7 @@ final class MyTest extends \PHPUnit_Framework_TestCase
                 continue;
             }
 
-            $originalIndent = $this->detectIndent($tokens, $docBlockIndex);
+            $originalIndent = WhitespacesAnalyzer::detectIndent($tokens, $docBlockIndex);
 
             $paramList = $this->annotationsToParamList($annotations);
 
@@ -242,12 +205,17 @@ final class MyTest extends \PHPUnit_Framework_TestCase
             ]);
 
             // apply changes
-            $tokens[$docBlockIndex] = new Token([T_DOC_COMMENT, $doc->getContent()]);
+            $docContent = $doc->getContent();
+            if ('' === $docContent) {
+                $docContent = '/** */';
+            }
+            $tokens[$docBlockIndex] = new Token([T_DOC_COMMENT, $docContent]);
             $tokens->insertAt($braceIndex + 1, $newMethods);
 
-            $tokens[$braceIndex + $newMethods->getSize() + 1] = new Token([
+            $whitespaceIndex = $braceIndex + $newMethods->getSize() + 1;
+            $tokens[$whitespaceIndex] = new Token([
                 T_WHITESPACE,
-                $this->whitespacesConfig->getLineEnding().$tokens[$braceIndex + $newMethods->getSize() + 1]->getContent(),
+                $this->whitespacesConfig->getLineEnding().$tokens[$whitespaceIndex]->getContent(),
             ]);
 
             $i = $docBlockIndex;
@@ -255,16 +223,18 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param Annotation $annotation
-     *
      * @return string
      */
     private function extractContentFromAnnotation(Annotation $annotation)
     {
         $tag = $annotation->getTag()->getName();
 
-        Preg::match('/@'.$tag.'\s+(.+)$/s', $annotation->getContent(), $matches);
-        $content = $matches[1];
+        if (1 !== Preg::match('/@'.$tag.'\s+(.+)$/s', $annotation->getContent(), $matches)) {
+            return '';
+        }
+
+        $content = Preg::replace('/\*+\/$/', '', $matches[1]);
+
         if (Preg::match('/\R/u', $content)) {
             $content = Preg::replace('/\s*\R+\s*\*\s*/u', ' ', $content);
         }
@@ -275,10 +245,10 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     private function annotationsToParamList(array $annotations)
     {
         $params = [];
-        $exceptionClass = '\\'.ltrim($annotations['expectedException'], '\\');
+        $exceptionClass = ltrim($annotations['expectedException'], '\\');
 
         if ($this->configuration['use_class_const']) {
-            $params[] = $exceptionClass.'::class';
+            $params[] = "\\{$exceptionClass}::class";
         } else {
             $params[] = "'{$exceptionClass}'";
         }

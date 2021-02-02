@@ -162,6 +162,17 @@ $c = get_class($d);
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before GlobalNamespaceImportFixer.
+     * Must run after BacktickToShellExecFixer, StrictParamFixer.
+     */
+    public function getPriority()
+    {
+        return 1;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isCandidate(Tokens $tokens)
     {
@@ -256,17 +267,15 @@ $c = get_class($d);
     }
 
     /**
-     * @param Tokens   $tokens
-     * @param callable $functionFilter
-     * @param int      $start
-     * @param int      $end
-     * @param bool     $tryToRemove
+     * @param int  $start
+     * @param int  $end
+     * @param bool $tryToRemove
      */
     private function fixFunctionCalls(Tokens $tokens, callable $functionFilter, $start, $end, $tryToRemove)
     {
         $functionsAnalyzer = new FunctionsAnalyzer();
 
-        $insertAtIndexes = [];
+        $tokensToInsert = [];
         for ($index = $start; $index < $end; ++$index) {
             if (!$functionsAnalyzer->isGlobalFunctionCall($tokens, $index)) {
                 continue;
@@ -289,12 +298,10 @@ $c = get_class($d);
                 continue; // do not bother if previous token is already namespace separator
             }
 
-            $insertAtIndexes[] = $index;
+            $tokensToInsert[$index] = new Token([T_NS_SEPARATOR, '\\']);
         }
 
-        foreach (array_reverse($insertAtIndexes) as $index) {
-            $tokens->insertAt($index, new Token([T_NS_SEPARATOR, '\\']));
-        }
+        $tokens->insertSlices($tokensToInsert);
     }
 
     /**

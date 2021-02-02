@@ -37,6 +37,44 @@ final class TernaryOperatorSpacesFixerTest extends AbstractFixerTestCase
     public function provideFixCases()
     {
         return [
+            'handle goto labels 1' => [
+                '<?php
+beginning:
+echo $guard ? 1 : 2;',
+                '<?php
+beginning:
+echo $guard?1:2;',
+            ],
+            'handle goto labels 2' => [
+                '<?php
+function A(){}
+beginning:
+echo $guard ? 1 : 2;',
+                '<?php
+function A(){}
+beginning:
+echo $guard?1:2;',
+            ],
+            'handle goto labels 3' => [
+                '<?php
+;
+beginning:
+echo $guard ? 1 : 2;',
+                '<?php
+;
+beginning:
+echo $guard?1:2;',
+            ],
+            'handle goto labels 4' => [
+                '<?php
+{
+beginning:
+echo $guard ? 1 : 2;}',
+                '<?php
+{
+beginning:
+echo $guard?1:2;}',
+            ],
             [
                 '<?php $a = $a ? 1 : 0;',
                 '<?php $a = $a  ? 1 : 0;',
@@ -121,6 +159,73 @@ $a = ($b
     ? ($c1?$c2:($c3a? :$c3b))
     : ($d1?$d2:$d3)
 );',
+            ],
+            [
+                '<?php
+                $foo = $isBar ? 1 : 2;
+                switch ($foo) {
+                    case 1: return 3;
+                    case 2: return 4;
+                }
+                ',
+                '<?php
+                $foo = $isBar? 1 : 2;
+                switch ($foo) {
+                    case 1: return 3;
+                    case 2: return 4;
+                }
+                ',
+            ],
+            [
+                '<?php
+                return $isBar ? array_sum(array_map(function ($x) { switch ($x) { case 1: return $y ? 2 : 3; case 4: return 5; } }, [1, 2, 3])) : 128;
+                ',
+                '<?php
+                return $isBar?array_sum(array_map(function ($x) { switch ($x) { case 1: return $y? 2 : 3; case 4: return 5; } }, [1, 2, 3])):128;
+                ',
+            ],
+            [
+                '<?php
+                declare(ticks=1):enddeclare;
+                for ($i = 0; $i < 100; $i++): echo "."; endfor;
+                foreach ($foo as $bar): $i++; endforeach;
+                if ($x === 1): echo "One"; elseif ($x === 2): echo "Two"; else: echo "Three"; endif;
+                switch (true): default: return 0; endswitch;
+                while ($i > 10): $i--; endwhile;
+                /* ternary operator to make the file a candidate for fixing */ true ? 1 : 0;
+                ',
+            ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix80Cases()
+    {
+        return [
+            'nullable types in constructor property promotion' => [
+                '<?php
+
+class Foo
+{
+    public function __construct(
+        private ?string $foo = null,
+        protected ?string $bar = null,
+        public ?string $xyz = null,
+    ) {
+        /* ternary operator to make the file a candidate for fixing */ true ? 1 : 0;
+    }
+}',
             ],
         ];
     }

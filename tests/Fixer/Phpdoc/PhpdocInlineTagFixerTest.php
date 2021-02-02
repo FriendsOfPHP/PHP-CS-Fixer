@@ -173,7 +173,7 @@ final class PhpdocInlineTagFixerTest extends AbstractFixerTestCase
             [
                 '<?php
     /**
-     * {@inheritdoc} should this be inside the tag?
+     * {@inheritdoc should this be inside the tag?}
      * {@inheritdoc}
      * {@inheritdoc}
      * {@inheritdoc}

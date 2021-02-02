@@ -15,7 +15,6 @@ namespace PhpCsFixer\Console;
 use PhpCsFixer\Console\Command\DescribeCommand;
 use PhpCsFixer\Console\Command\FixCommand;
 use PhpCsFixer\Console\Command\HelpCommand;
-use PhpCsFixer\Console\Command\ReadmeCommand;
 use PhpCsFixer\Console\Command\SelfUpdateCommand;
 use PhpCsFixer\Console\SelfUpdate\GithubClient;
 use PhpCsFixer\Console\SelfUpdate\NewVersionChecker;
@@ -35,7 +34,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class Application extends BaseApplication
 {
-    const VERSION = '2.16.0-DEV';
+    const VERSION = '2.19.0-DEV';
     const VERSION_CODENAME = '';
 
     /**
@@ -46,7 +45,7 @@ final class Application extends BaseApplication
     public function __construct()
     {
         if (!getenv('PHP_CS_FIXER_FUTURE_MODE')) {
-            error_reporting(-1);
+            error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
         }
 
         parent::__construct('PHP CS Fixer', self::VERSION);
@@ -55,12 +54,19 @@ final class Application extends BaseApplication
 
         $this->add(new DescribeCommand());
         $this->add(new FixCommand($this->toolInfo));
-        $this->add(new ReadmeCommand());
         $this->add(new SelfUpdateCommand(
             new NewVersionChecker(new GithubClient()),
             $this->toolInfo,
             new PharChecker()
         ));
+    }
+
+    /**
+     * @return int
+     */
+    public static function getMajorVersion()
+    {
+        return (int) explode('.', self::VERSION)[0];
     }
 
     /**
@@ -89,11 +95,11 @@ final class Application extends BaseApplication
      */
     public function getLongVersion()
     {
-        $version = parent::getLongVersion();
-        if (self::VERSION_CODENAME) {
-            $version .= ' <info>'.self::VERSION_CODENAME.'</info>';
-        }
-        $version .= ' by <comment>Fabien Potencier</comment> and <comment>Dariusz Ruminski</comment>';
+        $version = sprintf(
+            '%s <info>%s</info> by <comment>Fabien Potencier</comment> and <comment>Dariusz Ruminski</comment>',
+            parent::getLongVersion(),
+            self::VERSION_CODENAME
+        );
 
         $commit = '@git-commit@';
 

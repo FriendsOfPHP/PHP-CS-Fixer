@@ -20,6 +20,7 @@ use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\Preg;
+use PhpCsFixer\Tokenizer\Analyzer\WhitespacesAnalyzer;
 use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
@@ -123,10 +124,12 @@ class Foo
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before ArrayIndentationFixer, MethodArgumentSpaceFixer, MethodChainingIndentationFixer.
+     * Must run after ClassAttributesSeparationFixer, ElseifFixer, LineEndingFixer, MethodSeparationFixer, NoAlternativeSyntaxFixer, NoEmptyStatementFixer, NoUselessElseFixer, SingleTraitInsertPerStatementFixer.
      */
     public function getPriority()
     {
-        // should be run after the ElseIfFixer, LineEndingFixer, NoEmptyStatementFixer and NoUselessElseFixer
         return -25;
     }
 
@@ -157,6 +160,10 @@ class Foo
     protected function createConfigurationDefinition()
     {
         return new FixerConfigurationResolver([
+            (new FixerOptionBuilder('allow_single_line_anonymous_class_with_empty_body', 'Whether single line anonymous class with empty body notation should be allowed.'))
+                ->setAllowedTypes(['bool'])
+                ->setDefault(false)
+                ->getOption(),
             (new FixerOptionBuilder('allow_single_line_closure', 'Whether single line lambda notation should be allowed.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
@@ -187,8 +194,8 @@ class Foo
             if ($token->isGivenKind($controlTokens)) {
                 $prevIndex = $this->findParenthesisEnd($tokens, $index);
             } elseif (
-                ($token->isGivenKind(T_FUNCTION) && $tokensAnalyzer->isLambda($index)) ||
-                ($token->isGivenKind(T_CLASS) && $tokensAnalyzer->isAnonymousClass($index))
+                ($token->isGivenKind(T_FUNCTION) && $tokensAnalyzer->isLambda($index))
+                || ($token->isGivenKind(T_CLASS) && $tokensAnalyzer->isAnonymousClass($index))
             ) {
                 $prevIndex = $tokens->getNextTokenOfKind($index, ['{']);
                 $prevIndex = $tokens->getPrevMeaningfulToken($prevIndex);
@@ -210,12 +217,15 @@ class Foo
                 continue;
             }
 
+            /** @var Token $tokenTmp */
             $tokenTmp = $tokens[$braceIndex];
 
             $newBraceIndex = $prevIndex + 1;
             for ($i = $braceIndex; $i > $newBraceIndex; --$i) {
                 // we might be moving one white space next to another, these have to be merged
-                $tokens[$i] = $tokens[$i - 1];
+                /** @var Token $previousToken */
+                $previousToken = $tokens[$i - 1];
+                $tokens[$i] = $previousToken;
                 if ($tokens[$i]->isWhitespace() && $tokens[$i + 1]->isWhitespace()) {
                     $tokens[$i] = new Token([T_WHITESPACE, $tokens[$i]->getContent().$tokens[$i + 1]->getContent()]);
                     $tokens->clearAt($i + 1);
@@ -253,7 +263,7 @@ class Foo
                 $index - 1,
                 1,
                 self::LINE_NEXT === $this->configuration['position_after_control_structures'] ?
-                    $this->whitespacesConfig->getLineEnding().$this->detectIndent($tokens, $index)
+                    $this->whitespacesConfig->getLineEnding().WhitespacesAnalyzer::detectIndent($tokens, $index)
                     : ' '
             );
         }
@@ -312,6 +322,23 @@ class Foo
             }
 
             if (
+                $this->configuration['allow_single_line_anonymous_class_with_empty_body']
+                && $token->isGivenKind(T_CLASS)
+            ) {
+                $prevIndex = $tokens->getPrevMeaningfulToken($index);
+                if ($tokens[$prevIndex]->isGivenKind(T_NEW)) {
+                    $braceStartIndex = $tokens->getNextTokenOfKind($index, ['{']);
+                    $braceEndIndex = $tokens->getNextMeaningfulToken($braceStartIndex);
+
+                    if ('}' === $tokens[$braceEndIndex]->getContent() && !$this->isMultilined($tokens, $index, $braceEndIndex)) {
+                        $index = $braceEndIndex;
+
+                        continue;
+                    }
+                }
+            }
+
+            if (
                 $this->configuration['allow_single_line_closure']
                 && $token->isGivenKind(T_FUNCTION)
                 && $tokensAnalyzer->isLambda($index)
@@ -357,7 +384,7 @@ class Foo
 
             $endBraceIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $startBraceIndex);
 
-            $indent = $this->detectIndent($tokens, $index);
+            $indent = WhitespacesAnalyzer::detectIndent($tokens, $index);
 
             // fix indent near closing brace
             $tokens->ensureWhitespaceAtIndex($endBraceIndex - 1, 1, $this->whitespacesConfig->getLineEnding().$indent);
@@ -418,15 +445,15 @@ class Foo
                         !($nextNonWhitespaceNestToken->isComment() && (
                             !$tokens[$nextNonWhitespaceNestIndex - 1]->isWhitespace()
                             || !Preg::match('/\R/', $tokens[$nextNonWhitespaceNestIndex - 1]->getContent())
-                        )) &&
+                        ))
                         // and it is not a `$foo = function () {};` situation
-                        !($nestToken->equals('}') && $nextNonWhitespaceNestToken->equalsAny([';', ',', ']', [CT::T_ARRAY_SQUARE_BRACE_CLOSE]])) &&
+                        && !($nestToken->equals('}') && $nextNonWhitespaceNestToken->equalsAny([';', ',', ']', [CT::T_ARRAY_SQUARE_BRACE_CLOSE]]))
                         // and it is not a `Foo::{bar}()` situation
-                        !($nestToken->equals('}') && $nextNonWhitespaceNestToken->equals('(')) &&
+                        && !($nestToken->equals('}') && $nextNonWhitespaceNestToken->equals('('))
                         // and it is not a `${"a"}->...` and `${"b{$foo}"}->...` situation
-                        !($nestToken->equals('}') && $tokens[$nestIndex - 1]->equalsAny(['"', "'", [T_CONSTANT_ENCAPSED_STRING]])) &&
+                        && !($nestToken->equals('}') && $tokens[$nestIndex - 1]->equalsAny(['"', "'", [T_CONSTANT_ENCAPSED_STRING], [T_VARIABLE]]))
                         // and next token is not a closing tag that would break heredoc/nowdoc syntax
-                        !($tokens[$nestIndex - 1]->isGivenKind(T_END_HEREDOC) && $nextNonWhitespaceNestToken->isGivenKind(T_CLOSE_TAG))
+                        && !($tokens[$nestIndex - 1]->isGivenKind(T_END_HEREDOC) && $nextNonWhitespaceNestToken->isGivenKind(T_CLOSE_TAG))
                     ) {
                         if (
                             (
@@ -462,7 +489,7 @@ class Foo
                             $whitespace = $nextWhitespace.$this->whitespacesConfig->getLineEnding().$indent;
 
                             if (!$nextNonWhitespaceNestToken->equals('}')) {
-                                $determineIsIndentableBlockContent = function ($contentIndex) use ($tokens) {
+                                $determineIsIndentableBlockContent = static function ($contentIndex) use ($tokens) {
                                     if (!$tokens[$contentIndex]->isComment()) {
                                         return true;
                                     }
@@ -566,11 +593,11 @@ class Foo
                     continue;
                 }
 
-                if (!$isAnonymousClass) {
-                    $prevToken = $tokens[$closingParenthesisIndex - 1];
-                }
-
-                if (!$isAnonymousClass && $prevToken->isWhitespace() && false !== strpos($prevToken->getContent(), "\n")) {
+                if (
+                    !$isAnonymousClass
+                    && $tokens[$closingParenthesisIndex - 1]->isWhitespace()
+                    && false !== strpos($tokens[$closingParenthesisIndex - 1]->getContent(), "\n")
+                ) {
                     if (!$tokens[$startBraceIndex - 2]->isComment()) {
                         $tokens->ensureWhitespaceAtIndex($startBraceIndex - 1, 1, ' ');
                     }
@@ -611,7 +638,8 @@ class Foo
             }
 
             $parenthesisEndIndex = $this->findParenthesisEnd($tokens, $index);
-            $tokenAfterParenthesis = $tokens[$tokens->getNextMeaningfulToken($parenthesisEndIndex)];
+            $nextAfterParenthesisEndIndex = $tokens->getNextMeaningfulToken($parenthesisEndIndex);
+            $tokenAfterParenthesis = $tokens[$nextAfterParenthesisEndIndex];
 
             // if Token after parenthesis is { then we do not need to insert brace, but to fix whitespace before it
             if ($tokenAfterParenthesis->equals('{') && self::LINE_SAME === $this->configuration['position_after_control_structures']) {
@@ -625,6 +653,19 @@ class Foo
             // - structure with block, e.g. while ($i) {...}, while ($i) : {...} endwhile;
             if ($tokenAfterParenthesis->equalsAny([';', '{', ':'])) {
                 continue;
+            }
+
+            // do not add for short 'if' followed by alternative loop,
+            // for example: if ($a) while ($b): ? > X < ?php endwhile; ? >
+            if ($tokenAfterParenthesis->isGivenKind([T_FOR, T_FOREACH, T_SWITCH, T_WHILE])) {
+                $tokenAfterParenthesisBlockEnd = $tokens->findBlockEnd( // go to ')'
+                    Tokens::BLOCK_TYPE_PARENTHESIS_BRACE,
+                    $tokens->getNextMeaningfulToken($nextAfterParenthesisEndIndex)
+                );
+
+                if ($tokens[$tokens->getNextMeaningfulToken($tokenAfterParenthesisBlockEnd)]->equals(':')) {
+                    continue;
+                }
             }
 
             $statementEndIndex = $this->findStatementEnd($tokens, $parenthesisEndIndex);
@@ -661,7 +702,7 @@ class Foo
                         $index + 1,
                         0,
                         self::LINE_NEXT === $this->configuration['position_after_control_structures'] && !$tokens[$nextNonWhitespaceIndex]->equals('(') ?
-                            $this->whitespacesConfig->getLineEnding().$this->detectIndent($tokens, $index)
+                            $this->whitespacesConfig->getLineEnding().WhitespacesAnalyzer::detectIndent($tokens, $index)
                             : ' '
                     );
                 }
@@ -676,43 +717,7 @@ class Foo
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
-     *
-     * @return string
-     */
-    private function detectIndent(Tokens $tokens, $index)
-    {
-        while (true) {
-            $whitespaceIndex = $tokens->getPrevTokenOfKind($index, [[T_WHITESPACE]]);
-
-            if (null === $whitespaceIndex) {
-                return '';
-            }
-
-            $whitespaceToken = $tokens[$whitespaceIndex];
-
-            if (false !== strpos($whitespaceToken->getContent(), "\n")) {
-                break;
-            }
-
-            $prevToken = $tokens[$whitespaceIndex - 1];
-
-            if ($prevToken->isGivenKind([T_OPEN_TAG, T_COMMENT]) && "\n" === substr($prevToken->getContent(), -1)) {
-                break;
-            }
-
-            $index = $whitespaceIndex;
-        }
-
-        $explodedContent = explode("\n", $whitespaceToken->getContent());
-
-        return end($explodedContent);
-    }
-
-    /**
-     * @param Tokens $tokens
-     * @param int    $structureTokenIndex
+     * @param int $structureTokenIndex
      *
      * @return int
      */
@@ -730,8 +735,7 @@ class Foo
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $parenthesisEndIndex
+     * @param int $parenthesisEndIndex
      *
      * @return int
      */
@@ -796,8 +800,6 @@ class Foo
                 return $tokens->getPrevNonWhitespace($index);
             }
         }
-
-        throw new \RuntimeException('Statement end not found.');
     }
 
     private function getControlTokens()
@@ -869,8 +871,7 @@ class Foo
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      */
     private function fixDeclareStatement(Tokens $tokens, $index)
     {
@@ -891,8 +892,7 @@ class Foo
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $startBraceIndex
+     * @param int $startBraceIndex
      */
     private function fixSingleLineWhitespaceForDeclare(Tokens $tokens, $startBraceIndex)
     {
@@ -900,15 +900,14 @@ class Foo
         // eg: `declare(ticks=1){` => `declare(ticks=1) {`
         // eg: `declare(ticks=1)   {` => `declare(ticks=1) {`
         if (
-            !$tokens[$startBraceIndex - 1]->isWhitespace() ||
-            $tokens[$startBraceIndex - 1]->isWhitespace(" \t")
+            !$tokens[$startBraceIndex - 1]->isWhitespace()
+            || $tokens[$startBraceIndex - 1]->isWhitespace(" \t")
         ) {
             $tokens->ensureWhitespaceAtIndex($startBraceIndex - 1, 1, ' ');
         }
     }
 
     /**
-     * @param Tokens $tokens
      * @param int    $index
      * @param string $whitespace
      */
@@ -923,11 +922,16 @@ class Foo
         $nextToken = $tokens[$nextTokenIndex];
         if ($nextToken->isComment()) {
             $previousToken = $tokens[$nextTokenIndex - 1];
+            $nextTokenContent = $nextToken->getContent();
 
             // do not indent inline comments used to comment out unused code
             if (
-                (0 === strpos($nextToken->getContent(), '//'.$this->whitespacesConfig->getIndent()) || '//' === $nextToken->getContent())
-                && $previousToken->isWhitespace() && 1 === Preg::match('/\R$/', $previousToken->getContent())
+                $previousToken->isWhitespace()
+                && 1 === Preg::match('/\R$/', $previousToken->getContent())
+                && (
+                    (0 === strpos($nextTokenContent, '//'.$this->whitespacesConfig->getIndent()) || '//' === $nextTokenContent)
+                    || (0 === strpos($nextTokenContent, '#'.$this->whitespacesConfig->getIndent()) || '#' === $nextTokenContent)
+                )
             ) {
                 return;
             }
@@ -935,8 +939,8 @@ class Foo
             $tokens[$nextTokenIndex] = new Token([
                 $nextToken->getId(),
                 Preg::replace(
-                    '/(\R)'.$this->detectIndent($tokens, $nextTokenIndex).'/',
-                    '$1'.Preg::replace('/^.*\R([ \t]*)$/s', '$1', $whitespace),
+                    '/(\R)'.WhitespacesAnalyzer::detectIndent($tokens, $nextTokenIndex).'(\h*\S+.*)/',
+                    '$1'.Preg::replace('/^.*\R(\h*)$/s', '$1', $whitespace).'$2',
                     $nextToken->getContent()
                 ),
             ]);
@@ -946,9 +950,8 @@ class Foo
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $startParenthesisIndex
-     * @param int    $endParenthesisIndex
+     * @param int $startParenthesisIndex
+     * @param int $endParenthesisIndex
      *
      * @return bool
      */
@@ -971,8 +974,7 @@ class Foo
      * multi-line message whose lines are all single-line comments and at least
      * one line has meaningful content.
      *
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return bool
      */
@@ -1020,9 +1022,8 @@ class Foo
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
-     * @param bool   $after
+     * @param int  $index
+     * @param bool $after
      *
      * @return null|int
      */
@@ -1030,11 +1031,7 @@ class Foo
     {
         $siblingIndex = $index;
         do {
-            if ($after) {
-                $siblingIndex = $tokens->getNextTokenOfKind($siblingIndex, [[T_COMMENT]]);
-            } else {
-                $siblingIndex = $tokens->getPrevTokenOfKind($siblingIndex, [[T_COMMENT]]);
-            }
+            $siblingIndex = $tokens->getTokenOfKindSibling($siblingIndex, $after ? 1 : -1, [[T_COMMENT]]);
 
             if (null === $siblingIndex) {
                 return null;

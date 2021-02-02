@@ -55,12 +55,41 @@ final class YodaStyleFixerTest extends AbstractFixerTestCase
         }
     }
 
-    /**
-     * @return array
-     */
     public function provideFixCases()
     {
-        return [
+        $tests = [
+            [
+                '<?php $a = 1 + ($b + $c) === true ? 1 : 2;',
+                null,
+                ['always_move_variable' => true],
+            ],
+            [
+                '<?php $a = true === ($b + $c) ? 1 : 2;',
+                '<?php $a = ($b + $c) === true ? 1 : 2;',
+                ['always_move_variable' => true],
+            ],
+            [
+                '<?php
+if ((1 === $a) === 1) {
+    return;
+}',
+                '<?php
+if (($a === 1) === 1) {
+    return;
+}',
+                ['always_move_variable' => false],
+            ],
+            [
+                '<?php
+if (true === (1 !== $foo[0])) {
+    return;
+}',
+                '<?php
+if (($foo[0] !== 1) === true) {
+    return;
+}',
+                ['always_move_variable' => true],
+            ],
             [
                 '<?php return 1 !== $a [$b];',
                 '<?php return $a [$b] !== 1;',
@@ -81,8 +110,8 @@ final class YodaStyleFixerTest extends AbstractFixerTestCase
                 ',
             ],
             [
-                '<?php 1 === lala($a) ? 1 : 2;',
-                '<?php lala($a) === 1 ? 1 : 2;',
+                '<?php 1 === foo($a) ? 1 : 2;',
+                '<?php foo($a) === 1 ? 1 : 2;',
             ],
             [
                 '<?php 1 === $a::$a ? 1 : 2;',
@@ -111,14 +140,6 @@ final class YodaStyleFixerTest extends AbstractFixerTestCase
             [
                 '<?php echo 1 === (object) $a ? 8 : 7;',
                 '<?php echo (object) $a === 1 ? 8 : 7;',
-            ],
-            [
-                '<?php 1===(real)$a?1:2;',
-                '<?php (real)$a===1?1:2;',
-            ],
-            [
-                '<?php echo 1 === (unset) $a ? 8 : 7;',
-                '<?php echo (unset) $a === 1 ? 8 : 7;',
             ],
             [
                 '<?php echo 1 === (int) $a ? 8 : 7;',
@@ -208,8 +229,8 @@ if ($a = $obj instanceof A === true) {
             ['<?php $c = $$b === $$c;'],
             ['<?php $d = count($this->array[$var]) === $a;'],
             ['<?php $e = $a === count($this->array[$var]);'],
-            ['<?php $f = ($a & self::MY_BITMASK) === $a;'],
-            ['<?php $g = $a === ($a & self::MY_BITMASK);'],
+            ['<?php $f = ($a123 & self::MY_BITMASK) === $a;'],
+            ['<?php $g = $a === ($a456 & self::MY_BITMASK);'],
             ['<?php $h = $this->getStuff() === $myVariable;'],
             ['<?php $i = $myVariable === $this->getStuff();'],
             ['<?php $j = 2 * $myVar % 3 === $a;'],
@@ -217,16 +238,18 @@ if ($a = $obj instanceof A === true) {
             ['<?php $l = $c > 2;'],
             ['<?php return $this->myObject1->{$index}+$b === "";'],
             ['<?php return $m[2]+1 == 2;'],
-            ['<?php return $m{2}+1 == 2;'],
-            ['<?php return $m->a{2}+1 == 2;'],
             ['<?php return $foo === $bar[$baz][1];'],
-            ['<?php return $foo === $bar[$baz]{1};'],
             ['<?php $a = $b[$key]["1"] === $c["2"];'],
-            ['<?php return $foo->$a[1] === $bar[$baz]{1}->$a[1][2][3]->$d[$z]{1};'],
             ['<?php return $foo->$a === $foo->$b->$c;'],
+            ['<?php return $x === 2 - 1;'],
+            ['<?php return $x === 2-1;'],
             // https://github.com/FriendsOfPHP/PHP-CS-Fixer/pull/693
             ['<?php return array(2) == $o;'],
             ['<?php return $p == array(2);'],
+            ['<?php return $p == array("2");'],
+            ['<?php return $p == array(TWO);'],
+            ['<?php return $p == array(array());'],
+            ['<?php return $p == [[]];'],
             ['<?php return array($q) == $a;'],
             ['<?php return $r == array($a);'],
             ['<?php $s = ((array(2))) == $a;'],
@@ -255,7 +278,14 @@ if ($a = $obj instanceof A === true) {
             ],
             [
                 '<?php return 2 == ($a)?>',
+            ],
+            [
                 '<?php return ($a) == 2?>',
+            ],
+            [
+                '<?php return 2 == ($a)?>',
+                '<?php return ($a) == 2?>',
+                ['always_move_variable' => true],
             ],
             [
                 '<?php $a = ($c === ((null === $b)));',
@@ -298,16 +328,8 @@ if ($a = $obj instanceof A === true) {
                 '<?php return self::$myVariable === self::MY_CONST;',
             ],
             [
-                '<?php return \A/*5*/\/*6*/B\/*7*/C::MY_CONST === \A/*1*//*1*//*1*//*1*//*1*/\/*2*/B/*3*/\C/*4*/::$myVariable;',
-                '<?php return \A/*1*//*1*//*1*//*1*//*1*/\/*2*/B/*3*/\C/*4*/::$myVariable === \A/*5*/\/*6*/B\/*7*/C::MY_CONST;',
-            ],
-            [
                 '<?php return \A\B\C::MY_CONST === \A\B\C::$myVariable;',
                 '<?php return \A\B\C::$myVariable === \A\B\C::MY_CONST;',
-            ],
-            [
-                '<?php return A\/**//**//**/B/*a*//*a*//*a*//*a*/::MY_CONST === B\C::$myVariable;',
-                '<?php return B\C::$myVariable === A\/**//**//**/B/*a*//*a*//*a*//*a*/::MY_CONST;',
             ],
             [
                 '<?php $a = 1 == $$a?>',
@@ -436,8 +458,8 @@ $a#4
                 ['always_move_variable' => true],
             ],
             [
-                '<?php $g = ($a & self::MY_BITMASK) === $a;',
-                '<?php $g = $a === ($a & self::MY_BITMASK);',
+                '<?php $g = ($a789 & self::MY_BITMASK) === $a;',
+                null,
                 ['always_move_variable' => true],
             ],
             [
@@ -591,10 +613,60 @@ $a#4
                 '<?php $a = reset($foo) === -/* bar */1;',
             ],
             [
-                '<?php $a **= 4 === $b ? 2 : 3;',
-                '<?php $a **= $b === 4 ? 2 : 3;',
+                '<?php $a %= 4 === $b ? 2 : 3;',
+                '<?php $a %= $b === 4 ? 2 : 3;',
+            ],
+            [
+                '<?php return array() === $array;',
+                '<?php return $array === array();',
+            ],
+            [
+                '<?php return [] === $array;',
+                '<?php return $array === [];',
+            ],
+            [
+                '<?php return array(/* foo */) === $array;',
+                '<?php return $array === array(/* foo */);',
+            ],
+            [
+                '<?php return [
+                    // 1
+                ] === $array;',
+                '<?php return $array === [
+                    // 1
+                ];',
+            ],
+            [
+                '<?php $a = $b = null === $c;',
+                '<?php $a = $b = $c === null;',
             ],
         ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        $template = '<?php $a = ($b + $c) %s 1 === true ? 1 : 2;';
+        $operators = ['||', '&&'];
+
+        foreach ($operators as $operator) {
+            yield [
+                sprintf($template, $operator),
+                null,
+                ['always_move_variable' => true],
+            ];
+        }
+
+        $templateExpected = '<?php $a %s 4 === $b ? 2 : 3;';
+        $templateInput = '<?php $a %s $b === 4 ? 2 : 3;';
+        $operators = ['**=', '*=', '|=', '+=', '-=', '^=', 'xor', 'or', 'and', '<<=', '>>=', '&=', '.=', '/=', '-=', '||', '&&'];
+
+        foreach ($operators as $operator) {
+            yield [
+                sprintf($templateExpected, $operator),
+                sprintf($templateInput, $operator),
+            ];
+        }
     }
 
     /**
@@ -623,9 +695,6 @@ $a#4
         $this->doTest($input, $expected);
     }
 
-    /**
-     * @return array<string[]>
-     */
     public function provideLessGreaterCases()
     {
         return [
@@ -667,7 +736,6 @@ $a#4
     }
 
     /**
-     * @param array  $config
      * @param string $expectedMessage
      *
      * @dataProvider provideInvalidConfigurationCases
@@ -675,11 +743,7 @@ $a#4
     public function testInvalidConfig(array $config, $expectedMessage)
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp(sprintf(
-            '#^\[%s\] %s$#',
-            $this->fixer->getName(),
-            preg_quote($expectedMessage, '#')
-        ));
+        $this->expectExceptionMessageMatches("#^\\[{$this->fixer->getName()}\\] {$expectedMessage}$#");
 
         $this->fixer->configure($config);
     }
@@ -690,8 +754,8 @@ $a#4
     public function provideInvalidConfigurationCases()
     {
         return [
-            [['equal' => 2], 'Invalid configuration: The option "equal" with value 2 is expected to be of type "bool" or "null", but is of type "integer".'],
-            [['_invalid_' => true], 'Invalid configuration: The option "_invalid_" does not exist. Defined options are: "always_move_variable", "equal", "identical", "less_and_greater".'],
+            [['equal' => 2], 'Invalid configuration: The option "equal" with value 2 is expected to be of type "bool" or "null", but is of type "(int|integer)"\.'],
+            [['_invalid_' => true], 'Invalid configuration: The option "_invalid_" does not exist\. Defined options are: "always_move_variable", "equal", "identical", "less_and_greater"\.'],
         ];
     }
 
@@ -733,9 +797,6 @@ $a#4
         }
     }
 
-    /**
-     * @return array<string[]>
-     */
     public function providePHP70Cases()
     {
         return [
@@ -796,9 +857,6 @@ function a() {
         }
     }
 
-    /**
-     * @return array<string[]>
-     */
     public function providePHP71Cases()
     {
         return [
@@ -844,7 +902,6 @@ function a() {
     }
 
     /**
-     * @param array  $config
      * @param string $expected
      *
      * @dataProvider provideFixWithConfigCases
@@ -883,6 +940,126 @@ while (2 !== $b = array_pop($c));
     }
 }',
             ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixPhp74Cases
+     * @requires PHP 7.4
+     */
+    public function testFixPhp74($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPhp74Cases()
+    {
+        yield [
+            '<?php if (1_000 === $b);',
+            '<?php if ($b === 1_000);',
+        ];
+    }
+
+    /**
+     * Test with the inverse config.
+     *
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider providePHP74Cases
+     * @requires PHP 7.4
+     */
+    public function testPHP74CasesInverse($expected, $input = null, array $configuration = null)
+    {
+        if (null !== $configuration) {
+            $this->fixer->configure($configuration);
+        }
+
+        $this->doTest($expected, $input);
+    }
+
+    public function providePHP74Cases()
+    {
+        return [
+            [
+                '<?php fn() => $c === array(1) ? $b : $d;',
+                null,
+                [
+                    'less_and_greater' => false,
+                ],
+            ],
+            [
+                '<?php $a ??= 4 === $b ? 2 : 3;',
+                '<?php $a ??= $b === 4 ? 2 : 3;',
+            ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixPrePHP80Cases
+     *
+     * @requires PHP <8.0
+     */
+    public function testFixPrePHP80($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPrePHP80Cases()
+    {
+        yield [
+            '<?php return \A/*5*/\/*6*/B\/*7*/C::MY_CONST === \A/*1*//*1*//*1*//*1*//*1*/\/*2*/B/*3*/\C/*4*/::$myVariable;',
+            '<?php return \A/*1*//*1*//*1*//*1*//*1*/\/*2*/B/*3*/\C/*4*/::$myVariable === \A/*5*/\/*6*/B\/*7*/C::MY_CONST;',
+        ];
+
+        yield [
+            '<?php return A\/**//**//**/B/*a*//*a*//*a*//*a*/::MY_CONST === B\C::$myVariable;',
+            '<?php return B\C::$myVariable === A\/**//**//**/B/*a*//*a*//*a*//*a*/::MY_CONST;',
+        ];
+
+        yield ['<?php return $foo === $bar[$baz]{1};'];
+
+        yield ['<?php return $foo->$a[1] === $bar[$baz]{1}->$a[1][2][3]->$d[$z]{1};'];
+
+        yield ['<?php return $m->a{2}+1 == 2;'];
+
+        yield ['<?php return $m{2}+1 == 2;'];
+
+        yield [
+            '<?php echo 1 === (unset) $a ? 8 : 7;',
+            '<?php echo (unset) $a === 1 ? 8 : 7;',
+        ];
+    }
+
+    /**
+     * @param string $expected
+     * @param string $input
+     *
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix80Cases()
+    {
+        yield [
+            '<?php
+if ($a = true === $obj instanceof (foo())) {
+    echo 1;
+}',
+            '<?php
+if ($a = $obj instanceof (foo()) === true) {
+    echo 1;
+}',
         ];
     }
 }

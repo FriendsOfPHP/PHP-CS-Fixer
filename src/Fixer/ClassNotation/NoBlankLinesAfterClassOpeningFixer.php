@@ -57,6 +57,16 @@ final class Sample
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after OrderedClassElementsFixer.
+     */
+    public function getPriority()
+    {
+        return 0;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
@@ -77,8 +87,7 @@ final class Sample
     /**
      * Cleanup a whitespace token.
      *
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      */
     private function fixWhitespace(Tokens $tokens, $index)
     {

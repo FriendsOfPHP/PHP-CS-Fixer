@@ -20,6 +20,7 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
  *
  * @internal
  *
+ * @covers \PhpCsFixer\Fixer\AbstractIncrementOperatorFixer
  * @covers \PhpCsFixer\Fixer\Operator\IncrementStyleFixer
  */
 final class IncrementStyleFixerTest extends AbstractFixerTestCase
@@ -57,7 +58,7 @@ final class IncrementStyleFixerTest extends AbstractFixerTestCase
 
     public function provideFixPreIncrementCases()
     {
-        return [
+        $cases = [
             [
                 '<?php ++$a;',
                 '<?php $a++;',
@@ -118,10 +119,6 @@ final class IncrementStyleFixerTest extends AbstractFixerTestCase
                 '<?php ++$a[$b];',
                 '<?php $a[$b]++;',
             ],
-            [
-                '<?php ++${$a}->{$b."foo"}->bar[$c]->$baz;',
-                '<?php ${$a}->{$b."foo"}->bar[$c]->$baz++;',
-            ],
 
             ['<?php $a = $b++;'],
             ['<?php $a + $b++;'],
@@ -138,6 +135,7 @@ final class IncrementStyleFixerTest extends AbstractFixerTestCase
             ['<?php foo($a, ++$b);'],
             ['<?php $a[++$b];'],
             ['<?php echo ++$a;'],
+            ['<?= ++$a;'],
 
             [
                 '<?php class Test {
@@ -168,6 +166,29 @@ final class IncrementStyleFixerTest extends AbstractFixerTestCase
     }
 }',
             ],
+            [
+                '<?php if ($foo) ++$a;',
+                '<?php if ($foo) $a++;',
+            ],
         ];
+
+        if (\PHP_VERSION_ID >= 70000 && \PHP_VERSION_ID < 80000) {
+            $cases[] = [
+                '<?php ++$a->$b::$c->${$d}->${$e}::f(1 + 2 * 3)->$g::$h;',
+                '<?php $a->$b::$c->${$d}->${$e}::f(1 + 2 * 3)->$g::$h++;',
+            ];
+
+            $cases[] = [
+                '<?php ++$a{0};',
+                '<?php $a{0}++;',
+            ];
+
+            $cases[] = [
+                '<?php ++${$a}->{$b."foo"}->bar[$c]->$baz;',
+                '<?php ${$a}->{$b."foo"}->bar[$c]->$baz++;',
+            ];
+        }
+
+        return $cases;
     }
 }

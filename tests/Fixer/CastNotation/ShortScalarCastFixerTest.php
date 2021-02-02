@@ -13,6 +13,7 @@
 namespace PhpCsFixer\Tests\Fixer\CastNotation;
 
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
+use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 
 /**
  * @author SpacePossum
@@ -23,49 +24,64 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
  */
 final class ShortScalarCastFixerTest extends AbstractFixerTestCase
 {
+    use ExpectDeprecationTrait;
+
     /**
      * @param string      $expected
      * @param null|string $input
      *
      * @dataProvider provideFixCases
+     * @dataProvider provideFixDeprecatedCases
+     * @requires PHP < 7.4
      */
     public function testFix($expected, $input = null)
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixCases
+     * @requires PHP 7.4
+     */
+    public function testFix74($expected, $input = null)
     {
-        $cases = [];
-        foreach (['boolean' => 'bool', 'integer' => 'int', 'double' => 'float', 'real' => 'float', 'binary' => 'string'] as $from => $to) {
-            $cases[] =
-                [
-                    sprintf('<?php echo ( %s  )$a;', $to),
-                    sprintf('<?php echo ( %s  )$a;', $from),
-                ];
-            $cases[] =
-                [
-                    sprintf('<?php $b=(%s) $d;', $to),
-                    sprintf('<?php $b=(%s) $d;', $from),
-                ];
-            $cases[] =
-                [
-                    sprintf('<?php $b= (%s)$d;', $to),
-                    sprintf('<?php $b= (%s)$d;', strtoupper($from)),
-                ];
-            $cases[] =
-                [
-                    sprintf('<?php $b=( %s) $d;', $to),
-                    sprintf('<?php $b=( %s) $d;', ucfirst($from)),
-                ];
-            $cases[] =
-                [
-                    sprintf('<?php $b=(%s ) $d;', $to),
-                    sprintf('<?php $b=(%s ) $d;', ucfirst($from)),
-                ];
+        $this->doTest($expected, $input);
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixDeprecatedCases
+     * @requires PHP 7.4
+     * @group legacy
+     */
+    public function testFix74Deprecated($expected, $input = null)
+    {
+        if (\PHP_VERSION_ID >= 80000) {
+            static::markTestSkipped('PHP < 8.0 is required.');
         }
 
-        return $cases;
+        $this->expectDeprecation('%AThe (real) cast is deprecated, use (float) instead');
+
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixCases()
+    {
+        foreach (['boolean' => 'bool', 'integer' => 'int', 'double' => 'float', 'binary' => 'string'] as $from => $to) {
+            foreach ($this->createCasesFor($from, $to) as $case) {
+                yield $case;
+            }
+        }
+    }
+
+    public function provideFixDeprecatedCases()
+    {
+        return $this->createCasesFor('real', 'float');
     }
 
     /**
@@ -81,7 +97,13 @@ final class ShortScalarCastFixerTest extends AbstractFixerTestCase
     public function provideNoFixCases()
     {
         $cases = [];
-        foreach (['string', 'array', 'object', 'unset'] as $cast) {
+        $types = ['string', 'array', 'object'];
+
+        if (\PHP_VERSION_ID < 80000) {
+            $types[] = 'unset';
+        }
+
+        foreach ($types as $cast) {
             $cases[] = [sprintf('<?php $b=(%s) $d;', $cast)];
             $cases[] = [sprintf('<?php $b=( %s ) $d;', $cast)];
             $cases[] = [sprintf('<?php $b=(%s ) $d;', ucfirst($cast))];
@@ -89,5 +111,29 @@ final class ShortScalarCastFixerTest extends AbstractFixerTestCase
         }
 
         return $cases;
+    }
+
+    private function createCasesFor($from, $to)
+    {
+        yield [
+            sprintf('<?php echo ( %s  )$a;', $to),
+            sprintf('<?php echo ( %s  )$a;', $from),
+        ];
+        yield [
+            sprintf('<?php $b=(%s) $d;', $to),
+            sprintf('<?php $b=(%s) $d;', $from),
+        ];
+        yield [
+            sprintf('<?php $b= (%s)$d;', $to),
+            sprintf('<?php $b= (%s)$d;', strtoupper($from)),
+        ];
+        yield [
+            sprintf('<?php $b=( %s) $d;', $to),
+            sprintf('<?php $b=( %s) $d;', ucfirst($from)),
+        ];
+        yield [
+            sprintf('<?php $b=(%s ) $d;', $to),
+            sprintf('<?php $b=(%s ) $d;', ucfirst($from)),
+        ];
     }
 }

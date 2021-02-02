@@ -63,10 +63,11 @@ final class FixerConfigurationResolver implements FixerConfigurationResolverInte
                 $alias = $option->getAlias();
 
                 if (\array_key_exists($alias, $options)) {
-                    // @TODO 2.12 Trigger a deprecation notice and add a test for it
                     if (\array_key_exists($name, $options)) {
-                        throw new InvalidOptionsException(sprintf('Aliased option %s/%s is passed multiple times.', $name, $alias));
+                        throw new InvalidOptionsException(sprintf('Aliased option "%s"/"%s" is passed multiple times.', $name, $alias));
                     }
+
+                    @trigger_error(sprintf('Option "%s" is deprecated, use "%s" instead.', $alias, $name), E_USER_DEPRECATED);
 
                     $options[$name] = $options[$alias];
                     unset($options[$alias]);
@@ -83,7 +84,7 @@ final class FixerConfigurationResolver implements FixerConfigurationResolverInte
             if (null !== $allowedValues) {
                 foreach ($allowedValues as &$allowedValue) {
                     if (\is_object($allowedValue) && \is_callable($allowedValue)) {
-                        $allowedValue = function ($values) use ($allowedValue) {
+                        $allowedValue = static function ($values) use ($allowedValue) {
                             return $allowedValue($values);
                         };
                     }
@@ -107,8 +108,6 @@ final class FixerConfigurationResolver implements FixerConfigurationResolverInte
     }
 
     /**
-     * @param FixerOptionInterface $option
-     *
      * @throws \LogicException when the option is already defined
      *
      * @return $this

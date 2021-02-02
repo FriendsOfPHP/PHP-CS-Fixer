@@ -27,9 +27,9 @@ use PhpCsFixer\Tests\TestCase;
  */
 final class FileHandlerTest extends TestCase
 {
-    protected function tearDown()
+    protected function doTearDown()
     {
-        parent::tearDown();
+        parent::doTearDown();
 
         $file = $this->getFile();
 
@@ -99,8 +99,8 @@ final class FileHandlerTest extends TestCase
         $file = __DIR__.'/non-existent-directory/.php_cs.cache';
 
         $this->expectException(\Symfony\Component\Filesystem\Exception\IOException::class);
-        $this->expectExceptionMessageRegExp(sprintf(
-            '#^Failed to write file "%s"(, ".*")?.#',
+        $this->expectExceptionMessageMatches(sprintf(
+            '#^Directory of cache file "%s" does not exists.#',
             preg_quote($file, '#')
         ));
 
@@ -135,7 +135,7 @@ final class FileHandlerTest extends TestCase
         $handler = new FileHandler($dir);
 
         $this->expectException(\Symfony\Component\Filesystem\Exception\IOException::class);
-        $this->expectExceptionMessageRegExp(sprintf(
+        $this->expectExceptionMessageMatches(sprintf(
             '#^%s$#',
             preg_quote('Cannot write cache file "'.realpath($dir).'" as the location exists as directory.', '#')
         ));
@@ -148,14 +148,12 @@ final class FileHandlerTest extends TestCase
         $file = __DIR__.'/../Fixtures/cache-file-handler/cache-file';
         if (is_writable($file)) {
             static::markTestSkipped(sprintf('File "%s" must be not writeable for this tests.', realpath($file)));
-
-            return;
         }
 
         $handler = new FileHandler($file);
 
         $this->expectException(\Symfony\Component\Filesystem\Exception\IOException::class);
-        $this->expectExceptionMessageRegExp(sprintf(
+        $this->expectExceptionMessageMatches(sprintf(
             '#^%s$#',
             preg_quote('Cannot write to file "'.realpath($file).'" as it is not writable.', '#')
         ));
@@ -168,7 +166,7 @@ final class FileHandlerTest extends TestCase
         $file = __DIR__.'/../Fixtures/cache-file-handler/rw_cache.test';
         @unlink($file);
 
-        static::assertFileNotExists($file);
+        static::assertFileDoesNotExist($file);
 
         $handler = new FileHandler($file);
         $handler->write(new Cache($this->createSignature()));

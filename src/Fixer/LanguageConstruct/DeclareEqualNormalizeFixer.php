@@ -58,6 +58,16 @@ final class DeclareEqualNormalizeFixer extends AbstractFixer implements Configur
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after DeclareStrictTypesFixer.
+     */
+    public function getPriority()
+    {
+        return 0;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isCandidate(Tokens $tokens)
     {
@@ -95,8 +105,7 @@ final class DeclareEqualNormalizeFixer extends AbstractFixer implements Configur
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  of `=` token
+     * @param int $index of `=` token
      */
     private function ensureWhitespaceAroundToken(Tokens $tokens, $index)
     {
@@ -118,8 +127,7 @@ final class DeclareEqualNormalizeFixer extends AbstractFixer implements Configur
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  of `=` token
+     * @param int $index of `=` token
      */
     private function removeWhitespaceAroundToken(Tokens $tokens, $index)
     {

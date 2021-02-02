@@ -47,17 +47,12 @@ class DocBlocks
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before GeneralPhpdocAnnotationRemoveFixer, GeneralPhpdocTagRenameFixer, NoBlankLinesAfterPhpdocFixer, NoEmptyPhpdocFixer, NoSuperfluousPhpdocTagsFixer, PhpdocAddMissingParamAnnotationFixer, PhpdocAlignFixer, PhpdocAlignFixer, PhpdocAnnotationWithoutDotFixer, PhpdocInlineTagFixer, PhpdocInlineTagNormalizerFixer, PhpdocLineSpanFixer, PhpdocNoAccessFixer, PhpdocNoAliasTagFixer, PhpdocNoEmptyReturnFixer, PhpdocNoPackageFixer, PhpdocNoUselessInheritdocFixer, PhpdocOrderByValueFixer, PhpdocOrderFixer, PhpdocReturnSelfReferenceFixer, PhpdocSeparationFixer, PhpdocSingleLineVarSpacingFixer, PhpdocSummaryFixer, PhpdocTagCasingFixer, PhpdocTagTypeFixer, PhpdocToParamTypeFixer, PhpdocToReturnTypeFixer, PhpdocTrimConsecutiveBlankLineSeparationFixer, PhpdocTrimFixer, PhpdocTypesFixer, PhpdocTypesOrderFixer, PhpdocVarAnnotationCorrectOrderFixer, PhpdocVarWithoutNameFixer.
+     * Must run after IndentationTypeFixer, PhpdocToCommentFixer.
      */
     public function getPriority()
     {
-        /*
-         * Should be run before all other docblock fixers apart from the
-         * phpdoc_to_comment fixer to make sure all fixers apply correct
-         * indentation to new code they add, and the phpdoc_params fixer only
-         * works on correctly indented docblocks. We also need to be running
-         * after the psr2 indentation fixer for obvious reasons.
-         * comments.
-         */
         return 20;
     }
 
@@ -128,7 +123,7 @@ class DocBlocks
      */
     private function fixDocBlock($content, $indent)
     {
-        return ltrim(Preg::replace('/^[ \t]*\*/m', $indent.' *', $content));
+        return ltrim(Preg::replace('/^\h*\*/m', $indent.' *', $content));
     }
 
     /**

@@ -214,6 +214,58 @@ final class AnnotationTest extends TestCase
     }
 
     /**
+     * @param string $expected
+     * @param string $input
+     *
+     * @dataProvider provideRemoveEdgeCasesCases
+     */
+    public function testRemoveEdgeCases($expected, $input)
+    {
+        $doc = new DocBlock($input);
+        $annotation = $doc->getAnnotation(0);
+
+        $annotation->remove();
+        static::assertSame($expected, $doc->getContent());
+    }
+
+    public function provideRemoveEdgeCasesCases()
+    {
+        return [
+            // Single line
+            ['', '/** @return null*/'],
+            ['', '/** @return null */'],
+            ['', '/** @return null  */'],
+
+            // Multi line, annotation on start line
+            [
+                '/**
+                 */',
+                '/** @return null
+                 */',
+            ],
+            [
+                '/**
+                 */',
+                '/** @return null '.'
+                 */',
+            ],
+            // Multi line, annotation on end line
+            [
+                '/**
+                 */',
+                '/**
+                 * @return null*/',
+            ],
+            [
+                '/**
+                 */',
+                '/**
+                 * @return null */',
+            ],
+        ];
+    }
+
+    /**
      * @param string   $input
      * @param string[] $expected
      *
@@ -232,6 +284,18 @@ final class AnnotationTest extends TestCase
             [
                 ' * @method int method()',
                 ['int'],
+            ],
+            [
+                " * @return int[]\r",
+                ['int[]'],
+            ],
+            [
+                " * @return int[]\r\n",
+                ['int[]'],
+            ],
+            [
+                ' * @method Foo[][] method()',
+                ['Foo[][]'],
             ],
             [
                 ' * @method int[] method()',
@@ -304,6 +368,14 @@ final class AnnotationTest extends TestCase
             [
                 '/** @var array<string|int, string>',
                 ['array<string|int, string>'],
+            ],
+            [
+                " * @return int\n",
+                ['int'],
+            ],
+            [
+                " * @return int\r\n",
+                ['int'],
             ],
         ];
     }
@@ -388,9 +460,9 @@ final class AnnotationTest extends TestCase
     public function testGetTagsWithTypes()
     {
         $tags = Annotation::getTagsWithTypes();
-        static::assertInternalType('array', $tags);
+        static::assertIsArray($tags);
         foreach ($tags as $tag) {
-            static::assertInternalType('string', $tag);
+            static::assertIsString($tag);
             static::assertNotEmpty($tag);
         }
     }

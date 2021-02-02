@@ -36,7 +36,7 @@ final class NoUnneededCurlyBracesFixerTest extends AbstractFixerTestCase
 
     public function provideFixCases()
     {
-        return [
+        $tests = [
             'simple sample, last token candidate' => [
                 '<?php  echo 1;',
                 '<?php { echo 1;}',
@@ -65,9 +65,6 @@ final class NoUnneededCurlyBracesFixerTest extends AbstractFixerTestCase
             ],
             'no fixes' => [
                 '<?php
-                    echo ${$a};
-                    echo $a{1};
-
                     foreach($a as $b){}
                     while($a){}
                     do {} while($a);
@@ -116,6 +113,19 @@ final class NoUnneededCurlyBracesFixerTest extends AbstractFixerTestCase
                 ',
             ],
         ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        if (\PHP_VERSION_ID < 80000) {
+            yield 'no fixes, offset access syntax with curly braces' => [
+                '<?php
+                    echo ${$a};
+                    echo $a{1};
+                ',
+            ];
+        }
     }
 
     /**
@@ -138,7 +148,7 @@ final class NoUnneededCurlyBracesFixerTest extends AbstractFixerTestCase
                     use some\a\{ClassA, ClassB, ClassC as C};
                     use function some\a\{fn_a, fn_b, fn_c};
                     use const some\a\{ConstA, ConstB, ConstC};
-                    use some\x\{ClassB, function CC as C, function D, const E, function A\B};
+                    use some\x\{ClassD, function CC as C, function D, const E, function A\B};
                     class Foo
                     {
                         public function getBar(): array
@@ -147,6 +157,66 @@ final class NoUnneededCurlyBracesFixerTest extends AbstractFixerTestCase
                     }
                 ',
             ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixNamespaceCases
+     */
+    public function testFixNamespace($expected, $input = null)
+    {
+        $this->fixer->configure(['namespaces' => true]);
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixNamespaceCases()
+    {
+        yield [
+            '<?php
+namespace Foo;
+    function Bar(){}
+
+',
+            '<?php
+namespace Foo {
+    function Bar(){}
+}
+',
+        ];
+
+        yield [
+            '<?php
+            namespace A5 {
+                function AA(){}
+            }
+            namespace B6 {
+                function BB(){}
+            }',
+        ];
+
+        yield [
+            '<?php
+            namespace Foo7;
+                function Bar(){}
+            ',
+            '<?php
+            namespace Foo7 {
+                function Bar(){}
+            }',
+        ];
+
+        yield [
+            '<?php
+            namespace Foo8\\A;
+                function Bar(){}
+             ?>',
+            "<?php
+            namespace Foo8\\A\t \t {
+                function Bar(){}
+            } ?>",
         ];
     }
 }

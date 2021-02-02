@@ -45,14 +45,12 @@ final class Foo {}
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before PhpdocAlignFixer.
+     * Must run after CommentToPhpdocFixer, GeneralPhpdocAnnotationRemoveFixer, PhpUnitTestAnnotationFixer, PhpdocIndentFixer, PhpdocNoAccessFixer, PhpdocNoEmptyReturnFixer, PhpdocNoPackageFixer, PhpdocOrderFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocTypesFixer.
      */
     public function getPriority()
     {
-        /*
-         * Should be run after all phpdoc fixers that add or remove tags, or
-         * alter descriptions. This is so that they don't leave behind blank
-         * lines this fixer would have otherwise cleaned up.
-         */
         return -5;
     }
 
@@ -94,12 +92,12 @@ final class Foo {}
     {
         return Preg::replace(
             '~
-                (^/\*\*)                  # DocComment begin
+                (^/\*\*)            # DocComment begin
                 (?:
-                    \R[ \t]*(?:\*[ \t]*)? # lines without useful content
-                    (?!\R[ \t]*\*/)       # not followed by a DocComment end
+                    \R\h*(?:\*\h*)? # lines without useful content
+                    (?!\R\h*\*/)    # not followed by a DocComment end
                 )+
-                (\R[ \t]*(?:\*[ \t]*)?\S) # first line with useful content
+                (\R\h*(?:\*\h*)?\S) # first line with useful content
             ~x',
             '$1$2',
             $content
@@ -117,12 +115,12 @@ final class Foo {}
     {
         return Preg::replace(
             '~
-                (\R[ \t]*(?:\*[ \t]*)?\S.*?) # last line with useful content
+                (\R\h*(?:\*\h*)?\S.*?) # last line with useful content
                 (?:
-                    (?<!/\*\*)               # not preceded by a DocComment start
-                    \R[ \t]*(?:\*[ \t]*)?    # lines without useful content
+                    (?<!/\*\*)         # not preceded by a DocComment start
+                    \R\h*(?:\*\h*)?    # lines without useful content
                 )+
-                (\R[ \t]*\*/$)               # DocComment end
+                (\R\h*\*/$)            # DocComment end
             ~xu',
             '$1$2',
             $content

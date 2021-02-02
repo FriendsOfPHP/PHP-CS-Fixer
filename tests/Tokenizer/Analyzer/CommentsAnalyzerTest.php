@@ -50,6 +50,7 @@ final class CommentsAnalyzerTest extends TestCase
         $analyzer = new CommentsAnalyzer();
 
         static::assertSame($borders, $analyzer->getCommentBlockIndices($tokens, $index));
+        static::assertFalse($analyzer->isHeaderComment($tokens, $index));
     }
 
     public function provideCommentsCases()
@@ -157,20 +158,55 @@ $bar;',
         $analyzer->isHeaderComment($tokens, 2);
     }
 
-    public function testHeaderComment()
+    /**
+     * @param string $code
+     * @param int    $index
+     *
+     * @dataProvider provideHeaderCommentCases
+     */
+    public function testHeaderComment($code, $index)
     {
-        $tokens = Tokens::fromCode('<?php /* This is header */ namespace Foo;');
+        $tokens = Tokens::fromCode($code);
         $analyzer = new CommentsAnalyzer();
 
-        static::assertTrue($analyzer->isHeaderComment($tokens, 1));
+        static::assertTrue($analyzer->isHeaderComment($tokens, $index));
     }
 
-    public function testNotHeaderComment()
+    public function provideHeaderCommentCases()
     {
-        $tokens = Tokens::fromCode('<?php /* This is not header */');
+        return [
+            ['<?php /* Comment */ namespace Foo;', 1],
+            ['<?php /** Comment */ namespace Foo;', 1],
+            ['<?php declare(strict_types=1); /* Comment */ namespace Foo;', 9],
+            ['<?php /* We test this one */ /* Foo */ namespace Bar;', 1],
+            ['<?php /** Comment */ namespace Foo; declare(strict_types=1); /* Comment */ namespace Foo;', 1],
+        ];
+    }
+
+    /**
+     * @param string $code
+     * @param int    $index
+     *
+     * @dataProvider provideNotHeaderCommentCases
+     */
+    public function testNotHeaderComment($code, $index)
+    {
+        $tokens = Tokens::fromCode($code);
         $analyzer = new CommentsAnalyzer();
 
-        static::assertFalse($analyzer->isHeaderComment($tokens, 1));
+        static::assertFalse($analyzer->isHeaderComment($tokens, $index));
+    }
+
+    public function provideNotHeaderCommentCases()
+    {
+        return [
+            ['<?php $foo; /* Comment */ $bar;', 4],
+            ['<?php foo(); /* Comment */ $bar;', 6],
+            ['<?php namespace Foo; /* Comment */ class Bar {};', 6],
+            ['<?php /* It is not header when no content after */', 1],
+            ['<?php /* Foo */ /* We test this one */ namespace Bar;', 3],
+            ['<?php /* Foo */ declare(strict_types=1); /* We test this one */ namespace Bar;', 11],
+        ];
     }
 
     public function testPhpdocCandidateAcceptsOnlyComments()
@@ -207,6 +243,7 @@ $bar;',
             ['<?php /* Before class */ final class Foo {}'],
             ['<?php /* Before trait */ trait Foo {}'],
             ['<?php /* Before interface */ interface Foo {}'],
+            ['<?php /* Before anonymous function */ function () {};'],
             ['<?php class Foo { /* Before property */ private $bar; }'],
             ['<?php class Foo { /* Before property */ protected $bar; }'],
             ['<?php class Foo { /* Before property */ public $bar; }'],
@@ -231,6 +268,8 @@ $bar;',
             ['<?php /* @var int $i @var int $j */ list($i, $j) = getValues();'],
             ['<?php /* @var string $s */ print($s);'],
             ['<?php /* @var string $s */ echo($s);'],
+            ['<?php /* @var User $bar */ ($baz = tmp())->doSomething();'],
+            ['<?php /* @var User $bar */ list($bar) = a();'],
         ];
     }
 
@@ -278,5 +317,54 @@ $bar;',
         $analyzer = new CommentsAnalyzer();
 
         static::assertFalse($analyzer->isBeforeStructuralElement($tokens, 1));
+    }
+
+    /**
+     * @param string $code
+     *
+     * @dataProvider providePhpdocCandidatePhp74Cases
+     * @requires PHP 7.4
+     */
+    public function testPhpdocCandidatePhp74($code)
+    {
+        $tokens = Tokens::fromCode($code);
+        $index = $tokens->getNextTokenOfKind(0, [[T_COMMENT], [T_DOC_COMMENT]]);
+        $analyzer = new CommentsAnalyzer();
+
+        static::assertTrue($analyzer->isBeforeStructuralElement($tokens, $index));
+    }
+
+    public function providePhpdocCandidatePhp74Cases()
+    {
+        return [
+            ['<?php /* Before anonymous function */ $fn = fn($x) => $x + 1;'],
+        ];
+    }
+
+    /**
+     * @param string $code
+     *
+     * @dataProvider providePhpdocCandidatePhp80Cases
+     * @requires PHP 8.0
+     */
+    public function testPhpdocCandidatePhp80($code)
+    {
+        $tokens = Tokens::fromCode($code);
+        $index = $tokens->getNextTokenOfKind(0, [[T_COMMENT], [T_DOC_COMMENT]]);
+        $analyzer = new CommentsAnalyzer();
+
+        static::assertTrue($analyzer->isBeforeStructuralElement($tokens, $index));
+    }
+
+    public function providePhpdocCandidatePhp80Cases()
+    {
+        return [
+            ['<?php
+/**
+ * @Annotation
+ */
+#[CustomAnnotationA]
+Class MyAnnotation3 {}'],
+        ];
     }
 }

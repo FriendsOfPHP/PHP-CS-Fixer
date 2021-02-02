@@ -13,7 +13,10 @@
 namespace PhpCsFixer\Fixer\Whitespace;
 
 use PhpCsFixer\AbstractFixer;
+use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
 use PhpCsFixer\Fixer\WhitespacesAwareFixerInterface;
+use PhpCsFixer\FixerConfiguration\FixerConfigurationResolver;
+use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\VersionSpecification;
 use PhpCsFixer\FixerDefinition\VersionSpecificCodeSample;
@@ -24,7 +27,7 @@ use PhpCsFixer\Tokenizer\Tokens;
 /**
  * @author Gregor Harlan
  */
-final class HeredocIndentationFixer extends AbstractFixer implements WhitespacesAwareFixerInterface
+final class HeredocIndentationFixer extends AbstractFixer implements ConfigurationDefinitionFixerInterface, WhitespacesAwareFixerInterface
 {
     /**
      * {@inheritdoc}
@@ -58,6 +61,19 @@ SAMPLE
                     ,
                     new VersionSpecification(70300)
                 ),
+                new VersionSpecificCodeSample(
+                    <<<'SAMPLE'
+<?php
+    $a = <<<'EOD'
+abc
+    def
+EOD;
+
+SAMPLE
+                    ,
+                    new VersionSpecification(70300),
+                    ['indentation' => 'same_as_start']
+                ),
             ]
         );
     }
@@ -68,6 +84,19 @@ SAMPLE
     public function isCandidate(Tokens $tokens)
     {
         return \PHP_VERSION_ID >= 70300 && $tokens->isTokenKindFound(T_START_HEREDOC);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function createConfigurationDefinition()
+    {
+        return new FixerConfigurationResolver([
+            (new FixerOptionBuilder('indentation', 'Whether the indentation should be the same as in the start token line or one level more.'))
+                ->setAllowedValues(['start_plus_one', 'same_as_start'])
+                ->setDefault('start_plus_one')
+                ->getOption(),
+        ]);
     }
 
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
@@ -90,12 +119,17 @@ SAMPLE
      */
     private function fixIndentation(Tokens $tokens, $start, $end)
     {
-        $indent = $this->getIndentAt($tokens, $start).$this->whitespacesConfig->getIndent();
+        $indent = $this->getIndentAt($tokens, $start);
 
-        Preg::match('/^[ \t]*/', $tokens[$end]->getContent(), $matches);
+        if ('start_plus_one' === $this->configuration['indentation']) {
+            $indent .= $this->whitespacesConfig->getIndent();
+        }
+
+        Preg::match('/^\h*/', $tokens[$end]->getContent(), $matches);
         $currentIndent = $matches[0];
+        $currentIndentLength = \strlen($currentIndent);
 
-        $content = $indent.substr($tokens[$end]->getContent(), \strlen($currentIndent));
+        $content = $indent.substr($tokens[$end]->getContent(), $currentIndentLength);
         $tokens[$end] = new Token([T_END_HEREDOC, $content]);
 
         if ($end === $start + 1) {
@@ -107,19 +141,35 @@ SAMPLE
                 continue;
             }
 
-            $regexEnd = $last && !$currentIndent ? '(?!$)' : '';
-            $content = Preg::replace('/(?<=\v)'.$currentIndent.$regexEnd.'/', $indent, $tokens[$index]->getContent());
+            $content = $tokens[$index]->getContent();
+
+            if ('' !== $currentIndent) {
+                $content = Preg::replace('/(?<=\v)(?!'.$currentIndent.')\h+/', '', $content);
+            }
+
+            $regexEnd = $last && !$currentIndent ? '(?!\v|$)' : '(?!\v)';
+            $content = Preg::replace('/(?<=\v)'.$currentIndent.$regexEnd.'/', $indent, $content);
+
             $tokens[$index] = new Token([$tokens[$index]->getId(), $content]);
         }
 
         ++$index;
 
-        if ($tokens[$index]->isGivenKind(T_ENCAPSED_AND_WHITESPACE)) {
-            $content = $indent.substr($tokens[$index]->getContent(), \strlen($currentIndent));
-            $tokens[$index] = new Token([T_ENCAPSED_AND_WHITESPACE, $content]);
-        } else {
+        if (!$tokens[$index]->isGivenKind(T_ENCAPSED_AND_WHITESPACE)) {
             $tokens->insertAt($index, new Token([T_ENCAPSED_AND_WHITESPACE, $indent]));
+
+            return;
         }
+
+        $content = $tokens[$index]->getContent();
+
+        if (!\in_array($content[0], ["\r", "\n"], true) && (!$currentIndent || $currentIndent === substr($content, 0, $currentIndentLength))) {
+            $content = $indent.substr($content, $currentIndentLength);
+        } elseif ($currentIndent) {
+            $content = Preg::replace('/^(?!'.$currentIndent.')\h+/', '', $content);
+        }
+
+        $tokens[$index] = new Token([T_ENCAPSED_AND_WHITESPACE, $content]);
     }
 
     /**
@@ -140,7 +190,7 @@ SAMPLE
                 $content = $tokens[$index - 1]->getContent().$content;
             }
 
-            if (1 === Preg::match('/\R([ \t]*)$/', $content, $matches)) {
+            if (1 === Preg::match('/\R(\h*)$/', $content, $matches)) {
                 return $matches[1];
             }
         }

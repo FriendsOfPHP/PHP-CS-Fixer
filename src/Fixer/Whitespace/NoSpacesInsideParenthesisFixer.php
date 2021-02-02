@@ -46,10 +46,12 @@ function foo( \$bar, \$baz )
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before FunctionToConstantFixer.
+     * Must run after CombineConsecutiveIssetsFixer, CombineNestedDirnameFixer, LambdaNotUsedImportFixer, NoUselessSprintfFixer, PowToExponentiationFixer.
      */
     public function getPriority()
     {
-        // must run before FunctionToConstantFixer
         return 2;
     }
 
@@ -95,8 +97,7 @@ function foo( \$bar, \$baz )
     /**
      * Remove spaces from token at a given index.
      *
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      */
     private function removeSpaceAroundToken(Tokens $tokens, $index)
     {

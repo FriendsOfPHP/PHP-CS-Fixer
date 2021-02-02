@@ -37,7 +37,7 @@ final class PowToExponentiationFixerTest extends AbstractFixerTestCase
 
     public function provideFixCases()
     {
-        return [
+        $tests = [
             [
                 '<?php 1**2;',
                 '<?php pow(1,2);',
@@ -135,10 +135,6 @@ final class PowToExponentiationFixerTest extends AbstractFixerTestCase
                 '<?php echo pow(${$bar}, ${$foo});',
             ],
             [
-                '<?php echo $a{1}** $b{2+5};',
-                '<?php echo pow($a{1}, $b{2+5});',
-            ],
-            [
                 '<?php echo $a[2^3+1]->test(1,2)** $b[2+$c];',
                 '<?php echo pow($a[2^3+1]->test(1,2), $b[2+$c]);',
             ],
@@ -222,7 +218,25 @@ final class PowToExponentiationFixerTest extends AbstractFixerTestCase
                     public function &pow($a, $b);
                 }',
             ],
+            [
+                '<?php echo $a[1]** $b[2+5];',
+                '<?php echo pow($a[1], $b[2+5]);',
+            ],
+            [
+                '<?php pow($b, ...$a);',
+            ],
         ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        if (\PHP_VERSION_ID < 80000) {
+            yield [
+                '<?php echo $a{1}** $b{2+5};',
+                '<?php echo pow($a{1}, $b{2+5});',
+            ];
+        }
     }
 
     /**
@@ -275,6 +289,28 @@ final class PowToExponentiationFixerTest extends AbstractFixerTestCase
             [
                 '<?php echo +$a** 2/*1*//*2*/;',
                 '<?php echo pow(+$a, 2/*1*/,/*2*/);',
+            ],
+        ];
+    }
+
+    /**
+     * @param string $expected
+     * @param string $input
+     *
+     * @requires PHP 7.4
+     * @dataProvider provideFix74Cases
+     */
+    public function testFix74($expected, $input)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix74Cases()
+    {
+        return [
+            [
+                '<?php echo 10_0** 2;',
+                '<?php echo pow(10_0, 2);',
             ],
         ];
     }

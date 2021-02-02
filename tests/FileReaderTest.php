@@ -14,6 +14,7 @@ namespace PhpCsFixer\Tests;
 
 use org\bovigo\vfs\vfsStream;
 use PhpCsFixer\FileReader;
+use PhpCsFixer\Tests\Fixtures\Test\FileReaderTest\StdinFakeStream;
 
 /**
  * @author ntzm
@@ -24,9 +25,9 @@ use PhpCsFixer\FileReader;
  */
 final class FileReaderTest extends TestCase
 {
-    public static function tearDownAfterClass()
+    public static function doTearDownAfterClass()
     {
-        parent::tearDownAfterClass();
+        parent::doTearDownAfterClass();
 
         // testReadStdinCaches registers a stream wrapper for php so we can mock
         // php://stdin. Restore the original stream wrapper after this class so
@@ -58,7 +59,7 @@ final class FileReaderTest extends TestCase
         $reader = new FileReader();
 
         stream_wrapper_unregister('php');
-        stream_wrapper_register('php', 'PhpCsFixer\Tests\Fixtures\Test\FileReaderTest\StdinFakeStream');
+        stream_wrapper_register('php', StdinFakeStream::class);
 
         static::assertSame('<?php echo "foo";', $reader->read('php://stdin'));
         static::assertSame('<?php echo "foo";', $reader->read('php://stdin'));
@@ -72,7 +73,7 @@ final class FileReaderTest extends TestCase
         $reader = new FileReader();
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Failed to read content from "'.$nonExistentFilePath.'". file_get_contents('.$nonExistentFilePath.'): failed to open stream: "org\bovigo\vfs\vfsStreamWrapper::stream_open" call failed');
+        $this->expectExceptionMessageMatches('#^Failed to read content from "'.preg_quote($nonExistentFilePath, '#').'.*$#');
 
         $reader->read($nonExistentFilePath);
     }

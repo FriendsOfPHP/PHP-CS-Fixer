@@ -12,6 +12,7 @@
 
 namespace PhpCsFixer\Tests\Fixer\FunctionNotation;
 
+use PhpCsFixer\Fixer\FunctionNotation\MethodArgumentSpaceFixer;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\WhitespacesFixerConfig;
@@ -26,9 +27,13 @@ use PhpCsFixer\WhitespacesFixerConfig;
 final class MethodArgumentSpaceFixerTest extends AbstractFixerTestCase
 {
     /**
+     * @var MethodArgumentSpaceFixer
+     */
+    protected $fixer;
+
+    /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixCases
      */
@@ -61,7 +66,6 @@ final class MethodArgumentSpaceFixerTest extends AbstractFixerTestCase
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      *
      * @dataProvider provideFixCases
      */
@@ -695,8 +699,11 @@ $b,
     $c#
 #
 )#
-use ($b,
-$c,$d) {
+use (
+    $b1,
+    $c1,
+    $d1
+) {
 };
 EXPECTED
                 ,
@@ -712,8 +719,8 @@ $a#
 $b,$c#
 #
 )#
-use ($b,
-$c,$d) {
+use ($b1,
+$c1,$d1) {
 };
 INPUT
                 ,
@@ -924,6 +931,14 @@ if (true) {
                     'on_multiline' => 'ensure_fully_multiline',
                 ],
             ],
+            'test anonymous functions' => [
+                '<?php
+$example = function () use ($message1, $message2) {
+};',
+                '<?php
+$example = function () use ($message1,$message2) {
+};',
+            ],
         ];
     }
 
@@ -1019,6 +1034,39 @@ functionCall(
             [
                 '<?php foo(1, 2, 3, );',
                 '<?php foo(1,2,3,);',
+            ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFix74Cases
+     * @requires PHP 7.4
+     */
+    public function testFix74($expected, $input = null, array $config = [])
+    {
+        $this->fixer->configure($config);
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix74Cases()
+    {
+        return [
+            [
+                '<?php
+$fn = fn(
+    $test1,
+    $test2
+) => null;',
+                '<?php
+$fn = fn(
+    $test1, $test2
+) => null;',
+                [
+                    'on_multiline' => 'ensure_fully_multiline',
+                ],
             ],
         ];
     }

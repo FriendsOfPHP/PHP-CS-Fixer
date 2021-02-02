@@ -629,8 +629,8 @@ $foo = [[
                 'bar',
             ],[[],[]]]
             ]],[
-            'baz',
-        ]]
+                'baz',
+            ]]
         ],[]],[]]
 ]
 ];
@@ -732,6 +732,108 @@ $foo = [
     "bar",
 ];',
             ],
+            [
+                <<<'EXPECTED'
+<?php
+$foo = [
+    'foo' =>
+          'Some'
+           .' long'
+            .' string',
+    'bar' =>
+        'Another'
+         .' long'
+          .' string'
+];
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+$foo = [
+  'foo' =>
+        'Some'
+         .' long'
+          .' string',
+        'bar' =>
+            'Another'
+             .' long'
+              .' string'
+];
+INPUT
+                ,
+            ],
+            [
+                <<<'EXPECTED'
+<?php
+$foo = [
+    $test
+          ? [
+              123,
+          ]
+          : [
+              321,
+          ],
+];
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+$foo = [
+    $test
+          ? [
+                 123,
+          ]
+          : [
+                   321,
+          ],
+];
+INPUT
+                ,
+            ],
+            [
+                <<<'EXPECTED'
+<?php
+$foo = [[
+    new Foo(
+        'foo'
+    ),
+]];
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+$foo = [[
+      new Foo(
+          'foo'
+      ),
+]];
+INPUT
+                ,
+            ],
+            [
+                <<<'EXPECTED'
+<?php
+$array = [
+    'foo' => [
+        'bar' => [
+            'baz',
+        ],
+    ], // <- this one
+];
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+$array = [
+    'foo' => [
+        'bar' => [
+            'baz',
+        ],
+], // <- this one
+];
+INPUT
+                ,
+            ],
         ]);
     }
 
@@ -787,6 +889,42 @@ INPUT
                 ,
             ],
         ]);
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixPhp74Cases
+     * @requires PHP 7.4
+     */
+    public function testFixPhp74($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPhp74Cases()
+    {
+        return [
+            [
+                <<<'EXPECTED'
+<?php
+$foo = [
+    ...$foo,
+    ...$bar,
+];
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+$foo = [
+  ...$foo,
+        ...$bar,
+ ];
+INPUT
+                ,
+            ],
+        ];
     }
 
     private function withLongArraySyntaxCases(array $cases)

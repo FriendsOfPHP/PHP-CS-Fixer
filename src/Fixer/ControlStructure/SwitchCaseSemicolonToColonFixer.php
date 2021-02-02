@@ -49,6 +49,16 @@ final class SwitchCaseSemicolonToColonFixer extends AbstractFixer
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after NoEmptyStatementFixer.
+     */
+    public function getPriority()
+    {
+        return 0;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isCandidate(Tokens $tokens)
     {
@@ -61,15 +71,17 @@ final class SwitchCaseSemicolonToColonFixer extends AbstractFixer
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
         foreach ($tokens as $index => $token) {
-            if ($token->isGivenKind([T_CASE, T_DEFAULT])) {
+            if ($token->isGivenKind(T_CASE)) {
                 $this->fixSwitchCase($tokens, $index);
+            }
+            if ($token->isGivenKind(T_DEFAULT)) {
+                $this->fixSwitchDefault($tokens, $index);
             }
         }
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      */
     protected function fixSwitchCase(Tokens $tokens, $index)
     {
@@ -94,6 +106,22 @@ final class SwitchCaseSemicolonToColonFixer extends AbstractFixer
                 }
 
                 --$ternariesCount;
+            }
+        } while (++$index);
+
+        if ($tokens[$index]->equals(';')) {
+            $tokens[$index] = new Token(':');
+        }
+    }
+
+    /**
+     * @param int $index
+     */
+    protected function fixSwitchDefault(Tokens $tokens, $index)
+    {
+        do {
+            if ($tokens[$index]->equalsAny([':', ';', [T_DOUBLE_ARROW]])) {
+                break;
             }
         } while (++$index);
 

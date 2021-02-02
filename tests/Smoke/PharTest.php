@@ -12,10 +12,10 @@
 
 namespace PhpCsFixer\Tests\Smoke;
 
+use Keradus\CliExecutor\CliResult;
 use Keradus\CliExecutor\CommandExecutor;
 use PhpCsFixer\Console\Application;
 use PhpCsFixer\Console\Command\DescribeCommand;
-use PhpCsFixer\Console\Command\HelpCommand;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -32,9 +32,9 @@ final class PharTest extends AbstractSmokeTest
     private static $pharCwd;
     private static $pharName;
 
-    public static function setUpBeforeClass()
+    public static function doSetUpBeforeClass()
     {
-        parent::setUpBeforeClass();
+        parent::doSetUpBeforeClass();
 
         self::$pharCwd = __DIR__.'/../..';
         self::$pharName = 'php-cs-fixer.phar';
@@ -46,21 +46,9 @@ final class PharTest extends AbstractSmokeTest
 
     public function testVersion()
     {
-        static::assertRegExp(
+        static::assertMatchesRegularExpression(
             '/^.* '.Application::VERSION.'(?: '.Application::VERSION_CODENAME.')? by .*$/',
             self::executePharCommand('--version')->getOutput()
-        );
-    }
-
-    public function testReadme()
-    {
-        static::assertSame(
-            str_replace(
-                HelpCOmmand::getLatestReleaseVersionFromChangeLog(),
-                Application::VERSION,
-                file_get_contents(__DIR__.'/../../README.rst')
-            ),
-            self::executePharCommand('readme')->getOutput()
         );
     }
 

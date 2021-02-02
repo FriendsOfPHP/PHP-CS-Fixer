@@ -86,6 +86,17 @@ final class PhpdocTypesOrderFixer extends AbstractFixer implements Configuration
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before PhpdocAlignFixer.
+     * Must run after CommentToPhpdocFixer, PhpdocAnnotationWithoutDotFixer, PhpdocIndentFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocTypesFixer.
+     */
+    public function getPriority()
+    {
+        return 0;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isCandidate(Tokens $tokens)
     {
@@ -132,8 +143,8 @@ final class PhpdocTypesOrderFixer extends AbstractFixer implements Configuration
                 // fix @method parameters types
                 $line = $doc->getLine($annotation->getStart());
                 $line->setContent(Preg::replaceCallback('/(@method\s+.+?\s+\w+\()(.*)\)/', function (array $matches) {
-                    $sorted = Preg::replaceCallback('/((?:^|,)\s*)([^\s]+)/', function (array $matches) {
-                        return $matches[1].$this->sortJoinedTypes($matches[2]);
+                    $sorted = Preg::replaceCallback('/([^\s,]+)([\s]+\$[^\s,]+)/', function (array $matches) {
+                        return $this->sortJoinedTypes($matches[1]).$matches[2];
                     }, $matches[2]);
 
                     return $matches[1].$sorted.')';

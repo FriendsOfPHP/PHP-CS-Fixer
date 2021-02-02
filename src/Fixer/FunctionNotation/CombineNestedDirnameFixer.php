@@ -61,11 +61,12 @@ final class CombineNestedDirnameFixer extends AbstractFixer
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before MethodArgumentSpaceFixer, NoSpacesInsideParenthesisFixer.
+     * Must run after DirConstantFixer.
      */
     public function getPriority()
     {
-        // should run after DirConstantFixer
-        // should run before MethodArgumentSpaceFixer, NoSpacesInsideParenthesisFixer, NoTrailingWhitespaceFixer, NoWhitespaceInBlankLineFixer
         return 3;
     }
 
@@ -75,12 +76,6 @@ final class CombineNestedDirnameFixer extends AbstractFixer
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
         for ($index = $tokens->count() - 1; 0 <= $index; --$index) {
-            $token = $tokens[$index];
-
-            if (!$token->equals([T_STRING, 'dirname'], false)) {
-                continue;
-            }
-
             $dirnameInfo = $this->getDirnameInfo($tokens, $index);
 
             if (!$dirnameInfo) {
@@ -121,7 +116,6 @@ final class CombineNestedDirnameFixer extends AbstractFixer
     }
 
     /**
-     * @param Tokens   $tokens
      * @param int      $index                 Index of `dirname`
      * @param null|int $firstArgumentEndIndex Index of last token of first argument of `dirname` call
      *
@@ -231,7 +225,7 @@ final class CombineNestedDirnameFixer extends AbstractFixer
             $prev = $tokens->getPrevMeaningfulToken($outerDirnameInfo['end']);
             $items = [];
             if (!$tokens[$prev]->equals(',')) {
-                $items[] = new Token(',');
+                $items = [new Token(','), new Token([T_WHITESPACE, ' '])];
             }
             $items[] = $levelsToken;
             $tokens->insertAt($outerDirnameInfo['end'], $items);

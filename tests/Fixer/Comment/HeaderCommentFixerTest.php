@@ -14,7 +14,6 @@ namespace PhpCsFixer\Tests\Fixer\Comment;
 
 use PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException;
 use PhpCsFixer\Tests\Test\AbstractFixerWithAliasedOptionsTestCase;
-use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\WhitespacesFixerConfig;
 
 /**
@@ -43,7 +42,6 @@ final class HeaderCommentFixerTest extends AbstractFixerWithAliasedOptionsTestCa
             [
                 ['header' => ''],
                 '<?php
-
 
 $a;',
                 '<?php
@@ -78,7 +76,7 @@ echo 1;',
                     'header' => 'tmp',
                     'location' => 'after_declare_strict',
                     'separate' => 'bottom',
-                    'commentType' => 'PHPDoc',
+                    'comment_type' => 'PHPDoc',
                 ],
                 '<?php
 declare(strict_types=1);
@@ -122,14 +120,13 @@ echo 1;',
             [
                 [
                     'header' => 'new',
-                    'commentType' => 'comment',
+                    'comment_type' => 'comment',
                 ],
                 '<?php
 
 /*
  * new
  */
-                    '.'
                 ',
                 '<?php
                     /** test */
@@ -138,14 +135,13 @@ echo 1;',
             [
                 [
                     'header' => 'new',
-                    'commentType' => 'PHPDoc',
+                    'comment_type' => 'PHPDoc',
                 ],
                 '<?php
 
 /**
  * new
  */
-                    '.'
                 ',
                 '<?php
                     /* test */
@@ -154,14 +150,13 @@ echo 1;',
             [
                 [
                     'header' => 'def',
-                    'commentType' => 'PHPDoc',
+                    'comment_type' => 'PHPDoc',
                 ],
                 '<?php
 
 /**
  * def
  */
-
 ',
                 '<?php
 ',
@@ -194,7 +189,7 @@ echo 1;',
             [
                 [
                     'header' => 'abc',
-                    'commentType' => 'PHPDoc',
+                    'comment_type' => 'PHPDoc',
                 ],
                 '<?php
 
@@ -304,6 +299,254 @@ echo \'x\';',
 
 echo \'x\';',
             ],
+            [
+                [
+                    'header' => 'foo',
+                    'location' => 'after_open',
+                    'separate' => 'bottom',
+                    'comment_type' => 'PHPDoc',
+                ],
+                '<?php
+/**
+ * foo
+ */
+
+declare(strict_types=1);
+
+namespace A;
+
+echo 1;',
+                '<?php
+
+declare(strict_types=1);
+/**
+ * foo
+ */
+
+namespace A;
+
+echo 1;',
+            ],
+            [
+                [
+                    'header' => 'foo',
+                    'location' => 'after_open',
+                    'separate' => 'bottom',
+                    'comment_type' => 'PHPDoc',
+                ],
+                '<?php
+/**
+ * foo
+ */
+
+declare(strict_types=1);
+/**
+ * bar
+ */
+
+namespace A;
+
+echo 1;',
+                '<?php
+
+declare(strict_types=1);
+/**
+ * bar
+ */
+
+namespace A;
+
+echo 1;',
+            ],
+            [
+                [
+                    'header' => 'Foo',
+                    'separate' => 'none',
+                ],
+                '<?php
+
+declare(strict_types=1);
+/*
+ * Foo
+ */
+namespace SebastianBergmann\Foo;
+
+class Bar
+{
+}',
+                '<?php
+/*
+ * Foo
+ */
+
+declare(strict_types=1);
+
+namespace SebastianBergmann\Foo;
+
+class Bar
+{
+}',
+            ],
+            [
+                ['header' => 'tmp'],
+                '<?php
+
+/*
+ * tmp
+ */
+
+/**
+ * Foo class doc.
+ */
+class Foo {}',
+                '<?php
+
+/**
+ * Foo class doc.
+ */
+class Foo {}',
+            ],
+            [
+                ['header' => 'tmp'],
+                '<?php
+
+/*
+ * tmp
+ */
+
+class Foo {}',
+                '<?php
+
+/*
+ * Foo class doc.
+ */
+class Foo {}',
+            ],
+            [
+                [
+                    'header' => 'tmp',
+                    'comment_type' => 'PHPDoc',
+                ],
+                '<?php
+
+/**
+ * tmp
+ */
+
+/**
+ * Foo class doc.
+ */
+class Foo {}',
+                '<?php
+
+/**
+ * Foo class doc.
+ */
+class Foo {}',
+            ],
+            [
+                [
+                    'header' => 'tmp',
+                    'comment_type' => 'PHPDoc',
+                ],
+                '<?php
+
+/**
+ * tmp
+ */
+
+class Foo {}',
+                '<?php
+
+/**
+ * tmp
+ */
+class Foo {}',
+            ],
+            [
+                [
+                    'header' => 'tmp',
+                    'separate' => 'top',
+                ],
+                '<?php
+
+/*
+ * tmp
+ */
+class Foo {}',
+                '<?php
+/**
+ * Foo class doc.
+ */
+class Foo {}',
+            ],
+            [
+                [
+                    'header' => 'bar',
+                    'location' => 'after_open',
+                ],
+                '<?php
+
+/*
+ * bar
+ */
+
+declare(strict_types=1);
+
+// foo
+foo();',
+                '<?php
+
+/*
+ * foo
+ */
+
+declare(strict_types=1);
+
+// foo
+foo();',
+            ],
+            [
+                [
+                    'header' => 'bar',
+                    'location' => 'after_open',
+                ],
+                '<?php
+
+/*
+ * bar
+ */
+
+declare(strict_types=1);
+
+/* foo */
+foo();',
+                '<?php
+
+/*
+ * foo
+ */
+
+declare(strict_types=1);
+
+/* foo */
+foo();',
+            ],
+            [
+                [
+                    'header' => 'tmp',
+                    'location' => 'after_declare_strict',
+                ],
+                '<?php
+
+/*
+ * tmp
+ */
+
+declare(strict_types=1) ?>',
+                '<?php
+declare(strict_types=1) ?>',
+            ],
         ];
     }
 
@@ -344,7 +587,7 @@ echo 1;'
     public function testMisconfiguration($configuration, $exceptionMessage)
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessage('[header_comment] '.$exceptionMessage);
+        $this->expectExceptionMessageMatches("#^\\[header_comment\\] {$exceptionMessage}$#");
 
         $this->configureFixerWithAliasedOptions($configuration);
     }
@@ -355,35 +598,35 @@ echo 1;'
             [[], 'Missing required configuration: The required option "header" is missing.'],
             [
                 ['header' => 1],
-                'Invalid configuration: The option "header" with value 1 is expected to be of type "string", but is of type "integer".',
+                'Invalid configuration: The option "header" with value 1 is expected to be of type "string", but is of type "(int|integer)"\.',
             ],
             [
                 [
                     'header' => '',
-                    'commentType' => 'foo',
+                    'comment_type' => 'foo',
                 ],
-                'Invalid configuration: The option "comment_type" with value "foo" is invalid. Accepted values are: "PHPDoc", "comment".',
+                'Invalid configuration: The option "comment_type" with value "foo" is invalid\. Accepted values are: "PHPDoc", "comment"\.',
             ],
             [
                 [
                     'header' => '',
-                    'commentType' => new \stdClass(),
+                    'comment_type' => new \stdClass(),
                 ],
-                'Invalid configuration: The option "comment_type" with value stdClass is invalid. Accepted values are: "PHPDoc", "comment".',
+                'Invalid configuration: The option "comment_type" with value stdClass is invalid\. Accepted values are: "PHPDoc", "comment"\.',
             ],
             [
                 [
                     'header' => '',
                     'location' => new \stdClass(),
                 ],
-                'Invalid configuration: The option "location" with value stdClass is invalid. Accepted values are: "after_open", "after_declare_strict".',
+                'Invalid configuration: The option "location" with value stdClass is invalid\. Accepted values are: "after_open", "after_declare_strict"\.',
             ],
             [
                 [
                     'header' => '',
                     'separate' => new \stdClass(),
                 ],
-                'Invalid configuration: The option "separate" with value stdClass is invalid. Accepted values are: "both", "top", "bottom", "none".',
+                'Invalid configuration: The option "separate" with value stdClass is invalid\. Accepted values are: "both", "top", "bottom", "none"\.',
             ],
         ];
     }
@@ -399,7 +642,7 @@ echo 1;'
     {
         $this->configureFixerWithAliasedOptions([
             'header' => $header,
-            'commentType' => $type,
+            'comment_type' => $type,
         ]);
         $this->doTest(
             '<?php
@@ -430,65 +673,6 @@ echo 1;'
                 'PHPDoc',
             ],
         ];
-    }
-
-    /**
-     * @param int    $expected
-     * @param string $code
-     *
-     * @dataProvider provideFindHeaderCommentInsertionIndexCases
-     */
-    public function testFindHeaderCommentInsertionIndex($expected, $code, array $config)
-    {
-        Tokens::clearCache();
-        $tokens = Tokens::fromCode($code);
-
-        $this->fixer->configure($config);
-
-        $method = new \ReflectionMethod($this->fixer, 'findHeaderCommentInsertionIndex');
-        $method->setAccessible(true);
-        static::assertSame($expected, $method->invoke($this->fixer, $tokens));
-    }
-
-    public function provideFindHeaderCommentInsertionIndexCases()
-    {
-        $config = ['header' => ''];
-        $cases = [
-            [1, '<?php #', $config],
-            [1, '<?php /**/ $bc;', $config],
-            [1, '<?php $bc;', $config],
-            [1, "<?php\n\n", $config],
-            [1, '<?php ', $config],
-        ];
-
-        $config['location'] = 'after_declare_strict';
-        $cases[] = [
-            8,
-            '<?php
-declare(strict_types=1);
-
-namespace A\B;
-
-echo 1;',
-            $config,
-        ];
-
-        $cases[] = [
-            8,
-            '<?php
-declare(strict_types=0);
-echo 1;',
-            $config,
-        ];
-
-        $cases[] = [
-            1,
-            '<?php
-declare(strict_types=1)?>',
-            $config,
-        ];
-
-        return $cases;
     }
 
     /**
@@ -547,7 +731,7 @@ declare(strict_types=1)?>',
                     'header' => 'whitemess',
                     'location' => 'after_declare_strict',
                     'separate' => 'bottom',
-                    'commentType' => 'PHPDoc',
+                    'comment_type' => 'PHPDoc',
                 ],
                 "<?php\r\ndeclare(strict_types=1);\r\n/**\r\n * whitemess\r\n */\r\n\r\nnamespace A\\B;\r\n\r\necho 1;",
                 "<?php\r\ndeclare(strict_types=1);\r\n\r\nnamespace A\\B;\r\n\r\necho 1;",
@@ -589,7 +773,7 @@ declare(strict_types=1)?>',
     public function testInvalidHeaderConfiguration()
     {
         $this->expectException(InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('#^\[header_comment\] Cannot use \'\*/\' in header\.$#');
+        $this->expectExceptionMessageMatches('#^\[header_comment\] Cannot use \'\*/\' in header\.$#');
 
         $this->fixer->configure([
             'header' => '/** test */',

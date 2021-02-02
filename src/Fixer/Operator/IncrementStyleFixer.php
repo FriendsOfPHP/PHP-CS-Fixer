@@ -12,7 +12,7 @@
 
 namespace PhpCsFixer\Fixer\Operator;
 
-use PhpCsFixer\AbstractFixer;
+use PhpCsFixer\Fixer\AbstractIncrementOperatorFixer;
 use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
 use PhpCsFixer\FixerConfiguration\FixerConfigurationResolver;
 use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
@@ -26,7 +26,7 @@ use PhpCsFixer\Tokenizer\TokensAnalyzer;
  * @author Gregor Harlan <gharlan@web.de>
  * @author Kuba Werłos <werlos@gmail.com>
  */
-final class IncrementStyleFixer extends AbstractFixer implements ConfigurationDefinitionFixerInterface
+final class IncrementStyleFixer extends AbstractIncrementOperatorFixer implements ConfigurationDefinitionFixerInterface
 {
     /**
      * @internal
@@ -53,6 +53,16 @@ final class IncrementStyleFixer extends AbstractFixer implements ConfigurationDe
                 ),
             ]
         );
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Must run after StandardizeIncrementFixer.
+     */
+    public function getPriority()
+    {
+        return 0;
     }
 
     /**
@@ -99,13 +109,13 @@ final class IncrementStyleFixer extends AbstractFixer implements ConfigurationDe
                 $startIndex = $this->findStart($tokens, $index);
 
                 $prevToken = $tokens[$tokens->getPrevMeaningfulToken($startIndex)];
-                if ($prevToken->equalsAny([';', '{', '}', [T_OPEN_TAG]])) {
+                if ($prevToken->equalsAny([';', '{', '}', [T_OPEN_TAG], ')'])) {
                     $tokens->clearAt($index);
                     $tokens->insertAt($startIndex, clone $token);
                 }
             } elseif (self::STYLE_POST === $this->configuration['style'] && $tokensAnalyzer->isUnaryPredecessorOperator($index)) {
                 $prevToken = $tokens[$tokens->getPrevMeaningfulToken($index)];
-                if (!$prevToken->equalsAny([';', '{', '}', [T_OPEN_TAG]])) {
+                if (!$prevToken->equalsAny([';', '{', '}', [T_OPEN_TAG], ')'])) {
                     continue;
                 }
 
@@ -121,8 +131,7 @@ final class IncrementStyleFixer extends AbstractFixer implements ConfigurationDe
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return int
      */
@@ -133,9 +142,11 @@ final class IncrementStyleFixer extends AbstractFixer implements ConfigurationDe
 
         while ($nextToken->equalsAny([
             '$',
+            '(',
             '[',
             [CT::T_DYNAMIC_PROP_BRACE_OPEN],
             [CT::T_DYNAMIC_VAR_BRACE_OPEN],
+            [CT::T_ARRAY_INDEX_CURLY_BRACE_OPEN],
             [T_NS_SEPARATOR],
             [T_STATIC],
             [T_STRING],
@@ -156,51 +167,6 @@ final class IncrementStyleFixer extends AbstractFixer implements ConfigurationDe
 
         if ($nextToken->isGivenKind(T_PAAMAYIM_NEKUDOTAYIM)) {
             return $this->findEnd($tokens, $tokens->getNextMeaningfulToken($nextIndex));
-        }
-
-        return $index;
-    }
-
-    /**
-     * @param Tokens $tokens
-     * @param int    $index
-     *
-     * @return int
-     */
-    private function findStart(Tokens $tokens, $index)
-    {
-        do {
-            $index = $tokens->getPrevMeaningfulToken($index);
-            $token = $tokens[$index];
-
-            $blockType = Tokens::detectBlockType($token);
-            if (null !== $blockType && !$blockType['isStart']) {
-                $index = $tokens->findBlockStart($blockType['type'], $index);
-                $token = $tokens[$index];
-            }
-        } while (!$token->equalsAny(['$', [T_VARIABLE]]));
-
-        $prevIndex = $tokens->getPrevMeaningfulToken($index);
-        $prevToken = $tokens[$prevIndex];
-
-        if ($prevToken->equals('$')) {
-            $index = $prevIndex;
-            $prevIndex = $tokens->getPrevMeaningfulToken($index);
-            $prevToken = $tokens[$prevIndex];
-        }
-
-        if ($prevToken->isGivenKind(T_OBJECT_OPERATOR)) {
-            return $this->findStart($tokens, $prevIndex);
-        }
-
-        if ($prevToken->isGivenKind(T_PAAMAYIM_NEKUDOTAYIM)) {
-            $prevPrevIndex = $tokens->getPrevMeaningfulToken($prevIndex);
-            if (!$tokens[$prevPrevIndex]->isGivenKind([T_STATIC, T_STRING])) {
-                return $this->findStart($tokens, $prevIndex);
-            }
-
-            $index = $tokens->getTokenNotOfKindSibling($prevIndex, -1, [[T_NS_SEPARATOR], [T_STATIC], [T_STRING]]);
-            $index = $tokens->getNextMeaningfulToken($index);
         }
 
         return $index;

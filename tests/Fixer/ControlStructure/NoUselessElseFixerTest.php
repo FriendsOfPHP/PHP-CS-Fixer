@@ -20,6 +20,7 @@ use PhpCsFixer\Tokenizer\Tokens;
  *
  * @internal
  *
+ * @covers \PhpCsFixer\AbstractNoUselessElseFixer
  * @covers \PhpCsFixer\Fixer\ControlStructure\NoUselessElseFixer
  */
 final class NoUselessElseFixerTest extends AbstractFixerTestCase
@@ -231,7 +232,8 @@ else?><?php echo 5;',
                     }
                 else
                     echo 4;
-            ', ];
+            ',
+        ];
 
         $cases[] = [
             '<?php
@@ -247,7 +249,8 @@ else?><?php echo 5;',
                         return 1;
                 } else
                     echo 4;
-            ', ];
+            ',
+        ];
 
         return $cases;
     }
@@ -265,35 +268,37 @@ else?><?php echo 5;',
 
     public function provideFixIfElseCases()
     {
-        $expected =
-            '<?php
+        $expected = '<?php
+            while(true) {
                 while(true) {
-                    while(true) {
-                        if ($a) {
-                            %s
-                        }  '.'
-                            echo 1;
-                        '.'
+                    if ($a) {
+                        %s
+                    }  '.'
+                        echo 1;
+                    '.'
+                }
+            }
+        ';
+
+        $input = '<?php
+            while(true) {
+                while(true) {
+                    if ($a) {
+                        %s
+                    } else {
+                        echo 1;
                     }
                 }
-            ';
+            }
+        ';
 
-        $input =
-            '<?php
-                while(true) {
-                    while(true) {
-                        if ($a) {
-                            %s
-                        } else {
-                            echo 1;
-                        }
-                    }
-                }
-            ';
+        $tests = $this->generateCases($expected, $input);
 
-        $cases = $this->generateCases($expected, $input);
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
 
-        $cases[] = [
+        yield [
             '<?php
                 if ($a) {
                     GOTO jump;
@@ -313,8 +318,6 @@ else?><?php echo 5;',
                 jump:
             ',
         ];
-
-        return $cases;
     }
 
     /**
@@ -465,7 +468,7 @@ else?><?php echo 5;',
 
     public function provideNegativeCases()
     {
-        return [
+        $tests = [
             [
                 '<?php
                     if ($a0) {
@@ -623,6 +626,37 @@ else?><?php echo 5;',
                     };',
             ],
         ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        if (\PHP_VERSION_ID >= 80000) {
+            $cases = [
+                '$bar = $foo1 ?? throw new \Exception($e);',
+                '$callable = fn() => throw new Exception();',
+                '$value = $falsableValue ?: throw new InvalidArgumentException();',
+                '$value = !empty($array)
+                    ? reset($array)
+                    : throw new InvalidArgumentException();',
+                '$a = $condition && throw new Exception();',
+                '$a = $condition || throw new Exception();',
+                '$a = $condition and throw new Exception();',
+                '$a = $condition or throw new Exception();',
+            ];
+
+            $template = '<?php
+                if ($foo) {
+                    %s
+                } else {
+                    echo 123;
+                }
+            ';
+
+            foreach ($cases as $index => $case) {
+                yield [sprintf('PHP8 Negative case %d', $index) => sprintf($template, $case)];
+            }
+        }
     }
 
     /**
@@ -708,6 +742,15 @@ else?><?php echo 5;',
             'foreach($a as $b){throw new Exception($i);}',
         ];
 
+        if (\PHP_VERSION_ID >= 70000) {
+            $statements[] = 'throw new class extends Exception{};';
+            $statements[] = 'throw new class ($a, 9) extends Exception{ public function z($a, $b){ echo 7;} };';
+        }
+
+        if (\PHP_VERSION_ID >= 80000) {
+            $statements[] = '$b = $a ?? throw new Exception($i);';
+        }
+
         $ifTemplate = '<?php
             if ($a === false)
             {
@@ -776,8 +819,8 @@ else?><?php echo 5;',
     }
 
     /**
-     * @param string            $input
-     * @param string<int, bool> $indexes
+     * @param string           $input
+     * @param array<int, bool> $indexes
      *
      * @dataProvider provideIsInConditionWithoutBracesCases
      */
@@ -954,11 +997,12 @@ else?><?php echo 5;',
      * @param string      $expected
      * @param null|string $input
      *
-     * @return array<string, string>
+     * @return array<array<string>>
      */
     private function generateCases($expected, $input = null)
     {
         $cases = [];
+
         foreach ([
             'exit;',
             'exit();',

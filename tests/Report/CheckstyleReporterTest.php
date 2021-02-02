@@ -28,16 +28,16 @@ final class CheckstyleReporterTest extends AbstractReporterTestCase
     /**
      * "checkstyle" XML schema.
      *
-     * @var string
+     * @var null|string
      */
     private static $xsd;
 
-    public static function setUpBeforeClass()
+    public static function doSetUpBeforeClass()
     {
-        self::$xsd = file_get_contents(__DIR__.'/../../doc/checkstyle.xsd');
+        self::$xsd = file_get_contents(__DIR__.'/../../doc/report-schema/checkstyle.xsd');
     }
 
-    public static function tearDownAfterClass()
+    public static function doTearDownAfterClass()
     {
         self::$xsd = null;
     }

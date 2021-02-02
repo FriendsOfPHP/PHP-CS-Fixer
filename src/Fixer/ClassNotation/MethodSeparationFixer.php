@@ -51,6 +51,17 @@ final class Sample
     }
 
     /**
+     * {@inheritdoc}
+     *
+     * Must run before BracesFixer, IndentationTypeFixer.
+     * Must run after OrderedClassElementsFixer.
+     */
+    public function getPriority()
+    {
+        return parent::getPriority();
+    }
+
+    /**
      * Returns names of fixers to use instead, if any.
      *
      * @return string[]
@@ -66,7 +77,7 @@ final class Sample
     protected function createProxyFixers()
     {
         $fixer = new ClassAttributesSeparationFixer();
-        $fixer->configure(['elements' => ['method']]);
+        $fixer->configure(['elements' => ['method' => ClassAttributesSeparationFixer::SPACING_ONE]]);
 
         return [$fixer];
     }

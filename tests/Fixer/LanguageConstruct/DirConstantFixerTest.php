@@ -91,7 +91,7 @@ FIXED;
             ],
             [
                 '<?php $x = __DIR__;',
-                '<?php $x = \\dirname(__FILE__);',
+                '<?php $x = \dirname(__FILE__);',
             ],
             [
                 '<?php $x = __DIR__.".dist";',
@@ -99,7 +99,7 @@ FIXED;
             ],
             [
                 '<?php $x = __DIR__.".dist";',
-                '<?php $x = \\dirname(__FILE__).".dist";',
+                '<?php $x = \dirname(__FILE__).".dist";',
             ],
             [
                 '<?php $x = /* 0 *//* 1 */ /** x2*//*3*//** 4*/__DIR__/**5*//*xx*/;',
@@ -128,25 +128,6 @@ FIXED;
                 "<?php echo dirname\n(\n__FILE__/*1*/\n)\n?>",
             ],
             [
-                '<?php $x =# A
-# A1
-# B
-# C
-__DIR__# D
-# E
-;# F
-',
-                '<?php $x =# A
-\
-# A1
-dirname# B
-(# C
-__FILE__# D
-)# E
-;# F
-',
-            ],
-            [
                 $multiLinePatternFixed,
                 $multiLinePatternToFix,
             ],
@@ -155,6 +136,13 @@ __FILE__# D
                 '<?php $x = \dirname(
                     __FILE__                     '.'
                 );',
+            ],
+            [
+                '<?php
+                    $x = dirname(dirname("a".__FILE__));
+                    $x = dirname(dirname(__FILE__."a"));
+                    $x = dirname(dirname("a".__FILE__."a"));
+                ',
             ],
         ];
     }
@@ -189,5 +177,31 @@ __FILE__# D
                 );',
             ],
         ];
+    }
+
+    /**
+     * @requires PHP <8.0
+     */
+    public function testFixPrePHP80()
+    {
+        $this->doTest(
+            '<?php $x =# A
+# A1
+# B
+# C
+__DIR__# D
+# E
+;# F
+',
+            '<?php $x =# A
+\
+# A1
+dirname# B
+(# C
+__FILE__# D
+)# E
+;# F
+'
+        );
     }
 }

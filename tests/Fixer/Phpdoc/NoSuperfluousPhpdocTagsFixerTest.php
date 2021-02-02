@@ -24,7 +24,6 @@ final class NoSuperfluousPhpdocTagsFixerTest extends AbstractFixerTestCase
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $config
      *
      * @dataProvider provideFixCases
      */
@@ -116,6 +115,60 @@ class Foo {
 }',
                 null,
                 ['allow_mixed' => true],
+            ],
+            'allow_mixed=>false on property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var mixed
+     */
+    private $bar;
+}',
+                ['allow_mixed' => false],
+            ],
+            'allow_mixed=>false on property with var' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var mixed $bar
+     */
+    private $bar;
+}',
+                ['allow_mixed' => false],
+            ],
+            'allow_mixed=>false on property but with comment' => [
+                '<?php
+class Foo {
+    /**
+     * @var mixed comment
+     */
+    private $bar;
+}',
+                null,
+                ['allow_mixed' => false],
+            ],
+            'allow_unused_params=>true' => [
+                '<?php
+class Foo {
+    /**
+     * @param string|int $c
+     */
+    public function doFoo($bar /*, $c = 0 */) {}
+}',
+                null,
+                ['allow_unused_params' => true],
             ],
             'multiple different types' => [
                 '<?php
@@ -303,6 +356,720 @@ class Foo {
     public function doFoo($foo) {}
 }',
             ],
+            'inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc
+     */
+    public function doFoo($foo) {}
+}',
+            ],
+            'inline_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     * {@inheritdoc}
+     */
+    public function doFoo($foo) {}
+}',
+            ],
+            'dont_remove_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'dont_remove_inline_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     * {@inheritdoc}
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'remove_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     *
+     */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc
+     */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_inline_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     *
+     */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     * {@inheritdoc}
+     */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inheritdoc_when_surrounded_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo.
+     *
+     * @inheritDoc
+     *
+     * Bar.
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inheritdoc_when_preceded_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo.
+     *
+     * @inheritDoc
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inheritdoc_when_followed_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc
+     *
+     * Bar.
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inline_inheritdoc_inside_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo {@inheritDoc} Bar.
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDocs
+     */
+    public function doFoo($foo) {}
+}',
+            ],
+            'inline_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     * {@inheritdocs}
+     */
+    public function doFoo($foo) {}
+}',
+            ],
+            'dont_remove_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDocs
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'dont_remove_inline_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     * {@inheritdocs}
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'remove_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     *
+     */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     * @inheritDocs
+     */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_inline_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     *
+     */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     * {@inheritdocs}
+     */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inheritdocs_when_surrounded_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo.
+     *
+     * @inheritDocs
+     *
+     * Bar.
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inheritdocs_when_preceded_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo.
+     *
+     * @inheritDocs
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inheritdocs_when_followed_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDocs
+     *
+     * Bar.
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inline_inheritdocs_inside_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo {@inheritDocs} Bar.
+     */
+    public function doFoo($foo) {}
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'property_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc
+     */
+    private $foo;
+}',
+            ],
+            'inline_property_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     * {@inheritdoc}
+     */
+    private $foo;
+}',
+            ],
+            'dont_remove_property_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'dont_remove_property_inline_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     * {@inheritdoc}
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'remove_property_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     *
+     */
+    private $foo;
+}',
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc
+     */
+    private $foo;
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_inline_property_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     *
+     */
+    private $foo;
+}',
+                '<?php
+class Foo {
+    /**
+     * {@inheritdoc}
+     */
+    private $foo;
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_property_inheritdoc_when_surrounded_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo.
+     *
+     * @inheritDoc
+     *
+     * Bar.
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_property_inheritdoc_when_preceded_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo.
+     *
+     * @inheritDoc
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_property_inheritdoc_when_followed_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc
+     *
+     * Bar.
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_property_inline_inheritdoc_inside_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo {@inheritDoc} Bar.
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'property_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDocs
+     */
+    private $foo;
+}',
+            ],
+            'inline_property_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     * {@inheritdocs}
+     */
+    private $foo;
+}',
+            ],
+            'dont_remove_property_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDocs
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'dont_remove_inline_property_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     * {@inheritdocs}
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'remove_property_property_inheritdoc' => [
+                '<?php
+class Foo {
+    /**
+     *
+     */
+    private $foo;
+}',
+                '<?php
+class Foo {
+    /**
+     * @inheritDocs
+     */
+    private $foo;
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_inline_property_inheritdocs' => [
+                '<?php
+class Foo {
+    /**
+     *
+     */
+    private $foo;
+}',
+                '<?php
+class Foo {
+    /**
+     * {@inheritdocs}
+     */
+    private $foo;
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_property_inheritdocs_when_surrounded_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo.
+     *
+     * @inheritDocs
+     *
+     * Bar.
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_property_inheritdocs_when_preceded_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo.
+     *
+     * @inheritDocs
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_property_inheritdocs_when_followed_by_text' => [
+                '<?php
+class Foo {
+    /**
+     * @inheritDocs
+     *
+     * Bar.
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inline_property_inheritdocs_inside_text' => [
+                '<?php
+class Foo {
+    /**
+     * Foo {@inheritDocs} Bar.
+     */
+    private $foo;
+}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'class_inheritdoc' => [
+                '<?php
+/**
+ * @inheritDoc
+ */
+class Foo {}',
+            ],
+            'dont_remove_class_inheritdoc' => [
+                '<?php
+/**
+ * @inheritDoc
+ */
+class Foo {}',
+                null,
+                ['remove_inheritdoc' => false],
+            ],
+            'remove_class_inheritdoc' => [
+                '<?php
+/**
+ *
+ */
+class Foo {}',
+                '<?php
+/**
+ * @inheritDoc
+ */
+class Foo {}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_interface_inheritdoc' => [
+                '<?php
+/**
+ *
+ */
+interface Foo {}',
+                '<?php
+/**
+ * @inheritDoc
+ */
+interface Foo {}',
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_class_inheritdoc_when_surrounded_by_text' => [
+                '<?php
+/**
+ * Foo.
+ *
+ * @inheritDoc
+ *
+ * Bar.
+ */
+class Foo {}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_class_inheritdoc_when_preceded_by_text' => [
+                '<?php
+/**
+ * Foo.
+ *
+ * @inheritDoc
+ */
+class Foo {}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_class_inheritdoc_when_followed_by_text' => [
+                '<?php
+/**
+ * @inheritDoc
+ *
+ * Bar.
+ */
+class Foo {}',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_inheritdoc_after_other_tag' => [
+                '<?php
+class Foo {
+    /**
+     * @param int $foo an integer
+     *
+     *
+     */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     * @param int $foo an integer
+     *
+     * @inheritDoc
+     */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_only_inheritdoc_line' => [
+                '<?php
+class Foo {
+    /**
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     *
+     *
+     *
+     *
+     *
+     *
+     * @inheritDoc
+     *
+     *
+     *
+     *
+     *
+     *
+     */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_single_line_inheritdoc' => [
+                '<?php
+class Foo {
+    /** */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /** @inheritDoc */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_inheritdoc_on_first_line' => [
+                '<?php
+class Foo {
+    /**
+     */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /** @inheritDoc
+     */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'remove_inheritdoc_on_last_line' => [
+                '<?php
+class Foo {
+    /**
+     * */
+    public function doFoo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     * @inheritDoc */
+    public function doFoo($foo) {}
+}',
+                ['remove_inheritdoc' => true],
+            ],
+            'dont_remove_inheritdoc_non_structural_element' => [
+                '<?php
+/**
+ * @inheritDoc
+ */
+$foo = 1;',
+                null,
+                ['remove_inheritdoc' => true],
+            ],
+            'property with unsupported type' => [
+                '<?php
+class Foo {
+    /**
+     * @var foo:bar
+     */
+    private $foo;
+}',
+            ],
+            'method with unsupported types' => [
+                '<?php
+class Foo {
+    /**
+     * @param foo:bar $foo
+     * @return foo:bar
+     */
+    public function foo($foo) {}
+}',
+            ],
         ];
     }
 
@@ -313,8 +1080,9 @@ class Foo {
      * @dataProvider provideFixPhp70Cases
      * @requires PHP 7.0
      */
-    public function testFixPhp70($expected, $input = null)
+    public function testFixPhp70($expected, $input = null, array $config = [])
     {
+        $this->fixer->configure($config);
         $this->doTest($expected, $input);
     }
 
@@ -446,6 +1214,31 @@ class Foo {
      */
     public function doFoo(int $bar, string $baz): bool {}
 }',
+            ],
+            'really long one' => [
+                '<?php
+                    /**
+                     * "Sponsored" by https://github.com/PrestaShop/PrestaShop/blob/1.6.1.24/tools/tcpdf/tcpdf.php (search for "Get page dimensions from format name")
+                     * @see
+                     * @param $number - it can be:
+                     * '.implode("\n                     * ", range(1, 1000)).'
+                     */
+                     function display($number) {}
+                ',
+            ],
+            'return with @inheritDoc in description' => [
+                '<?php
+                    /**
+                     */
+                    function foo(): bool {}
+                ',
+                '<?php
+                    /**
+                     * @return bool @inheritDoc
+                     */
+                    function foo(): bool {}
+                ',
+                ['remove_inheritdoc' => true],
             ],
         ];
     }
@@ -622,6 +1415,285 @@ class Foo {
      * @return array|null
      */
     public function doFoo(iterable $bar, ?int $baz): ?array {}
+}',
+            ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixPhp74Cases
+     * @requires PHP 7.4
+     */
+    public function testFixPhp74($expected, $input = null, array $config = [])
+    {
+        $this->fixer->configure($config);
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPhp74Cases()
+    {
+        return [
+            'some typed static public property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    static public Bar $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var Bar
+     */
+    static public Bar $bar;
+}',
+            ],
+            'some typed public static property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    public static Bar $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var Bar
+     */
+    public static Bar $bar;
+}',
+            ],
+            'some typed public property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    public Bar $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var Bar
+     */
+    public Bar $bar;
+}',
+            ],
+            'some typed public property with single line PHPDoc' => [
+                '<?php
+class Foo {
+    /**  */
+    public Bar $bar;
+}',
+                '<?php
+class Foo {
+    /** @var Bar */
+    public Bar $bar;
+}',
+            ],
+            'some typed public property with semi-single line PHPDoc' => [
+                '<?php
+class Foo {
+    /**
+     */
+    public Bar $bar;
+
+    /**
+     */
+    public Baz $baz;
+}',
+                '<?php
+class Foo {
+    /** @var Bar
+     */
+    public Bar $bar;
+
+    /**
+     * @var Baz */
+    public Baz $baz;
+}',
+            ],
+            'some typed protected property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    protected Bar $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var Bar
+     */
+    protected Bar $bar;
+}',
+            ],
+            'some typed private property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private Bar $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var Bar
+     */
+    private Bar $bar;
+}',
+            ],
+            'some typed nullable private property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private ?Bar $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var null|Bar
+     */
+    private ?Bar $bar;
+}',
+            ],
+            'some typed nullable property with name declared in phpdoc' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private ?Bar $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var null|Bar $bar
+     */
+    private ?Bar $bar;
+}',
+            ],
+            'some array property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private array $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var array
+     */
+    private array $bar;
+}',
+            ],
+            'some nullable array property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private ?array $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var array|null
+     */
+    private ?array $bar;
+}',
+            ],
+            'some object property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private object $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var object
+     */
+    private object $bar;
+}',
+            ],
+            'phpdoc does not match property typehint' => [
+                '<?php
+class Foo {
+    /**
+     * @var FooImplementation1|FooImplementation2
+     */
+    private FooInterface $bar;
+}',
+            ],
+            'allow_mixed=>false but with description' => [
+                '<?php
+class Foo {
+    /**
+     * @var mixed description
+     */
+    private $bar;
+}',
+                null,
+                ['allow_mixed' => false],
+            ],
+            'allow_mixed=>false but with description and var name' => [
+                '<?php
+class Foo {
+    /**
+     * @var mixed $bar description
+     */
+    private $bar;
+}',
+                null,
+                ['allow_mixed' => false],
+            ],
+            'allow_mixed=>true' => [
+                '<?php
+class Foo {
+    /**
+     * @var mixed
+     */
+    private $bar;
+}',
+                null,
+                ['allow_mixed' => true],
+            ],
+            'some fully qualified typed property' => [
+                '<?php
+class Foo {
+    /**
+     */
+    protected \Foo\Bar $bar;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var \Foo\Bar
+     */
+    protected \Foo\Bar $bar;
+}',
+            ],
+            'some fully qualified imported typed property' => [
+                '<?php
+namespace App;
+use Foo\Bar;
+class Foo {
+    /**
+     */
+    protected Bar $bar;
+}',
+                '<?php
+namespace App;
+use Foo\Bar;
+class Foo {
+    /**
+     * @var \Foo\Bar
+     */
+    protected Bar $bar;
 }',
             ],
         ];

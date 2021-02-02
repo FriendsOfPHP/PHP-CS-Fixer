@@ -26,7 +26,6 @@ final class FunctionToConstantFixerTest extends AbstractFixerTestCase
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $config
      *
      * @dataProvider provideTestCases
      */
@@ -227,18 +226,47 @@ get_called_class#1
                 null,
                 ['functions' => ['get_called_class']],
             ],
+            [
+                '<?php class Foo{ public function Bar(){ echo static::class  ; }}',
+                '<?php class Foo{ public function Bar(){ echo get_class( $This ); }}',
+                ['functions' => ['get_class_this']],
+            ],
+            [
+                '<?php class Foo{ public function Bar(){ echo static::class; get_class(1, 2); get_class($a); get_class($a, $b);}}',
+                '<?php class Foo{ public function Bar(){ echo get_class($this); get_class(1, 2); get_class($a); get_class($a, $b);}}',
+                ['functions' => ['get_class_this']],
+            ],
+            [
+                '<?php class Foo{ public function Bar(){ echo static::class /* 0 */  /* 1 */ ;}}',
+                '<?php class Foo{ public function Bar(){ echo \get_class( /* 0 */ $this /* 1 */ );}}',
+                ['functions' => ['get_class_this']],
+            ],
+            [
+                '<?php class Foo{ public function Bar(){ echo static::class; echo __CLASS__; }}',
+                '<?php class Foo{ public function Bar(){ echo \get_class((($this))); echo get_class(); }}',
+                ['functions' => ['get_class_this', 'get_class']],
+            ],
+            [
+                '<?php
+                    class Foo{ public function Bar(){ echo $reflection = new \ReflectionClass(get_class($this->extension)); }}
+                    class Foo{ public function Bar(){ echo $reflection = new \ReflectionClass(get_class($this() )); }}
+                ',
+                null,
+                ['functions' => ['get_class_this']],
+            ],
+            [
+                "<?php namespace Foo;\nfunction &PHPversion(){}",
+            ],
         ];
     }
 
     /**
-     * @param array $config
-     *
      * @dataProvider provideInvalidConfigurationKeysCases
      */
     public function testInvalidConfigurationKeys(array $config)
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('#^\[function_to_constant\] Invalid configuration: The option "functions" with value array is invalid\.$#');
+        $this->expectExceptionMessageMatches('#^\[function_to_constant\] Invalid configuration: The option "functions" with value array is invalid\.$#');
 
         $this->fixer->configure($config);
     }
@@ -255,29 +283,8 @@ get_called_class#1
     public function testInvalidConfigurationValue()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('#^\[function_to_constant\] Invalid configuration: The option "0" does not exist\. Defined options are: "functions"\.$#');
+        $this->expectExceptionMessageMatches('#^\[function_to_constant\] Invalid configuration: The option "0" does not exist\. Defined options are: "functions"\.$#');
 
         $this->fixer->configure(['pi123']);
-    }
-
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @requires PHP 7.0
-     * @dataProvider provideFix70Cases
-     */
-    public function testFix70($expected, $input = null)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix70Cases()
-    {
-        return [
-            [
-                '<?php function &PHPversion(){} ?>',
-            ],
-        ];
     }
 }

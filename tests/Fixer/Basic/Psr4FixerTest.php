@@ -19,7 +19,6 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
  *
  * @internal
  *
- * @covers \PhpCsFixer\AbstractPsrAutoloadingFixer
  * @covers \PhpCsFixer\Fixer\Basic\Psr4Fixer
  */
 final class Psr4FixerTest extends AbstractFixerTestCase
@@ -28,8 +27,9 @@ final class Psr4FixerTest extends AbstractFixerTestCase
     {
         $fileProphecy = $this->prophesize();
         $fileProphecy->willExtend(\SplFileInfo::class);
-        $fileProphecy->getBasename()->willReturn('Bar.php');
-        $fileProphecy->getRealPath()->willReturn(__DIR__.'/Psr4/Foo/Bar.php');
+        $fileProphecy->getBasename('.php')->willReturn('Bar');
+        $fileProphecy->getExtension()->willReturn('php');
+        $fileProphecy->getRealPath()->willReturn(__DIR__.\DIRECTORY_SEPARATOR.'Psr4'.\DIRECTORY_SEPARATOR.'Foo'.\DIRECTORY_SEPARATOR.'Bar.php');
         $file = $fileProphecy->reveal();
 
         $expected = <<<'EOF'

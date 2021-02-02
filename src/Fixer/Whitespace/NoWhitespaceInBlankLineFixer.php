@@ -38,10 +38,11 @@ final class NoWhitespaceInBlankLineFixer extends AbstractFixer implements Whites
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after CombineConsecutiveIssetsFixer, CombineConsecutiveUnsetsFixer, FunctionToConstantFixer, NoEmptyCommentFixer, NoEmptyPhpdocFixer, NoEmptyStatementFixer, NoUselessElseFixer, NoUselessReturnFixer.
      */
     public function getPriority()
     {
-        // should be run after the NoUselessReturnFixer, NoEmptyPhpdocFixer and NoUselessElseFixer.
         return -19;
     }
 
@@ -67,8 +68,7 @@ final class NoWhitespaceInBlankLineFixer extends AbstractFixer implements Whites
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      */
     private function fixWhitespaceToken(Tokens $tokens, $index)
     {

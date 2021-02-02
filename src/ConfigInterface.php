@@ -108,6 +108,8 @@ interface ConfigInterface
      * Name of custom fixer should follow `VendorName/rule_name` convention.
      *
      * @param FixerInterface[]|iterable|\Traversable $fixers
+     *
+     * @return self
      */
     public function registerCustomFixers($fixers);
 
@@ -180,8 +182,6 @@ interface ConfigInterface
      * Value for set must be bool (turn it on or off).
      * Value for fixer may be bool (turn it on or off) or array of configuration
      * (turn it on and contains configuration for FixerInterface::configure method).
-     *
-     * @param array $rules
      *
      * @return self
      */

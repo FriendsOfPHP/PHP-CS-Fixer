@@ -45,7 +45,7 @@ final class Utils
     }
 
     /**
-     * Converts a camel cased string to an snake cased string.
+     * Converts a camel cased string to a snake cased string.
      *
      * @param string $string
      *
@@ -53,13 +53,7 @@ final class Utils
      */
     public static function camelCaseToUnderscore($string)
     {
-        return Preg::replaceCallback(
-            '/(^|[a-z0-9])([A-Z])/',
-            static function (array $matches) {
-                return strtolower('' !== $matches[1] ? $matches[1].'_'.$matches[2] : $matches[2]);
-            },
-            $string
-        );
+        return strtolower(Preg::replace('/(?<!^)((?=[A-Z][^A-Z])|(?<![A-Z])(?=[A-Z]))/', '_', $string));
     }
 
     /**
@@ -86,8 +80,6 @@ final class Utils
      * Calculate the trailing whitespace.
      *
      * What we're doing here is grabbing everything after the final newline.
-     *
-     * @param Token $token
      *
      * @return string
      */
@@ -175,7 +167,7 @@ final class Utils
     public static function naturalLanguageJoinWithBackticks(array $names)
     {
         if (empty($names)) {
-            throw new \InvalidArgumentException('Array of names cannot be empty');
+            throw new \InvalidArgumentException('Array of names cannot be empty.');
         }
 
         $names = array_map(static function ($name) {

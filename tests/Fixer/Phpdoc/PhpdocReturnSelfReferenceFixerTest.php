@@ -70,9 +70,8 @@ final class PhpdocReturnSelfReferenceFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected      PHP code
-     * @param null|string $input         PHP code
-     * @param array       $configuration
+     * @param string      $expected PHP code
+     * @param null|string $input    PHP code
      *
      * @group legacy
      * @dataProvider provideTestCases
@@ -85,9 +84,8 @@ final class PhpdocReturnSelfReferenceFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected      PHP code
-     * @param null|string $input         PHP code
-     * @param array       $configuration
+     * @param string      $expected PHP code
+     * @param null|string $input    PHP code
      *
      * @dataProvider provideTestCases
      */
@@ -158,11 +156,6 @@ class F
         $this->doTest($expected, $input);
     }
 
-    /**
-     * Expected after fixing, return type to fix.
-     *
-     * @return array<array<string, string>
-     */
     public function provideGeneratedFixCases()
     {
         return [
@@ -176,7 +169,6 @@ class F
     }
 
     /**
-     * @param array  $configuration
      * @param string $message
      *
      * @dataProvider provideInvalidConfigurationCases
@@ -184,7 +176,7 @@ class F
     public function testInvalidConfiguration(array $configuration, $message)
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp(sprintf('/^\[phpdoc_return_self_reference\] %s$/', preg_quote($message, '/')));
+        $this->expectExceptionMessageMatches(sprintf('/^\[phpdoc_return_self_reference\] %s$/', preg_quote($message, '/')));
 
         $this->fixer->configure($configuration);
     }

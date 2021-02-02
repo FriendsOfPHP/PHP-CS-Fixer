@@ -66,8 +66,7 @@ final class AliasedFixerOptionTest extends TestCase
     }
 
     /**
-     * @param bool               $hasDefault
-     * @param AliasedFixerOption $input
+     * @param bool $hasDefault
      *
      * @dataProvider provideHasDefaultCases
      */
@@ -163,9 +162,9 @@ final class AliasedFixerOptionTest extends TestCase
 
     public function testGetAllowedValuesClosure()
     {
-        $option = new AliasedFixerOption(new FixerOption('foo', 'Bar.', true, null, null, [function () {}]), 'baz');
+        $option = new AliasedFixerOption(new FixerOption('foo', 'Bar.', true, null, null, [static function () {}]), 'baz');
         $allowedTypes = $option->getAllowedValues();
-        static::assertInternalType('array', $allowedTypes);
+        static::assertIsArray($allowedTypes);
         static::assertCount(1, $allowedTypes);
         static::assertArrayHasKey(0, $allowedTypes);
         static::assertInstanceOf(\Closure::class, $allowedTypes[0]);
@@ -176,7 +175,7 @@ final class AliasedFixerOptionTest extends TestCase
         $option = new AliasedFixerOption(new FixerOption('foo', 'Bar.'), 'baz');
         static::assertNull($option->getNormalizer());
 
-        $option = new AliasedFixerOption(new FixerOption('foo', 'Bar.', true, null, null, null, function () {}), 'baz');
+        $option = new AliasedFixerOption(new FixerOption('foo', 'Bar.', true, null, null, null, static function () {}), 'baz');
         static::assertInstanceOf(\Closure::class, $option->getNormalizer());
     }
 

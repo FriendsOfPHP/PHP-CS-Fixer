@@ -46,6 +46,16 @@ EOF
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after EscapeImplicitBackslashesFixer.
+     */
+    public function getPriority()
+    {
+        return 0;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isCandidate(Tokens $tokens)
     {
@@ -69,8 +79,8 @@ EOF
             }
 
             if (
-                !$tokens[$index + 1]->isGivenKind(T_ENCAPSED_AND_WHITESPACE) ||
-                !$tokens[$index + 2]->isGivenKind(T_END_HEREDOC)
+                !$tokens[$index + 1]->isGivenKind(T_ENCAPSED_AND_WHITESPACE)
+                || !$tokens[$index + 2]->isGivenKind(T_END_HEREDOC)
             ) {
                 continue;
             }
@@ -93,15 +103,13 @@ EOF
     /**
      * Transforms the heredoc start token to nowdoc notation.
      *
-     * @param Token $token
-     *
      * @return Token
      */
     private function convertToNowdoc(Token $token)
     {
         return new Token([
             $token->getId(),
-            Preg::replace('/^([Bb]?<<<)([ \t]*)"?([^\s"]+)"?/', '$1$2\'$3\'', $token->getContent()),
+            Preg::replace('/^([Bb]?<<<)(\h*)"?([^\s"]+)"?/', '$1$2\'$3\'', $token->getContent()),
         ]);
     }
 }

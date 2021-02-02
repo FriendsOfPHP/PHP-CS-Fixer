@@ -12,11 +12,10 @@
 
 namespace PhpCsFixer\Tests\AutoReview;
 
-if (!class_exists(\PHPUnit\Runner\Version::class)) {
-    class_alias('PHPUnit_Runner_Version', \PHPUnit\Runner\Version::class);
-}
-
 use PhpCsFixer\DocBlock\DocBlock;
+use PhpCsFixer\Event\Event;
+use PhpCsFixer\FixerFactory;
+use PhpCsFixer\Preg;
 use PhpCsFixer\Tests\TestCase;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
@@ -43,7 +42,9 @@ final class ProjectCodeTest extends TestCase
      */
     private static $classesWithoutTests = [
         \PhpCsFixer\Console\SelfUpdate\GithubClient::class,
+        \PhpCsFixer\Console\Command\DocumentationCommand::class,
         \PhpCsFixer\Doctrine\Annotation\Tokens::class,
+        \PhpCsFixer\Documentation\DocumentationGenerator::class,
         \PhpCsFixer\Fixer\Operator\AlignDoubleArrowFixerHelper::class,
         \PhpCsFixer\Fixer\Operator\AlignEqualsFixerHelper::class,
         \PhpCsFixer\Fixer\Whitespace\NoExtraConsecutiveBlankLinesFixer::class,
@@ -68,7 +69,7 @@ final class ProjectCodeTest extends TestCase
      */
     public function testThatSrcClassHaveTestClass($className)
     {
-        $testClassName = str_replace('PhpCsFixer', 'PhpCsFixer\\Tests', $className).'Test';
+        $testClassName = 'PhpCsFixer\\Tests'.substr($className, 10).'Test';
 
         if (\in_array($className, self::$classesWithoutTests, true)) {
             static::assertFalse(class_exists($testClassName), sprintf('Class "%s" already has tests, so it should be removed from "%s::$classesWithoutTests".', $className, __CLASS__));
@@ -113,6 +114,7 @@ final class ProjectCodeTest extends TestCase
         // @TODO: 3.0 should be removed
         $exceptionMethodsPerClass = [
             \PhpCsFixer\Config::class => ['create'],
+            \PhpCsFixer\Event\Event::class => ['stopPropagation'],
             \PhpCsFixer\Fixer\FunctionNotation\MethodArgumentSpaceFixer::class => ['fixSpace'],
         ];
 
@@ -254,13 +256,13 @@ final class ProjectCodeTest extends TestCase
             }
         );
 
-        if ($publicMethods === []) {
+        if ([] === $publicMethods) {
             $this->addToAssertionCount(1); // no methods to test, all good!
         }
 
         foreach ($publicMethods as $method) {
-            static::assertRegExp(
-                '/^(test|provide|setUpBeforeClass$|tearDownAfterClass$)/',
+            static::assertMatchesRegularExpression(
+                '/^(test|expect|provide|doSetUpBeforeClass$|doTearDownAfterClass$)/',
                 $method->getName(),
                 sprintf('Public method "%s::%s" is not properly named.', $reflectionClass->getName(), $method->getName())
             );
@@ -274,18 +276,95 @@ final class ProjectCodeTest extends TestCase
      */
     public function testThatDataProvidersAreCorrectlyNamed($testClassName)
     {
-        $dataProviderMethodNames = $this->getDataProviderMethodNames($testClassName);
+        $usedDataProviderMethodNames = $this->getUsedDataProviderMethodNames($testClassName);
 
-        if (empty($dataProviderMethodNames)) {
+        if (empty($usedDataProviderMethodNames)) {
             $this->addToAssertionCount(1); // no data providers to test, all good!
+
+            return;
         }
 
-        foreach ($dataProviderMethodNames as $dataProviderMethodName) {
-            static::assertRegExp('/^provide[A-Z]\S+Cases$/', $dataProviderMethodName, sprintf(
+        foreach ($usedDataProviderMethodNames as $dataProviderMethodName) {
+            static::assertMatchesRegularExpression('/^provide[A-Z]\S+Cases$/', $dataProviderMethodName, sprintf(
                 'Data provider in "%s" with name "%s" is not correctly named.',
                 $testClassName,
                 $dataProviderMethodName
             ));
+        }
+    }
+
+    /**
+     * @dataProvider provideTestClassCases
+     *
+     * @param string $testClassName
+     */
+    public function testThatDataProvidersAreUsed($testClassName)
+    {
+        $reflectionClass = new \ReflectionClass($testClassName);
+
+        $definedDataProviders = array_filter(
+            $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC),
+            static function (\ReflectionMethod $reflectionMethod) use ($reflectionClass) {
+                return $reflectionMethod->getDeclaringClass()->getName() === $reflectionClass->getName()
+                    && 'provide' === substr($reflectionMethod->getName(), 0, 7);
+            }
+        );
+
+        if ([] === $definedDataProviders) {
+            $this->addToAssertionCount(1); // no methods to test, all good!
+        }
+
+        $usedDataProviderMethodNames = $this->getUsedDataProviderMethodNames($testClassName);
+
+        foreach ($definedDataProviders as $definedDataProvider) {
+            static::assertContains(
+                $definedDataProvider->getName(),
+                $usedDataProviderMethodNames,
+                sprintf('Data provider in "%s" with name "%s" is not used.', $definedDataProvider->getDeclaringClass()->getName(), $definedDataProvider->getName())
+            );
+        }
+    }
+
+    /**
+     * @dataProvider provideTestClassCases
+     *
+     * @param string $testClassName
+     */
+    public function testThatTestClassCoversAreCorrect($testClassName)
+    {
+        $reflectionClass = new \ReflectionClass($testClassName);
+
+        if ($reflectionClass->isAbstract() || $reflectionClass->isInterface()) {
+            self::addToAssertionCount(1);
+
+            return;
+        }
+
+        $doc = $reflectionClass->getDocComment();
+        static::assertNotFalse($doc);
+
+        if (1 === Preg::match('/@coversNothing/', $doc, $matches)) {
+            self::addToAssertionCount(1);
+
+            return;
+        }
+
+        $covers = Preg::match('/@covers (\S*)/', $doc, $matches);
+        static::assertNotFalse($covers, sprintf('Missing @covers in PHPDoc of test class "%s".', $testClassName));
+
+        array_shift($matches);
+        $class = '\\'.str_replace('PhpCsFixer\Tests\\', 'PhpCsFixer\\', substr($testClassName, 0, -4));
+        $parentClass = (new \ReflectionClass($class))->getParentClass();
+        $parentClassName = false === $parentClass ? null : '\\'.$parentClass->getName();
+
+        foreach ($matches as $match) {
+            if ($match === $class || $parentClassName === $match) {
+                $this->addToAssertionCount(1);
+
+                continue;
+            }
+
+            static::fail(sprintf('Unexpected @covers "%s" for "%s".', $match, $testClassName));
         }
     }
 
@@ -321,6 +400,128 @@ final class ProjectCodeTest extends TestCase
         static::assertNotContains('preg_split', $strings, $message);
     }
 
+    /**
+     * @dataProvider provideTestClassCases
+     *
+     * @param string $testClassName
+     */
+    public function testExpectedInputOrder($testClassName)
+    {
+        $reflectionClass = new \ReflectionClass($testClassName);
+
+        $publicMethods = array_filter(
+            $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC),
+            static function (\ReflectionMethod $reflectionMethod) use ($reflectionClass) {
+                return $reflectionMethod->getDeclaringClass()->getName() === $reflectionClass->getName();
+            }
+        );
+
+        if ([] === $publicMethods) {
+            $this->addToAssertionCount(1); // no methods to test, all good!
+
+            return;
+        }
+
+        /** @var \ReflectionMethod $method */
+        foreach ($publicMethods as $method) {
+            $parameters = $method->getParameters();
+
+            if (\count($parameters) < 2) {
+                $this->addToAssertionCount(1); // not enough parameters to test, all good!
+
+                continue;
+            }
+
+            $expected = [
+                'expected' => false,
+                'input' => false,
+            ];
+
+            for ($i = \count($parameters) - 1; $i >= 0; --$i) {
+                $name = $parameters[$i]->getName();
+
+                if (isset($expected[$name])) {
+                    $expected[$name] = $i;
+                }
+            }
+
+            $expected = array_filter($expected);
+
+            if (\count($expected) < 2) {
+                $this->addToAssertionCount(1); // not enough parameters to test, all good!
+
+                continue;
+            }
+
+            static::assertLessThan(
+                $expected['input'],
+                $expected['expected'],
+                sprintf('Public method "%s::%s" has parameter \'input\' before \'expected\'.', $reflectionClass->getName(), $method->getName())
+            );
+        }
+    }
+
+    /**
+     * @dataProvider provideSrcClassCases
+     * @dataProvider provideTestClassCases
+     *
+     * @param string $className
+     */
+    public function testAllCodeContainSingleClassy($className)
+    {
+        $headerTypes = [
+            T_ABSTRACT,
+            T_AS,
+            T_COMMENT,
+            T_DECLARE,
+            T_DOC_COMMENT,
+            T_FINAL,
+            T_LNUMBER,
+            T_NAMESPACE,
+            T_NS_SEPARATOR,
+            T_OPEN_TAG,
+            T_STRING,
+            T_USE,
+            T_WHITESPACE,
+        ];
+
+        $rc = new \ReflectionClass($className);
+        $file = $rc->getFileName();
+        $tokens = Tokens::fromCode(file_get_contents($file));
+        $isEvent = Event::class === $rc->getName(); // remove this exception when no longer needed
+        $classyIndex = null;
+
+        static::assertTrue($tokens->isAnyTokenKindsFound(Token::getClassyTokenKinds()), sprintf('File "%s" should contains a classy.', $file));
+
+        foreach ($tokens as $index => $token) {
+            if ($token->isClassy()) {
+                $classyIndex = $index;
+
+                break;
+            }
+
+            if (!$token->isGivenKind($headerTypes) && !$token->equalsAny([';', '=', '(', ')']) && !$isEvent) {
+                static::fail(sprintf('File "%s" should only contains single classy, found "%s" @ %d.', $file, $token->toJson(), $index));
+            }
+        }
+
+        static::assertNotNull($classyIndex, sprintf('File "%s" does not contain a classy.', $file));
+
+        $nextTokenOfKind = $tokens->getNextTokenOfKind($classyIndex, ['{']);
+
+        if (!\is_int($nextTokenOfKind)) {
+            throw new \UnexpectedValueException('Classy without {} - braces.');
+        }
+
+        $classyEndIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $nextTokenOfKind);
+
+        if ($isEvent) {
+            static::assertNotNull($tokens->getNextNonWhitespace($classyEndIndex), sprintf('File "%s" should not only contains a single classy.', $file));
+        } else {
+            static::assertNull($tokens->getNextNonWhitespace($classyEndIndex), sprintf('File "%s" should only contains a single classy.', $file));
+        }
+    }
+
     public function provideSrcClassCases()
     {
         return array_map(
@@ -347,7 +548,6 @@ final class ProjectCodeTest extends TestCase
                 if (
                     $rc->isInterface()
                     || ($doc && \count($doc->getAnnotationsOfType('internal')))
-                    || 0 === \count($rc->getInterfaces())
                     || \in_array($className, [
                         \PhpCsFixer\Finder::class,
                         \PhpCsFixer\Test\AbstractFixerTestCase::class,
@@ -358,6 +558,21 @@ final class ProjectCodeTest extends TestCase
                     ], true)
                 ) {
                     return false;
+                }
+
+                $interfaces = $rc->getInterfaces();
+                $interfacesCount = \count($interfaces);
+
+                if (0 === $interfacesCount) {
+                    return false;
+                }
+
+                if (1 === $interfacesCount) {
+                    $interface = reset($interfaces);
+
+                    if ('Stringable' === $interface->getName()) {
+                        return false;
+                    }
                 }
 
                 return true;
@@ -399,13 +614,48 @@ final class ProjectCodeTest extends TestCase
             array_filter(
                 $this->getSrcClasses(),
                 static function ($className) {
-                    return 'PhpCsFixer\\Preg' !== $className;
+                    return Preg::class !== $className;
                 }
             )
         );
     }
 
-    private function getDataProviderMethodNames($testClassName)
+    /**
+     * @param string $className
+     *
+     * @dataProvider providePhpUnitFixerExtendsAbstractPhpUnitFixerCases
+     */
+    public function testPhpUnitFixerExtendsAbstractPhpUnitFixer($className)
+    {
+        $reflection = new \ReflectionClass($className);
+
+        static::assertTrue($reflection->isSubclassOf(\PhpCsFixer\Fixer\AbstractPhpUnitFixer::class));
+    }
+
+    public function providePhpUnitFixerExtendsAbstractPhpUnitFixerCases()
+    {
+        $factory = new FixerFactory();
+        $factory->registerBuiltInFixers();
+
+        foreach ($factory->getFixers() as $fixer) {
+            if (0 !== strpos($fixer->getName(), 'php_unit_')) {
+                continue;
+            }
+
+            // this one fixes usage of PHPUnit classes
+            if ($fixer instanceof \PhpCsFixer\Fixer\PhpUnit\PhpUnitNamespacedFixer) {
+                continue;
+            }
+
+            if ($fixer instanceof \PhpCsFixer\AbstractProxyFixer) {
+                continue;
+            }
+
+            yield [\get_class($fixer)];
+        }
+    }
+
+    private function getUsedDataProviderMethodNames($testClassName)
     {
         $dataProviderMethodNames = [];
         $tokens = Tokens::fromCode(file_get_contents(
@@ -502,8 +752,6 @@ final class ProjectCodeTest extends TestCase
     }
 
     /**
-     * @param \ReflectionClass $rc
-     *
      * @return string[]
      */
     private function getPublicMethodNames(\ReflectionClass $rc)

@@ -38,10 +38,12 @@ final class NoLeadingImportSlashFixer extends AbstractFixer
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before OrderedImportsFixer.
+     * Must run after NoUnusedImportsFixer, SingleImportPerStatementFixer.
      */
     public function getPriority()
     {
-        // should be run after the SingleImportPerStatementFixer (for fix separated use statements as well) and NoUnusedImportsFixer (just for save performance)
         return -20;
     }
 
@@ -77,8 +79,7 @@ final class NoLeadingImportSlashFixer extends AbstractFixer
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      */
     private function removeLeadingImportSlash(Tokens $tokens, $index)
     {

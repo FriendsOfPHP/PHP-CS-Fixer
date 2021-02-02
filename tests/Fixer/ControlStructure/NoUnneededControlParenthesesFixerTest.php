@@ -27,9 +27,9 @@ final class NoUnneededControlParenthesesFixerTest extends AbstractFixerTestCase
 {
     private static $defaultStatements;
 
-    public static function setUpBeforeClass()
+    public static function doSetUpBeforeClass()
     {
-        parent::setUpBeforeClass();
+        parent::doSetUpBeforeClass();
 
         $fixer = new NoUnneededControlParenthesesFixer();
         foreach ($fixer->getConfigurationDefinition()->getOptions() as $option) {
@@ -473,6 +473,71 @@ final class NoUnneededControlParenthesesFixerTest extends AbstractFixerTestCase
             [
                 '<?php
                 $var = clone ($obj1->getSubject() ?? $obj2);
+                ',
+            ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixYieldFromCases
+     * @requires PHP 7.0
+     */
+    public function testFixYieldFrom($expected, $input = null)
+    {
+        $this->fixer->configure(['statements' => ['yield_from']]);
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixYieldFromCases()
+    {
+        return [
+            [
+                '<?php
+                function foo1() { yield from "prod"; }
+                ',
+            ],
+            [
+                '<?php
+                function foo2() { yield from (1 + 2) * 10; }
+
+                function foo3() { $a = (yield($x)); }
+                ',
+            ],
+            [
+                '<?php
+                function foo4() { yield from (1 + 2) * 10; }
+                ',
+                '<?php
+                function foo4() { yield from ((1 + 2) * 10); }
+                ',
+            ],
+            [
+                '<?php
+                function foo5() { yield from "prod"; }
+                function foo6() { $a = (yield($x)); }
+                ',
+                '<?php
+                function foo5() { yield from ("prod"); }
+                function foo6() { $a = (yield($x)); }
+                ',
+            ],
+            [
+                '<?php
+                function foo7() { yield from 2; }
+                ',
+                '<?php
+                function foo7() { yield from(2); }
+                ',
+            ],
+            [
+                '<?php
+                function foo8() { $a = (yield from $x); }
+                ',
+                '<?php
+                function foo8() { $a = (yield from($x)); }
                 ',
             ],
         ];

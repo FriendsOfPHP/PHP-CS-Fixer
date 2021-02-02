@@ -29,14 +29,6 @@ final class NullableTypeTransformer extends AbstractTransformer
     /**
      * {@inheritdoc}
      */
-    public function getCustomTokens()
-    {
-        return [CT::T_NULLABLE_TYPE];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getPriority()
     {
         // needs to run after TypeColonTransformer
@@ -63,8 +55,28 @@ final class NullableTypeTransformer extends AbstractTransformer
         $prevIndex = $tokens->getPrevMeaningfulToken($index);
         $prevToken = $tokens[$prevIndex];
 
-        if ($prevToken->equalsAny(['(', ',', [CT::T_TYPE_COLON]])) {
+        if ($prevToken->equalsAny([
+            '(',
+            ',',
+            [CT::T_TYPE_COLON],
+            [CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PUBLIC],
+            [CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PROTECTED],
+            [CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PRIVATE],
+            [T_PRIVATE],
+            [T_PROTECTED],
+            [T_PUBLIC],
+            [T_VAR],
+            [T_STATIC],
+        ])) {
             $tokens[$index] = new Token([CT::T_NULLABLE_TYPE, '?']);
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getDeprecatedCustomTokens()
+    {
+        return [CT::T_NULLABLE_TYPE];
     }
 }

@@ -63,19 +63,6 @@ final class CacheTest extends TestCase
         static::assertNull($cache->get($file));
     }
 
-    public function testSetThrowsInvalidArgumentExceptionIfValueIsNotAnInteger()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        $signature = $this->getSignatureDouble();
-
-        $cache = new Cache($signature);
-
-        $file = 'test.php';
-
-        $cache->set($file, null);
-    }
-
     public function testCanSetAndGetValue()
     {
         $signature = $this->getSignatureDouble();
@@ -117,8 +104,6 @@ final class CacheTest extends TestCase
 
     /**
      * @dataProvider provideMissingDataCases
-     *
-     * @param array $data
      */
     public function testFromJsonThrowsInvalidArgumentExceptionIfJsonIsMissingKey(array $data)
     {

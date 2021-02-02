@@ -34,7 +34,7 @@ final class VoidReturnFixer extends AbstractFixer
     public function getDefinition()
     {
         return new FixerDefinition(
-            'Add void return type to functions with missing or empty return statements, but priority is given to `@return` annotations. Requires PHP >= 7.1.',
+            'Add `void` return type to functions with missing or empty return statements, but priority is given to `@return` annotations. Requires PHP >= 7.1.',
             [
                 new VersionSpecificCodeSample(
                     "<?php\nfunction foo(\$a) {};\n",
@@ -48,11 +48,13 @@ final class VoidReturnFixer extends AbstractFixer
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before PhpdocNoEmptyReturnFixer, ReturnTypeDeclarationFixer.
+     * Must run after NoSuperfluousPhpdocTagsFixer, SimplifiedNullReturnFixer.
      */
     public function getPriority()
     {
-        // must run before ReturnTypeDeclarationFixer and PhpdocNoEmptyReturnFixer
-        return 15;
+        return 5;
     }
 
     /**
@@ -77,7 +79,7 @@ final class VoidReturnFixer extends AbstractFixer
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
         // These cause syntax errors.
-        static $blacklistFuncNames = [
+        static $excludeFuncNames = [
             [T_STRING, '__construct'],
             [T_STRING, '__destruct'],
             [T_STRING, '__clone'],
@@ -89,7 +91,7 @@ final class VoidReturnFixer extends AbstractFixer
             }
 
             $funcName = $tokens->getNextMeaningfulToken($index);
-            if ($tokens[$funcName]->equalsAny($blacklistFuncNames, false)) {
+            if ($tokens[$funcName]->equalsAny($excludeFuncNames, false)) {
                 continue;
             }
 
@@ -123,8 +125,7 @@ final class VoidReturnFixer extends AbstractFixer
     /**
      * Determine whether there is a non-void return annotation in the function's PHPDoc comment.
      *
-     * @param Tokens $tokens
-     * @param int    $index  The index of the function token
+     * @param int $index The index of the function token
      *
      * @return bool
      */
@@ -142,8 +143,7 @@ final class VoidReturnFixer extends AbstractFixer
     /**
      * Determine whether there is a void return annotation in the function's PHPDoc comment.
      *
-     * @param Tokens $tokens
-     * @param int    $index  The index of the function token
+     * @param int $index The index of the function token
      *
      * @return bool
      */
@@ -161,8 +161,7 @@ final class VoidReturnFixer extends AbstractFixer
     /**
      * Determine whether the function already has a return type hint.
      *
-     * @param Tokens $tokens
-     * @param int    $index  The index of the end of the function definition line, EG at { or ;
+     * @param int $index The index of the end of the function definition line, EG at { or ;
      *
      * @return bool
      */
@@ -177,9 +176,8 @@ final class VoidReturnFixer extends AbstractFixer
     /**
      * Determine whether the function has a void return.
      *
-     * @param Tokens $tokens
-     * @param int    $startIndex Start of function body
-     * @param int    $endIndex   End of function body
+     * @param int $startIndex Start of function body
+     * @param int $endIndex   End of function body
      *
      * @return bool
      */
@@ -190,9 +188,9 @@ final class VoidReturnFixer extends AbstractFixer
         for ($i = $startIndex; $i < $endIndex; ++$i) {
             if (
                 // skip anonymous classes
-                ($tokens[$i]->isGivenKind(T_CLASS) && $tokensAnalyzer->isAnonymousClass($i)) ||
+                ($tokens[$i]->isGivenKind(T_CLASS) && $tokensAnalyzer->isAnonymousClass($i))
                  // skip lambda functions
-                ($tokens[$i]->isGivenKind(T_FUNCTION) && $tokensAnalyzer->isLambda($i))
+                || ($tokens[$i]->isGivenKind(T_FUNCTION) && $tokensAnalyzer->isLambda($i))
             ) {
                 $i = $tokens->getNextTokenOfKind($i, ['{']);
                 $i = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $i);
@@ -218,8 +216,7 @@ final class VoidReturnFixer extends AbstractFixer
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $index  The index of the end of the function definition line, EG at { or ;
+     * @param int $index The index of the end of the function definition line, EG at { or ;
      */
     private function fixFunctionDefinition(Tokens $tokens, $index)
     {
@@ -234,8 +231,7 @@ final class VoidReturnFixer extends AbstractFixer
     /**
      * Find all the return annotations in the function's PHPDoc comment.
      *
-     * @param Tokens $tokens
-     * @param int    $index  The index of the function token
+     * @param int $index The index of the function token
      *
      * @return Annotation[]
      */

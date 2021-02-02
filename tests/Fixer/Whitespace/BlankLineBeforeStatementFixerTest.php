@@ -162,6 +162,15 @@ while (true) {
     }
 }',
             ],
+            [
+                '<?php
+while (true) {
+    if ($foo === $bar) {
+        /** X */
+        break 1;
+    }
+}',
+            ],
         ];
     }
 
@@ -433,6 +442,9 @@ $baz = "789";
     }
 
     /**
+     * @group legacy
+     * @expectedDeprecation Option "die" is deprecated, use "exit" instead.
+     *
      * @dataProvider provideFixWithDieCases
      *
      * @param string      $expected
@@ -703,6 +715,44 @@ if ($foo === $bar) {
     }
 
     /**
+     * @return array
+     */
+    public function provideFixWithIfCases()
+    {
+        return [
+            [
+                '<?php if (true) {
+    echo $bar;
+}',
+            ],
+            [
+                '<?php
+if (true) {
+    echo $bar;
+}',
+            ],
+            [
+                '<?php
+$foo = $bar;
+
+if (true) {
+    echo $bar;
+}',
+                '<?php
+$foo = $bar;
+if (true) {
+    echo $bar;
+}',
+            ],
+            [
+                '<?php
+// foo
+if ($foo) { }',
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider provideFixWithForEachCases
      *
      * @param string      $expected
@@ -730,39 +780,6 @@ if ($foo === $bar) {
                     echo 1;
                     foreach($a as $b){break;}
                 ',
-            ],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public function provideFixWithIfCases()
-    {
-        return [
-            [
-                '<?php
-if (true) {
-    echo $bar;
-}',
-            ],
-            [
-                '<?php
-$foo = $bar;
-
-if (true) {
-    echo $bar;
-}',
-                '<?php
-$foo = $bar;
-if (true) {
-    echo $bar;
-}',
-            ],
-            [
-                '<?php
-// foo
-if ($foo) { }',
             ],
         ];
     }
@@ -937,6 +954,20 @@ require_once "foo.php";',
     {
         return [
             [
+                '<?php
+if ($a) { /* 1 */ /* 2 */ /* 3 */ // something about $a
+    return $b;
+}
+',
+            ],
+            [
+                '<?php
+if ($a) { // something about $a
+    return $b;
+}
+',
+            ],
+            [
                 '
 $a = $a;
 return $a;',
@@ -1018,7 +1049,7 @@ elseif (false)
             ],
             [
                 '<?php
-throw new Exception("return true;");',
+throw new Exception("return true; //.");',
             ],
             [
                 '<?php
@@ -1035,6 +1066,17 @@ function foo()
     // comment
 
     return "bar";
+}',
+            ],
+            [
+                '<?php
+
+function foo()
+{
+    switch ($foo) {
+        case 2: // comment
+            return 1;
+    }
 }',
             ],
         ];
@@ -1144,7 +1186,7 @@ switch ($foo) {
             [
                 '<?php
 if (false) {
-    throw new \Exception("Something unexpected happened");
+    throw new \Exception("Something unexpected happened.");
 }',
             ],
             [
@@ -1152,12 +1194,12 @@ if (false) {
 if (false) {
     $log->error("No");
 
-    throw new \Exception("Something unexpected happened");
+    throw new \Exception("Something unexpected happened.");
 }',
                 '<?php
 if (false) {
     $log->error("No");
-    throw new \Exception("Something unexpected happened");
+    throw new \Exception("Something unexpected happened.");
 }',
             ],
         ];
@@ -1298,6 +1340,54 @@ do {
             [
                 '<?php
 function foo() {
+yield $a; /* a *//* b */     /* c */       /* d *//* e *//* etc */
+   '.'
+yield $b;
+}',
+                '<?php
+function foo() {
+yield $a; /* a *//* b */     /* c */       /* d *//* e *//* etc */   '.'
+yield $b;
+}',
+            ],
+            [
+                '<?php
+function foo() {
+    yield $a; // test
+
+    yield $b; // test /* A */
+
+    yield $c;
+
+    yield $d;
+
+yield $e;#
+
+yield $f;
+    /* @var int $g */
+    yield $g;
+/* @var int $h */
+yield $i;
+
+yield $j;
+}',
+                '<?php
+function foo() {
+    yield $a; // test
+    yield $b; // test /* A */
+    yield $c;
+    yield $d;yield $e;#
+yield $f;
+    /* @var int $g */
+    yield $g;
+/* @var int $h */
+yield $i;
+yield $j;
+}',
+            ],
+            [
+                '<?php
+function foo() {
     yield $a;
 }',
             ],
@@ -1317,6 +1407,19 @@ function foo() {
             [
                 '<?php
 function foo() {
+    yield \'b\' => $a;
+
+    yield "a" => $b;
+}',
+                '<?php
+function foo() {
+    yield \'b\' => $a;
+    yield "a" => $b;
+}',
+            ],
+            [
+                '<?php
+function foo() {
     $a = $a;
 
     yield $a;
@@ -1333,6 +1436,74 @@ function foo() {
 function foo() {
     $a = $a;
     yield $a;
+}',
+            ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixWithYieldFromCases
+     * @requires PHP 7.0
+     */
+    public function testFixWithYieldFrom($expected, $input = null)
+    {
+        $this->fixer->configure([
+            'statements' => ['yield_from'],
+        ]);
+
+        $this->doTest($expected, $input);
+    }
+
+    /**
+     * @yield array
+     */
+    public function provideFixWithYieldFromCases()
+    {
+        return [
+            [
+                '<?php
+function foo() {
+    yield from $a;
+}',
+            ],
+            [
+                '<?php
+function foo() {
+    yield from $a;
+
+    yield from $b;
+}',
+                '<?php
+function foo() {
+    yield from $a;
+    yield from $b;
+}',
+            ],
+            [
+                '<?php
+function foo() {
+    $a = $a;
+
+    yield from $a;
+
+    yield $a;
+    yield $b;
+}',
+            ],
+            [
+                '<?php
+function foo() {
+    $a = $a;
+
+    yield from $a;
+}',
+                '<?php
+function foo() {
+    $a = $a;
+    yield from $a;
 }',
             ],
         ];

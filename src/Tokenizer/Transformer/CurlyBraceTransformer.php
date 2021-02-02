@@ -37,25 +37,6 @@ final class CurlyBraceTransformer extends AbstractTransformer
     /**
      * {@inheritdoc}
      */
-    public function getCustomTokens()
-    {
-        return [
-            CT::T_CURLY_CLOSE,
-            CT::T_DOLLAR_CLOSE_CURLY_BRACES,
-            CT::T_DYNAMIC_PROP_BRACE_OPEN,
-            CT::T_DYNAMIC_PROP_BRACE_CLOSE,
-            CT::T_DYNAMIC_VAR_BRACE_OPEN,
-            CT::T_DYNAMIC_VAR_BRACE_CLOSE,
-            CT::T_ARRAY_INDEX_CURLY_BRACE_OPEN,
-            CT::T_ARRAY_INDEX_CURLY_BRACE_CLOSE,
-            CT::T_GROUP_IMPORT_BRACE_OPEN,
-            CT::T_GROUP_IMPORT_BRACE_CLOSE,
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getRequiredPhpVersionId()
     {
         return 50000;
@@ -78,13 +59,30 @@ final class CurlyBraceTransformer extends AbstractTransformer
     }
 
     /**
+     * {@inheritdoc}
+     */
+    protected function getDeprecatedCustomTokens()
+    {
+        return [
+            CT::T_CURLY_CLOSE,
+            CT::T_DOLLAR_CLOSE_CURLY_BRACES,
+            CT::T_DYNAMIC_PROP_BRACE_OPEN,
+            CT::T_DYNAMIC_PROP_BRACE_CLOSE,
+            CT::T_DYNAMIC_VAR_BRACE_OPEN,
+            CT::T_DYNAMIC_VAR_BRACE_CLOSE,
+            CT::T_ARRAY_INDEX_CURLY_BRACE_OPEN,
+            CT::T_ARRAY_INDEX_CURLY_BRACE_CLOSE,
+            CT::T_GROUP_IMPORT_BRACE_OPEN,
+            CT::T_GROUP_IMPORT_BRACE_CLOSE,
+        ];
+    }
+
+    /**
      * Transform closing `}` for T_CURLY_OPEN into CT::T_CURLY_CLOSE.
      *
      * This should be done at very beginning of curly braces transformations.
      *
-     * @param Tokens $tokens
-     * @param Token  $token
-     * @param int    $index
+     * @param int $index
      */
     private function transformIntoCurlyCloseBrace(Tokens $tokens, Token $token, $index)
     {

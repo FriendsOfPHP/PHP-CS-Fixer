@@ -91,7 +91,7 @@ final class NativeFunctionInvocationFixerTest extends AbstractFixerTestCase
     ) {
         if (null !== $expectedExceptionClass) {
             $this->expectException($expectedExceptionClass);
-            $this->expectExceptionMessageRegExp(sprintf('#^%s$#', preg_quote($expectedExceptionMessage, '#')));
+            $this->expectExceptionMessageMatches(sprintf('#^%s$#', preg_quote($expectedExceptionMessage, '#')));
         }
 
         $this->fixer->configure(['include' => $include]);
@@ -167,13 +167,6 @@ PHP;
         $this->doTest($after, $before);
     }
 
-    public function testIsRisky()
-    {
-        $fixer = $this->createFixer();
-
-        static::assertTrue($fixer->isRisky());
-    }
-
     /**
      * @dataProvider provideFixWithDefaultConfigurationCases
      *
@@ -222,6 +215,18 @@ class Foo
             [
                 '<?php
 
+\json_encode($foo);
+\strlen($foo);
+',
+                '<?php
+
+json_encode($foo);
+strlen($foo);
+',
+            ],
+            [
+                '<?php
+
 class Foo
 {
     public function bar($foo)
@@ -241,22 +246,18 @@ class Foo
 }
 ',
             ],
-            [
+            'fix multiple calls in single code' => [
                 '<?php
-echo \/**/strlen($a);
-echo \ strlen($a);
-echo \#
-#
-strlen($a);
-echo \strlen($a);
+
+\json_encode($foo);
+\strlen($foo);
+\strlen($foo);
 ',
                 '<?php
-echo \/**/strlen($a);
-echo \ strlen($a);
-echo \#
-#
-strlen($a);
-echo strlen($a);
+
+json_encode($foo);
+strlen($foo);
+strlen($foo);
 ',
             ],
         ];
@@ -483,7 +484,6 @@ namespace {
      *
      * @param string      $expected
      * @param null|string $input
-     * @param array       $configuration
      */
     public function testFixWithConfiguredInclude($expected, $input = null, array $configuration = [])
     {
@@ -492,12 +492,9 @@ namespace {
         $this->doTest($expected, $input);
     }
 
-    /**
-     * @return array
-     */
     public function provideFixWithConfiguredIncludeCases()
     {
-        return [
+        $tests = [
             'include set + 1, exclude 1' => [
                 '<?php
                     echo \count([1]);
@@ -563,22 +560,6 @@ namespace {
                     }
                 ',
             ],
-            'include @compiler_optimized with strict enabled' => [
-                '<?php
-                    $a = not_compiler_optimized_function();
-                    $b =  not_compiler_optimized_function();
-                    $c = \intval($d);
-                ',
-                '<?php
-                    $a = \not_compiler_optimized_function();
-                    $b = \ not_compiler_optimized_function();
-                    $c = intval($d);
-                ',
-                [
-                    'include' => ['@compiler_optimized'],
-                    'strict' => true,
-                ],
-            ],
             'scope namespaced and strict enabled' => [
                 '<?php
                     $a = not_compiler_optimized_function();
@@ -593,7 +574,40 @@ namespace {
                     'strict' => true,
                 ],
             ],
+            [
+                '<?php
+                    use function foo\json_decode;
+                    json_decode($base);
+                ',
+                null,
+                [
+                    'include' => ['@all'],
+                ],
+            ],
         ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        if (\PHP_VERSION_ID < 80000) {
+            yield 'include @compiler_optimized with strict enabled' => [
+                '<?php
+                        $a = not_compiler_optimized_function();
+                        $b =  not_compiler_optimized_function();
+                        $c = \intval($d);
+                    ',
+                '<?php
+                        $a = \not_compiler_optimized_function();
+                        $b = \ not_compiler_optimized_function();
+                        $c = intval($d);
+                    ',
+                [
+                    'include' => ['@compiler_optimized'],
+                    'strict' => true,
+                ],
+            ];
+        }
     }
 
     /**
@@ -604,6 +618,31 @@ namespace {
         $this->doTest(
             '<?php $name = \get_class($foo, );',
             '<?php $name = get_class($foo, );'
+        );
+    }
+
+    /**
+     * @requires PHP <8.0
+     */
+    public function testFixPrePHP80()
+    {
+        $this->doTest(
+            '<?php
+echo \/**/strlen($a);
+echo \ strlen($a);
+echo \#
+#
+strlen($a);
+echo \strlen($a);
+',
+            '<?php
+echo \/**/strlen($a);
+echo \ strlen($a);
+echo \#
+#
+strlen($a);
+echo strlen($a);
+'
         );
     }
 }

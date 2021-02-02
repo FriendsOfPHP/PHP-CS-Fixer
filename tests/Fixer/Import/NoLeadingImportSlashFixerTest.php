@@ -47,15 +47,11 @@ final class NoLeadingImportSlashFixerTest extends AbstractFixerTestCase
             ],
             [
                 '<?php
-                use/*1*/A\B;
+                use/*1*/A\C;
                 ',
                 '<?php
-                use/*1*/\A\B;
+                use/*1*/\A\C;
                 ',
-            ],
-            [
-                '<?php use /*1*/A\B;',
-                '<?php use\/*1*/A\B;',
             ],
             [
                 '<?php
@@ -94,9 +90,6 @@ final class NoLeadingImportSlashFixerTest extends AbstractFixerTestCase
             ],
             [
                 '<?php
-                use C;
-                use C\X;
-
                 namespace Foo {
                     use A;
                     use A\X;
@@ -112,9 +105,6 @@ final class NoLeadingImportSlashFixerTest extends AbstractFixerTestCase
                 }
                 ',
                 '<?php
-                use \C;
-                use \C\X;
-
                 namespace Foo {
                     use \A;
                     use \A\X;
@@ -191,16 +181,6 @@ final class NoLeadingImportSlashFixerTest extends AbstractFixerTestCase
                     use const \d\e;
                 ',
             ],
-            'no space case' => [
-                '<?php
-                    use Events\Payment\Base as PaymentEvent;
-                    use const d\e;
-                ',
-                '<?php
-                    use\Events\Payment\Base as PaymentEvent;
-                    use const\d\e;
-                ',
-            ],
         ];
     }
 
@@ -227,7 +207,7 @@ use function some\a\{fn_a, fn_b, fn_c,};
 use const some\a\{ConstA,ConstB,ConstC
 ,
 };
-use const some\Z\{ConstA,ConstB,ConstC,};
+use const some\Z\{ConstX,ConstY,ConstZ,};
 ',
                 '<?php
 namespace AAA;
@@ -236,9 +216,80 @@ use function \some\a\{fn_a, fn_b, fn_c,};
 use const \some\a\{ConstA,ConstB,ConstC
 ,
 };
-use const \some\Z\{ConstA,ConstB,ConstC,};
+use const \some\Z\{ConstX,ConstY,ConstZ,};
 ',
             ],
+        ];
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFixPrePHP80Cases
+     *
+     * @requires PHP <8.0
+     */
+    public function testFixPrePHP80($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPrePHP80Cases()
+    {
+        yield [
+            '<?php use /*1*/A\D;',
+            '<?php use\/*1*/A\D;',
+        ];
+
+        yield 'no space case' => [
+            '<?php
+                use Events\Payment\Base as PaymentEvent;
+                use const d\e;
+            ',
+            '<?php
+                use\Events\Payment\Base as PaymentEvent;
+                use const\d\e;
+            ',
+        ];
+
+        yield [
+            '<?php
+            use C;
+            use C\X;
+
+            namespace Foo {
+                use A;
+                use A\X;
+
+                new X();
+            }
+
+            namespace Bar {
+                use B;
+                use B\X;
+
+                new X();
+            }
+            ',
+            '<?php
+            use \C;
+            use \C\X;
+
+            namespace Foo {
+                use \A;
+                use \A\X;
+
+                new X();
+            }
+
+            namespace Bar {
+                use \B;
+                use \B\X;
+
+                new X();
+            }
+            ',
         ];
     }
 }

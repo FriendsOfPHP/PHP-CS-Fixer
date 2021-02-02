@@ -12,22 +12,22 @@
 
 namespace PhpCsFixer\Fixer\PhpUnit;
 
-use PhpCsFixer\AbstractFixer;
+use PhpCsFixer\Fixer\AbstractPhpUnitFixer;
 use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
 use PhpCsFixer\Fixer\WhitespacesAwareFixerInterface;
 use PhpCsFixer\FixerConfiguration\FixerConfigurationResolver;
 use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
-use PhpCsFixer\Indicator\PhpUnitTestCaseIndicator;
 use PhpCsFixer\Tokenizer\Analyzer\ArgumentsAnalyzer;
+use PhpCsFixer\Tokenizer\Analyzer\WhitespacesAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
-final class PhpUnitExpectationFixer extends AbstractFixer implements ConfigurationDefinitionFixerInterface, WhitespacesAwareFixerInterface
+final class PhpUnitExpectationFixer extends AbstractPhpUnitFixer implements ConfigurationDefinitionFixerInterface, WhitespacesAwareFixerInterface
 {
     /**
      * @var array<string, string>
@@ -47,6 +47,11 @@ final class PhpUnitExpectationFixer extends AbstractFixer implements Configurati
 
         if (PhpUnitTargetVersion::fulfills($this->configuration['target'], PhpUnitTargetVersion::VERSION_5_6)) {
             $this->methodMap['setExpectedExceptionRegExp'] = 'expectExceptionMessageRegExp';
+        }
+
+        if (PhpUnitTargetVersion::fulfills($this->configuration['target'], PhpUnitTargetVersion::VERSION_8_4)) {
+            $this->methodMap['setExpectedExceptionRegExp'] = 'expectExceptionMessageMatches';
+            $this->methodMap['expectExceptionMessageRegExp'] = 'expectExceptionMessageMatches';
         }
     }
 
@@ -75,6 +80,25 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     }
 }
 '
+                ),
+                new CodeSample(
+                    '<?php
+final class MyTest extends \PHPUnit_Framework_TestCase
+{
+    public function testFoo()
+    {
+        $this->setExpectedException("RuntimeException", null, 123);
+        foo();
+    }
+
+    public function testBar()
+    {
+        $this->setExpectedExceptionRegExp("RuntimeException", "/Msg.*/", 123);
+        bar();
+    }
+}
+',
+                    ['target' => PhpUnitTargetVersion::VERSION_8_4]
                 ),
                 new CodeSample(
                     '<?php
@@ -122,10 +146,12 @@ final class MyTest extends \PHPUnit_Framework_TestCase
 
     /**
      * {@inheritdoc}
+     *
+     * Must run after PhpUnitNoExpectationAnnotationFixer.
      */
-    public function isCandidate(Tokens $tokens)
+    public function getPriority()
     {
-        return $tokens->isTokenKindFound(T_CLASS);
+        return 0;
     }
 
     /**
@@ -139,29 +165,21 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, Tokens $tokens)
-    {
-        $phpUnitTestCaseIndicator = new PhpUnitTestCaseIndicator();
-        foreach ($phpUnitTestCaseIndicator->findPhpUnitClasses($tokens) as $indexes) {
-            $this->fixExpectation($tokens, $indexes[0], $indexes[1]);
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function createConfigurationDefinition()
     {
         return new FixerConfigurationResolver([
             (new FixerOptionBuilder('target', 'Target version of PHPUnit.'))
                 ->setAllowedTypes(['string'])
-                ->setAllowedValues([PhpUnitTargetVersion::VERSION_5_2, PhpUnitTargetVersion::VERSION_5_6, PhpUnitTargetVersion::VERSION_NEWEST])
+                ->setAllowedValues([PhpUnitTargetVersion::VERSION_5_2, PhpUnitTargetVersion::VERSION_5_6, PhpUnitTargetVersion::VERSION_8_4, PhpUnitTargetVersion::VERSION_NEWEST])
                 ->setDefault(PhpUnitTargetVersion::VERSION_NEWEST)
                 ->getOption(),
         ]);
     }
 
-    private function fixExpectation(Tokens $tokens, $startIndex, $endIndex)
+    /**
+     * {@inheritdoc}
+     */
+    protected function applyPhpUnitClassFix(Tokens $tokens, $startIndex, $endIndex)
     {
         $argumentsAnalyzer = new ArgumentsAnalyzer();
 
@@ -197,7 +215,7 @@ final class MyTest extends \PHPUnit_Framework_TestCase
 
             $argumentsReplacements = ['expectException', $this->methodMap[$tokens[$index]->getContent()], 'expectExceptionCode'];
 
-            $indent = $this->whitespacesConfig->getLineEnding().$this->detectIndent($tokens, $thisIndex);
+            $indent = $this->whitespacesConfig->getLineEnding().WhitespacesAnalyzer::detectIndent($tokens, $thisIndex);
 
             $isMultilineWhitespace = false;
 
@@ -210,8 +228,8 @@ final class MyTest extends \PHPUnit_Framework_TestCase
                     $afterParamIndicatorIndex = $tokens->getNextMeaningfulToken($paramIndicatorIndex);
 
                     if (
-                        $tokens[$paramIndicatorIndex]->equals([T_STRING, 'null'], false) &&
-                        $tokens[$afterParamIndicatorIndex]->equals(')')
+                        $tokens[$paramIndicatorIndex]->equals([T_STRING, 'null'], false)
+                        && $tokens[$afterParamIndicatorIndex]->equals(')')
                     ) {
                         if ($tokens[$argBefore + 1]->isWhitespace()) {
                             $tokens->clearTokenAndMergeSurroundingWhitespace($argBefore + 1);
@@ -237,7 +255,7 @@ final class MyTest extends \PHPUnit_Framework_TestCase
                 ];
 
                 if ($isMultilineWhitespace) {
-                    array_push($tokensOverrideArgStart, new Token([T_WHITESPACE, $indent.$this->whitespacesConfig->getIndent()]));
+                    $tokensOverrideArgStart[] = new Token([T_WHITESPACE, $indent.$this->whitespacesConfig->getIndent()]);
                     array_unshift($tokensOverrideArgBefore, new Token([T_WHITESPACE, $indent]));
                 }
 
@@ -250,24 +268,11 @@ final class MyTest extends \PHPUnit_Framework_TestCase
                 $tokens->overrideRange($argBefore, $argBefore, $tokensOverrideArgBefore);
             }
 
-            $tokens[$index] = new Token([T_STRING, 'expectException']);
+            $methodName = 'expectException';
+            if ('expectExceptionMessageRegExp' === $tokens[$index]->getContent()) {
+                $methodName = $this->methodMap[$tokens[$index]->getContent()];
+            }
+            $tokens[$index] = new Token([T_STRING, $methodName]);
         }
-    }
-
-    /**
-     * @param Tokens $tokens
-     * @param int    $index
-     *
-     * @return string
-     */
-    private function detectIndent(Tokens $tokens, $index)
-    {
-        if (!$tokens[$index - 1]->isWhitespace()) {
-            return ''; // cannot detect indent
-        }
-
-        $explodedContent = explode("\n", $tokens[$index - 1]->getContent());
-
-        return end($explodedContent);
     }
 }

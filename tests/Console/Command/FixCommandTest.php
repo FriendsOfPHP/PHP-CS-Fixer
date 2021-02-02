@@ -31,7 +31,7 @@ final class FixCommandTest extends TestCase
         $this->expectException(
             \PhpCsFixer\ConfigurationException\InvalidConfigurationException::class
         );
-        $this->expectExceptionMessageRegExp(
+        $this->expectExceptionMessageMatches(
             '#^Empty rules value is not allowed\.$#'
         );
 
@@ -57,8 +57,6 @@ final class FixCommandTest extends TestCase
     }
 
     /**
-     * @param array $arguments
-     *
      * @return CommandTester
      */
     private function doTestExecute(array $arguments)

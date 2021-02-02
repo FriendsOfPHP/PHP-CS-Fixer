@@ -14,6 +14,7 @@ namespace PhpCsFixer\Tokenizer\Analyzer;
 
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\ArgumentAnalysis;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\TypeAnalysis;
+use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\Tokens;
 
 /**
@@ -27,9 +28,8 @@ final class ArgumentsAnalyzer
     /**
      * Count amount of parameters in a function/method reference.
      *
-     * @param Tokens $tokens
-     * @param int    $openParenthesis
-     * @param int    $closeParenthesis
+     * @param int $openParenthesis
+     * @param int $closeParenthesis
      *
      * @return int
      */
@@ -46,9 +46,8 @@ final class ArgumentsAnalyzer
      * such as comments and white space tokens, but without the separation
      * tokens like '(', ',' and ')'.
      *
-     * @param Tokens $tokens
-     * @param int    $openParenthesis
-     * @param int    $closeParenthesis
+     * @param int $openParenthesis
+     * @param int $closeParenthesis
      *
      * @return array<int, int>
      */
@@ -56,12 +55,14 @@ final class ArgumentsAnalyzer
     {
         $arguments = [];
         $firstSensibleToken = $tokens->getNextMeaningfulToken($openParenthesis);
+
         if ($tokens[$firstSensibleToken]->equals(')')) {
             return $arguments;
         }
 
         $paramContentIndex = $openParenthesis + 1;
         $argumentsStart = $paramContentIndex;
+
         for (; $paramContentIndex < $closeParenthesis; ++$paramContentIndex) {
             $token = $tokens[$paramContentIndex];
 
@@ -91,9 +92,8 @@ final class ArgumentsAnalyzer
     }
 
     /**
-     * @param Tokens $tokens
-     * @param int    $argumentStart
-     * @param int    $argumentEnd
+     * @param int $argumentStart
+     * @param int $argumentEnd
      *
      * @return ArgumentAnalysis
      */
@@ -109,11 +109,19 @@ final class ArgumentsAnalyzer
         ];
 
         $sawName = false;
+
         for ($index = $argumentStart; $index <= $argumentEnd; ++$index) {
             $token = $tokens[$index];
-            if ($token->isComment() || $token->isWhitespace() || $token->isGivenKind(T_ELLIPSIS) || $token->equals('&')) {
+
+            if (
+                $token->isComment()
+                || $token->isWhitespace()
+                || $token->isGivenKind([T_ELLIPSIS, CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PUBLIC, CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PROTECTED, CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PRIVATE])
+                || $token->equals('&')
+            ) {
                 continue;
             }
+
             if ($token->isGivenKind(T_VARIABLE)) {
                 $sawName = true;
                 $info['name_index'] = $index;
@@ -121,9 +129,11 @@ final class ArgumentsAnalyzer
 
                 continue;
             }
+
             if ($token->equals('=')) {
                 continue;
             }
+
             if ($sawName) {
                 $info['default'] .= $token->getContent();
             } else {

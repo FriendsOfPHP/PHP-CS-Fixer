@@ -31,14 +31,6 @@ final class UseTransformer extends AbstractTransformer
     /**
      * {@inheritdoc}
      */
-    public function getCustomTokens()
-    {
-        return [CT::T_USE_TRAIT, CT::T_USE_LAMBDA];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getPriority()
     {
         // Should run after CurlyBraceTransformer and before TypeColonTransformer
@@ -94,10 +86,17 @@ final class UseTransformer extends AbstractTransformer
     }
 
     /**
+     * {@inheritdoc}
+     */
+    protected function getDeprecatedCustomTokens()
+    {
+        return [CT::T_USE_TRAIT, CT::T_USE_LAMBDA];
+    }
+
+    /**
      * Check if token under given index is `use` statement for lambda function.
      *
-     * @param Tokens $tokens
-     * @param int    $index
+     * @param int $index
      *
      * @return bool
      */

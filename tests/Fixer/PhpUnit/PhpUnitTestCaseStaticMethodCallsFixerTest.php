@@ -47,7 +47,7 @@ final class PhpUnitTestCaseStaticMethodCallsFixerTest extends AbstractFixerTestC
     public function testWrongConfigTypeForMethodsKey()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/Unexpected "methods" key, expected any of ".*", got "integer#123"\.$/');
+        $this->expectExceptionMessageMatches('/Unexpected "methods" key, expected any of ".*", got "integer#123"\.$/');
 
         $this->fixer->configure(['methods' => [123 => 1]]);
     }
@@ -55,7 +55,7 @@ final class PhpUnitTestCaseStaticMethodCallsFixerTest extends AbstractFixerTestC
     public function testWrongConfigTypeForMethodsValue()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
-        $this->expectExceptionMessageRegExp('/Unexpected value for method "assertSame", expected any of ".*", got "integer#123"\.$/');
+        $this->expectExceptionMessageMatches('/Unexpected value for method "assertSame", expected any of ".*", got "integer#123"\.$/');
 
         $this->fixer->configure(['methods' => ['assertSame' => 123]]);
     }
@@ -63,7 +63,6 @@ final class PhpUnitTestCaseStaticMethodCallsFixerTest extends AbstractFixerTestC
     /**
      * @param string      $expected
      * @param null|string $input
-     * @param array       $config
      *
      * @dataProvider provideTestFixCases
      */
@@ -392,6 +391,7 @@ class MyTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(1, 22);
         $this->assertSame(1, 22);
         $this->assertSame(1, 22);
+        $this->assertSame(1, 23);
     }
 
 }
@@ -428,6 +428,7 @@ class MyTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(1, 22);
         self::assertSame(1, 22);
         static::assertSame(1, 22);
+        STATIC::assertSame(1, 23);
     }
 
 }
@@ -440,7 +441,7 @@ EOF
             'do not change class property and method signature' => [
                 <<<'EOF'
 <?php
-class HavingPropertyWithNameAsMethodToUpdateTest extends PHPUnit
+class FooTest extends TestCase
 {
     public function foo()
     {
@@ -451,6 +452,33 @@ class HavingPropertyWithNameAsMethodToUpdateTest extends PHPUnit
 }
 EOF
                 ,
+            ],
+            'do not change when only case is different' => [
+                <<<'EOF'
+<?php
+class FooTest extends TestCase
+{
+    public function foo()
+    {
+        STATIC::assertSame(1, 1);
+    }
+}
+EOF
+                ,
+            ],
+            'do not crash on abstract static function' => [
+                <<<'EOF'
+<?php
+abstract class FooTest extends TestCase
+{
+    abstract public static function dataProvider();
+}
+EOF
+                ,
+                null,
+                [
+                    'call_type' => PhpUnitTestCaseStaticMethodCallsFixer::CALL_TYPE_THIS,
+                ],
             ],
         ];
     }

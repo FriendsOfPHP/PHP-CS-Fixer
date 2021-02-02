@@ -12,13 +12,14 @@
 
 namespace PhpCsFixer\Fixer\PhpUnit;
 
-use PhpCsFixer\AbstractFixer;
+use PhpCsFixer\Fixer\AbstractPhpUnitFixer;
 use PhpCsFixer\Fixer\ConfigurationDefinitionFixerInterface;
 use PhpCsFixer\FixerConfiguration\AllowedValueSubset;
 use PhpCsFixer\FixerConfiguration\FixerConfigurationResolverRootless;
 use PhpCsFixer\FixerConfiguration\FixerOptionBuilder;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
+use PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 
@@ -26,7 +27,7 @@ use PhpCsFixer\Tokenizer\Tokens;
  * @author SpacePossum
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
-final class PhpUnitDedicateAssertFixer extends AbstractFixer implements ConfigurationDefinitionFixerInterface
+final class PhpUnitDedicateAssertFixer extends AbstractPhpUnitFixer implements ConfigurationDefinitionFixerInterface
 {
     private static $fixMap = [
         'array_key_exists' => ['assertArrayNotHasKey', 'assertArrayHasKey'],
@@ -122,14 +123,6 @@ final class PhpUnitDedicateAssertFixer extends AbstractFixer implements Configur
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(Tokens $tokens)
-    {
-        return $tokens->isTokenKindFound(T_STRING);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function isRisky()
     {
         return true;
@@ -145,15 +138,27 @@ final class PhpUnitDedicateAssertFixer extends AbstractFixer implements Configur
             [
                 new CodeSample(
                     '<?php
-$this->assertTrue(is_float( $a), "my message");
-$this->assertTrue(is_nan($a));
+final class MyTest extends \PHPUnit_Framework_TestCase
+{
+    public function testSomeTest()
+    {
+        $this->assertTrue(is_float( $a), "my message");
+        $this->assertTrue(is_nan($a));
+    }
+}
 '
                 ),
                 new CodeSample(
                     '<?php
-$this->assertTrue(is_dir($a));
-$this->assertTrue(is_writable($a));
-$this->assertTrue(is_readable($a));
+final class MyTest extends \PHPUnit_Framework_TestCase
+{
+    public function testSomeTest()
+    {
+        $this->assertTrue(is_dir($a));
+        $this->assertTrue(is_writable($a));
+        $this->assertTrue(is_readable($a));
+    }
+}
 ',
                     ['target' => PhpUnitTargetVersion::VERSION_5_6]
                 ),
@@ -165,19 +170,21 @@ $this->assertTrue(is_readable($a));
 
     /**
      * {@inheritdoc}
+     *
+     * Must run before PhpUnitDedicateAssertInternalTypeFixer.
+     * Must run after NoAliasFunctionsFixer, PhpUnitConstructFixer.
      */
     public function getPriority()
     {
-        // should be run after the PhpUnitConstructFixer.
         return -15;
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, Tokens $tokens)
+    protected function applyPhpUnitClassFix(Tokens $tokens, $startIndex, $endIndex)
     {
-        foreach ($this->getPreviousAssertCall($tokens) as $assertCall) {
+        foreach ($this->getPreviousAssertCall($tokens, $startIndex, $endIndex) as $assertCall) {
             // test and fix for assertTrue/False to dedicated asserts
             if ('asserttrue' === $assertCall['loweredName'] || 'assertfalse' === $assertCall['loweredName']) {
                 $this->fixAssertTrueFalse($tokens, $assertCall);
@@ -252,10 +259,6 @@ $this->assertTrue(is_readable($a));
         ], $this->getName());
     }
 
-    /**
-     * @param Tokens $tokens
-     * @param array  $assertCall
-     */
     private function fixAssertTrueFalse(Tokens $tokens, array $assertCall)
     {
         $testDefaultNamespaceTokenIndex = false;
@@ -320,10 +323,6 @@ $this->assertTrue(is_readable($a));
         }
     }
 
-    /**
-     * @param Tokens $tokens
-     * @param array  $assertCall
-     */
     private function fixAssertSameEquals(Tokens $tokens, array $assertCall)
     {
         // @ $this->/self::assertEquals/Same([$nextIndex])
@@ -388,9 +387,15 @@ $this->assertTrue(is_readable($a));
         ]);
     }
 
-    private function getPreviousAssertCall(Tokens $tokens)
+    /**
+     * @param int $startIndex
+     * @param int $endIndex
+     */
+    private function getPreviousAssertCall(Tokens $tokens, $startIndex, $endIndex)
     {
-        for ($index = $tokens->count(); $index > 0; --$index) {
+        $functionsAnalyzer = new FunctionsAnalyzer();
+
+        for ($index = $endIndex; $index > $startIndex; --$index) {
             $index = $tokens->getPrevTokenOfKind($index, [[T_STRING]]);
             if (null === $index) {
                 return;
@@ -408,14 +413,7 @@ $this->assertTrue(is_readable($a));
                 continue;
             }
 
-            $operatorIndex = $tokens->getPrevMeaningfulToken($index);
-            $referenceIndex = $tokens->getPrevMeaningfulToken($operatorIndex);
-
-            if (
-                !($tokens[$operatorIndex]->equals([T_OBJECT_OPERATOR, '->']) && $tokens[$referenceIndex]->equals([T_VARIABLE, '$this']))
-                && !($tokens[$operatorIndex]->equals([T_DOUBLE_COLON, '::']) && $tokens[$referenceIndex]->equals([T_STRING, 'self']))
-                && !($tokens[$operatorIndex]->equals([T_DOUBLE_COLON, '::']) && $tokens[$referenceIndex]->equals([T_STATIC, 'static']))
-            ) {
+            if (!$functionsAnalyzer->isTheSameClassCall($tokens, $index)) {
                 continue;
             }
 
@@ -429,7 +427,6 @@ $this->assertTrue(is_readable($a));
     }
 
     /**
-     * @param Tokens    $tokens
      * @param false|int $callNSIndex
      * @param int       $callIndex
      * @param int       $openIndex

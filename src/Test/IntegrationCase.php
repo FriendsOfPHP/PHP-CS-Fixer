@@ -12,7 +12,7 @@
 
 namespace PhpCsFixer\Test;
 
-use PhpCsFixer\RuleSet;
+use PhpCsFixer\RuleSet\RuleSet;
 use PhpCsFixer\Tests\Test\IntegrationCase as BaseIntegrationCase;
 
 /**
@@ -32,10 +32,6 @@ final class IntegrationCase
     /**
      * @param string      $fileName
      * @param string      $title
-     * @param array       $settings
-     * @param array       $requirements
-     * @param array       $config
-     * @param RuleSet     $ruleset
      * @param string      $expectedCode
      * @param null|string $inputCode
      */

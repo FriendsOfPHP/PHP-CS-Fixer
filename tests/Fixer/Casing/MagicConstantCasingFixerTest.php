@@ -88,15 +88,19 @@ final class MagicConstantCasingFixerTest extends AbstractFixerTestCase
      * @param string      $expected
      * @param null|string $input
      *
-     * @requires PHP 7.0
-     * @dataProvider provideFix70Cases
+     * @requires PHP 7.4
+     * @dataProvider provideFix74Cases
      */
-    public function testFix70($expected, $input = null)
+    public function testFix74($expected, $input = null)
     {
+        if (\PHP_VERSION_ID >= 80000) {
+            static::markTestSkipped('PHP < 8.0 is required.');
+        }
+
         $this->doTest($expected, $input);
     }
 
-    public function provideFix70Cases()
+    public function provideFix74Cases()
     {
         return [
             [
