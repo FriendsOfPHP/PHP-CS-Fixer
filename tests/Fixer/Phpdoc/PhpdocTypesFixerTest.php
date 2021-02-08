@@ -252,6 +252,31 @@ EOF;
         $this->doTest($expected, $input);
     }
 
+    public function testGenerics()
+    {
+        $expected = <<<'EOF'
+<?php
+    /**
+     * @param array<int, object> $a
+     * @param array<iterable> $b
+     *
+     * @return array<int, array<string, array<int, DoNotChangeThisAsThisIsAClass>>>
+     */
+EOF;
+
+        $input = <<<'EOF'
+<?php
+    /**
+     * @param ARRAY<INT, OBJECT> $a
+     * @param ARRAY<ITERABLE> $b
+     *
+     * @return ARRAY<INT, ARRAY<STRING, ARRAY<INT, DoNotChangeThisAsThisIsAClass>>>
+     */
+EOF;
+
+        $this->doTest($expected, $input);
+    }
+
     public function testWrongConfig()
     {
         $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
