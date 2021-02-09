@@ -29,6 +29,8 @@ Alias
 Array Notation
 --------------
 
+- `alphabetical_array_key_sort <./array_notation/alphabetical_array_key_sort.rst>`_
+    Sorts keyed array by alphabetical order.
 - `array_syntax <./array_notation/array_syntax.rst>`_
     PHP arrays should be declared using the configured syntax.
 - `no_multiline_whitespace_around_double_arrow <./array_notation/no_multiline_whitespace_around_double_arrow.rst>`_
