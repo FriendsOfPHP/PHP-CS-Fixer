@@ -235,6 +235,40 @@ $foo
                     ->setY();
 ',
             ],
+            [
+                '<?php
+
+                $obj = (new Foo)
+                    ->setBar((new Bar)
+                        ->baz());
+',
+                '<?php
+
+                $obj = (new Foo)
+        ->setBar((new Bar)
+                            ->baz());
+',
+            ],
+            [
+                '<?php
+
+                $obj
+                    ->foo("bar", function ($baz) {
+                        return $baz
+                            ->on("table1", "table2");
+                    })
+                    ->where("a", "b");
+',
+                '<?php
+
+                $obj
+        ->foo("bar", function ($baz) {
+                        return $baz
+                                    ->on("table1", "table2");
+                    })
+                ->where("a", "b");
+',
+            ],
         ];
     }
 
@@ -279,6 +313,121 @@ $foo
 ->setEmailConfirmationCode("123456",    );
 '
         );
+    }
+
+    /**
+     * @param string      $expected
+     * @param null|string $input
+     *
+     * @dataProvider provideFix74Cases
+     * @requires PHP 7.4
+     */
+    public function testFix74($expected, $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix74Cases()
+    {
+        return [
+            [
+                '<?php
+
+                $obj
+                    ->foo("baz", fn ($bar) => $bar
+                        ->baz("foobar"))
+                    ->baz();
+',
+                '<?php
+
+                $obj
+                                        ->foo("baz", fn ($bar) => $bar
+        ->baz("foobar"))
+                                ->baz();
+',
+            ],
+            [
+                '<?php
+
+                $obj
+                    ->foo("baz", fn (string $bar) => otherFunc($bar)
+                        ->baz("foobar"))
+                    ->baz();
+',
+                '<?php
+
+                $obj
+                                        ->foo("baz", fn (string $bar) => otherFunc($bar)
+                            ->baz("foobar"))
+                                ->baz();
+',
+            ],
+            [
+                '<?php
+
+                $obj
+                    ->foo("baz", fn (SomeClass $bar) => $bar
+                        ->baz("foobar"))
+                    ->baz();
+',
+                '<?php
+
+                $obj
+                                        ->foo("baz", fn (SomeClass $bar) => $bar
+        ->baz("foobar"))
+                                ->baz();
+',
+            ],
+            [
+                '<?php
+
+                $obj
+                    ->foo("baz", fn (?AnotherClass $bar) => $bar
+                        ->baz("foobar"))
+                    ->baz();
+',
+                '<?php
+
+                $obj
+                                        ->foo("baz", fn (?AnotherClass $bar) => $bar
+        ->baz("foobar"))
+                                ->baz();
+',
+            ],
+            [
+                '<?php
+
+                $obj
+        /*buahaha*/
+                    ->foo("baz", fn ($bar) => $bar
+                        ->baz/*buahaha*/("foobar"))
+                    ->/**buahaha*/baz();
+',
+                '<?php
+
+                $obj
+        /*buahaha*/                                ->foo("baz", fn ($bar) => $bar
+        ->baz/*buahaha*/("foobar"))
+                                ->/**buahaha*/baz();
+',
+            ],
+            [
+                '<?php
+
+                $obj
+                    ->      foo("baz", fn ($bar) => $bar
+                        ->baz              ("foobar"))
+                    ->       baz  ();
+',
+                '<?php
+
+                $obj
+                                        ->      foo("baz", fn ($bar) => $bar
+        ->baz              ("foobar"))
+                                ->       baz  ();
+',
+            ],
+        ];
     }
 
     /**
