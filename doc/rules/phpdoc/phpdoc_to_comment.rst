@@ -28,7 +28,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,7 +1,7 @@
     <?php
     $first = true;// needed because by default first docblock is never fixed.
 
@@ -47,12 +46,16 @@ With configuration: ``['ignored_tags' => ['todo']]``.
 
    --- Original
    +++ New
-   @@ -1,7 +1,7 @@
     <?php
     $first = true;// needed because by default first docblock is never fixed.
 
    -/** This should be a comment */
    +/* This should be a comment */
+    foreach($connections as $key => $sqlite) {
+        $sqlite->open($path);
+    }
+
+    /** @todo This should be a PHPDoc as the tag is on "ignored_tags" list */
     foreach($connections as $key => $sqlite) {
         $sqlite->open($path);
     }
@@ -66,12 +69,16 @@ With configuration: ``['ignored_tags' => ['todo']]``.
 
    --- Original
    +++ New
-   @@ -1,7 +1,7 @@
     <?php
     $first = true;// needed because by default first docblock is never fixed.
 
    -/** This should be a comment */
    +/* This should be a comment */
+    foreach($connections as $key => $sqlite) {
+        $sqlite->open($path);
+    }
+
+    /** @TODO This should be a PHPDoc as the tag is on "ignored_tags" list */
     foreach($connections as $key => $sqlite) {
         $sqlite->open($path);
     }
@@ -90,6 +97,14 @@ With configuration: ``['ignored_tags' => ['todo']]``.
 
    -/** This should be a comment */
    +/* This should be a comment */
+    foreach($connections as $key => $sqlite) {
+        $sqlite->open($path);
+    }
+
+    /**
+     * @deprecated This tag is not in the list but the next one is
+     * @todo This should be a PHPDoc as the tag is on "ignored_tags" list
+     */
     foreach($connections as $key => $sqlite) {
         $sqlite->open($path);
     }
