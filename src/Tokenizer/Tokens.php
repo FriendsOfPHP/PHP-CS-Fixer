@@ -409,16 +409,14 @@ class Tokens extends \SplFixedArray
 
                     return \strlen($whitespace) > 2 // can be removed on PHP 7; https://php.net/manual/en/function.substr.php
                         ? substr($whitespace, 2)
-                        : ''
-                    ;
+                        : '';
                 }
 
                 $tokens[$index] = new Token([T_OPEN_TAG, rtrim($token->getContent()).$whitespace[0]]);
 
                 return \strlen($whitespace) > 1 // can be removed on PHP 7; https://php.net/manual/en/function.substr.php
                     ? substr($whitespace, 1)
-                    : ''
-                ;
+                    : '';
             }
 
             return $whitespace;
@@ -1564,8 +1562,7 @@ class Tokens extends \SplFixedArray
         // inlined extractTokenKind() call on the hot path
         $tokenKind = $token instanceof Token
             ? ($token->isArray() ? $token->getId() : $token->getContent())
-            : (\is_array($token) ? $token[0] : $token)
-        ;
+            : (\is_array($token) ? $token[0] : $token);
 
         if (!isset($this->foundTokenKinds[$tokenKind])) {
             $this->foundTokenKinds[$tokenKind] = 0;
@@ -1584,8 +1581,7 @@ class Tokens extends \SplFixedArray
         // inlined extractTokenKind() call on the hot path
         $tokenKind = $token instanceof Token
             ? ($token->isArray() ? $token->getId() : $token->getContent())
-            : (\is_array($token) ? $token[0] : $token)
-        ;
+            : (\is_array($token) ? $token[0] : $token);
 
         if (!isset($this->foundTokenKinds[$tokenKind])) {
             return;
@@ -1603,8 +1599,7 @@ class Tokens extends \SplFixedArray
     {
         return $token instanceof Token
             ? ($token->isArray() ? $token->getId() : $token->getContent())
-            : (\is_array($token) ? $token[0] : $token)
-        ;
+            : (\is_array($token) ? $token[0] : $token);
     }
 
     /**

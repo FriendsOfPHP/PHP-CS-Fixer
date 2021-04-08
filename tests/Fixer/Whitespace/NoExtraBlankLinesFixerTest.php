@@ -569,8 +569,7 @@ $a = new Bar1();
 $a = new Bar2();
 $a = new Baz();
 $a = new Qux();
-EOF
-        ;
+EOF;
 
         $input = <<<'EOF'
 <?php
@@ -592,8 +591,7 @@ $a = new Bar1();
 $a = new Bar2();
 $a = new Baz();
 $a = new Qux();
-EOF
-        ;
+EOF;
 
         $this->fixer->configure(['tokens' => ['use']]);
         $this->doTest($expected, $input);

@@ -168,8 +168,7 @@ class Sample
 
                 $methodEnd = true === $attributes['abstract']
                     ? $tokens->getNextTokenOfKind($index, [';'])
-                    : $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $tokens->getNextTokenOfKind($index, ['{']))
-                ;
+                    : $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $tokens->getNextTokenOfKind($index, ['{']));
 
                 $this->fixSpaceBelowClassMethod($tokens, $classEnd, $methodEnd, $spacing);
                 $this->fixSpaceAboveClassElement($tokens, $classStart, $index, $spacing);

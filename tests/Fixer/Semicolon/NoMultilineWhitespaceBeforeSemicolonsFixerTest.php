@@ -42,19 +42,18 @@ final class NoMultilineWhitespaceBeforeSemicolonsFixerTest extends AbstractFixer
         return [
             [
                 '<?php
-                    $foo->bar() // test
-;',
+                    $foo->bar(); // test',
                 '<?php
                     $foo->bar() // test
                     ;',
             ],
             [
+                '<?php echo(1); // test',
                 "<?php echo(1) // test\n;",
             ],
             [
                 '<?php
-                    $foo->bar() # test
-;',
+                    $foo->bar(); # test',
                 '<?php
                     $foo->bar() # test
 
@@ -141,6 +140,7 @@ $this
     {
         return [
             [
+                '<?php echo(1); // test',
                 "<?php echo(1) // test\r\n;",
             ],
         ];

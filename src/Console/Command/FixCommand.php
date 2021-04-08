@@ -152,8 +152,7 @@ final class FixCommand extends Command
 
         $stdErr = $output instanceof ConsoleOutputInterface
             ? $output->getErrorOutput()
-            : ('txt' === $reporter->getFormat() ? $output : null)
-        ;
+            : ('txt' === $reporter->getFormat() ? $output : null);
 
         if (null !== $stdErr) {
             if (OutputInterface::VERBOSITY_VERBOSE <= $verbosity) {
@@ -240,8 +239,7 @@ final class FixCommand extends Command
 
         $output->isDecorated()
             ? $output->write($reporter->generate($reportSummary))
-            : $output->write($reporter->generate($reportSummary), false, OutputInterface::OUTPUT_RAW)
-        ;
+            : $output->write($reporter->generate($reportSummary), false, OutputInterface::OUTPUT_RAW);
 
         $invalidErrors = $this->errorsManager->getInvalidErrors();
         $exceptionErrors = $this->errorsManager->getExceptionErrors();

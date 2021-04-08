@@ -95,8 +95,7 @@ final class NoUnusedImportsFixer extends AbstractFixer
                 static function (NamespaceUseAnalysis $useDeclaration) use ($namespace) {
                     return
                         $useDeclaration->getStartIndex() >= $namespace->getScopeStartIndex()
-                        && $useDeclaration->getEndIndex() <= $namespace->getScopeEndIndex()
-                    ;
+                        && $useDeclaration->getEndIndex() <= $namespace->getScopeEndIndex();
                 }
             );
 
