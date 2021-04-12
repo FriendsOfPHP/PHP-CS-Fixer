@@ -60,6 +60,19 @@ final class FullyQualifiedStrictTypesFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
+    /**
+     * @requires PHP 7.0
+     *
+     * @dataProvider provideCodeWithPHPDocCases
+     *
+     * @param string      $expected
+     * @param null|string $input
+     */
+    public function testCodeWithPHPDoc($expected, $input = null)
+    {
+        $this->doTest($expected, $input);
+    }
+
     public function provideCodeWithReturnTypesCases()
     {
         return [
@@ -499,4 +512,189 @@ class Two
             ],
         ];
     }
+
+    public function provideCodeWithPHPDocCases()
+    {
+        return [
+            'Test class PHPDoc fixes' => [
+                '<?php
+namespace Foo\Bar;
+use Foo\Bar\Baz;
+use Foo\Bar\Bam;
+/**
+ * @see Baz
+ * @see Bam
+ */
+class SomeClass
+{
+
+}',
+                '<?php
+namespace Foo\Bar;
+use Foo\Bar\Baz;
+use Foo\Bar\Bam;
+/**
+ * @see \Foo\Bar\Baz
+ * @see \Foo\Bar\Bam
+ */
+class SomeClass
+{
+
+}'],
+            'Test PHPDoc nullable fixes' => [
+                '<?php
+namespace Foo\Bar;
+use Foo\Bar\Baz;
+use Foo\Bar\Bam;
+/**
+ * @see Baz|null
+ * @see Bam|null
+ */
+class SomeClass
+{
+
+}',
+                '<?php
+namespace Foo\Bar;
+use Foo\Bar\Baz;
+use Foo\Bar\Bam;
+/**
+ * @see \Foo\Bar\Baz|null
+ * @see \Foo\Bar\Bam|null
+ */
+class SomeClass
+{
+
+}',
+            ],
+
+            'Test PHPDoc in interface' => [
+                '<?php
+namespace Foo\Bar;
+use Foo\Bar\Baz;
+
+interface SomeClass
+{
+   /**
+    * @var SomeClass $foo
+    * @var Buz $buz
+    *
+    * @return Baz
+    */
+    public function doSomething(SomeClass $foo, Buz $buz, Zoof\Buz $barbuz): Baz;
+}',
+                '<?php
+namespace Foo\Bar;
+use Foo\Bar\Baz;
+
+interface SomeClass
+{
+   /**
+    * @var \Foo\Bar\SomeClass $foo
+    * @var \Foo\Bar\Buz $buz
+    *
+    * @return \Foo\Bar\Baz
+    */
+    public function doSomething(\Foo\Bar\SomeClass $foo, \Foo\Bar\Buz $buz, \Foo\Bar\Zoof\Buz $barbuz): \Foo\Bar\Baz;
+}',
+            ],
+            'Test PHPDoc in interface with no imports' => [
+                '<?php
+namespace Foo\Bar;
+
+interface SomeClass
+{
+   /**
+    * @var SomeClass $foo
+    * @var Buz $buz
+    *
+    * @return Baz
+    */
+    public function doSomething(SomeClass $foo, Buz $buz, Zoof\Buz $barbuz): Baz;
+}',
+                '<?php
+namespace Foo\Bar;
+
+interface SomeClass
+{
+   /**
+    * @var \Foo\Bar\SomeClass $foo
+    * @var \Foo\Bar\Buz $buz
+    *
+    * @return \Foo\Bar\Baz
+    */
+    public function doSomething(\Foo\Bar\SomeClass $foo, \Foo\Bar\Buz $buz, \Foo\Bar\Zoof\Buz $barbuz): \Foo\Bar\Baz;
+}',
+            ],
+            'Test not imported PHPDoc fixes' => [
+                '<?php
+namespace Foo\Bar;
+
+/**
+ * @see Baz
+ * @see Bam
+ */
+final class SomeClass
+{
+
+}',
+                '<?php
+namespace Foo\Bar;
+
+/**
+ * @see \Foo\Bar\Baz
+ * @see \Foo\Bar\Bam
+ */
+final class SomeClass
+{
+
+}',
+            ],
+            'Test multiple PHPDoc blocks' => [
+                '<?php
+namespace Foo\Bar;
+
+use Foo\Bar\Buz;
+use Foo\Bar\Baz;
+use Foo\Bar\SomeClass;
+
+/**
+ * @see Baz
+ * @see Bam
+ */
+interface SomeClass
+{
+    /**
+    * @var SomeClass $foo
+    * @var Buz $buz
+    *
+    * @return Baz
+    */
+    public function doSomething(SomeClass $foo, Buz $buz, Zoof\Buz $barbuz): Baz;
+}',
+                '<?php
+namespace Foo\Bar;
+
+use Foo\Bar\Buz;
+use Foo\Bar\Baz;
+use Foo\Bar\SomeClass;
+
+/**
+ * @see \Foo\Bar\Baz
+ * @see \Foo\Bar\Bam
+ */
+interface SomeClass
+{
+    /**
+    * @var \Foo\Bar\SomeClass $foo
+    * @var \Foo\Bar\Buz $buz
+    *
+    * @return \Foo\Bar\Baz
+    */
+    public function doSomething(\Foo\Bar\SomeClass $foo, \Foo\Bar\Buz $buz, \Foo\Bar\Zoof\Buz $barbuz): \Foo\Bar\Baz;
+}',
+            ],
+        ];
+    }
+
 }
