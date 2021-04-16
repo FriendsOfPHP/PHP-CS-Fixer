@@ -65,7 +65,7 @@ final class GeneralPhpdocTagRenameFixer extends AbstractFixer implements Configu
      * {@inheritdoc}
      *
      * Must run before PhpdocAddMissingParamAnnotationFixer, PhpdocAlignFixer.
-     * Must run after CommentToPhpdocFixer, PhpdocIndentFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocTypesFixer.
+     * Must run after AlignMultilineCommentFixer, CommentToPhpdocFixer, PhpdocIndentFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocTypesFixer.
      */
     public function getPriority()
     {
@@ -172,9 +172,9 @@ final class GeneralPhpdocTagRenameFixer extends AbstractFixer implements Configu
 
         if ($this->configuration['fix_annotation']) {
             if ($this->configuration['fix_inline']) {
-                $regex = '/\b(?<=@)(%s)\b/';
+                $regex = '/"[^"]*"(*SKIP)(*FAIL)|\b(?<=@)(%s)\b/';
             } else {
-                $regex = '/(?<!\{@)(?<=@)(%s)(?!\})/';
+                $regex = '/"[^"]*"(*SKIP)(*FAIL)|(?<!\{@)(?<=@)(%s)(?!\})/';
             }
         } else {
             $regex = '/(?<={@)(%s)(?=[ \t}])/';

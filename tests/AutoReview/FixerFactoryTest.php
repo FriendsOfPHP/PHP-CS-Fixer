@@ -76,6 +76,7 @@ final class FixerFactoryTest extends TestCase
             [$fixers['braces'], $fixers['method_chaining_indentation']],
             [$fixers['class_attributes_separation'], $fixers['braces']],
             [$fixers['class_attributes_separation'], $fixers['indentation_type']],
+            [$fixers['class_definition'], $fixers['braces']],
             [$fixers['class_keyword_remove'], $fixers['no_unused_imports']],
             [$fixers['combine_consecutive_issets'], $fixers['multiline_whitespace_before_semicolons']],
             [$fixers['combine_consecutive_issets'], $fixers['no_singleline_whitespace_before_semicolons']],
@@ -102,6 +103,7 @@ final class FixerFactoryTest extends TestCase
             [$fixers['final_internal_class'], $fixers['protected_to_private']],
             [$fixers['final_internal_class'], $fixers['self_static_accessor']],
             [$fixers['fully_qualified_strict_types'], $fixers['no_superfluous_phpdoc_tags']],
+            [$fixers['function_declaration'], $fixers['method_argument_space']],
             [$fixers['function_to_constant'], $fixers['native_function_casing']],
             [$fixers['function_to_constant'], $fixers['no_extra_blank_lines']],
             [$fixers['function_to_constant'], $fixers['no_singleline_whitespace_before_semicolons']],
@@ -265,6 +267,8 @@ final class FixerFactoryTest extends TestCase
             [$fixers['single_import_per_statement'], $fixers['no_unused_imports']],
             [$fixers['single_import_per_statement'], $fixers['space_after_semicolon']],
             [$fixers['single_line_throw'], $fixers['concat_space']],
+            [$fixers['single_space_after_construct'], $fixers['braces']],
+            [$fixers['single_space_after_construct'], $fixers['function_declaration']],
             [$fixers['single_trait_insert_per_statement'], $fixers['braces']],
             [$fixers['single_trait_insert_per_statement'], $fixers['space_after_semicolon']],
             [$fixers['standardize_increment'], $fixers['increment_style']],
@@ -293,16 +297,19 @@ final class FixerFactoryTest extends TestCase
 
         $cases = [];
 
-        // prepare bulk tests for phpdoc fixers to test that:
-        // * `comment_to_phpdoc` is first
-        // * `phpdoc_to_comment` is second
-        // * `phpdoc_indent` is third
-        // * `phpdoc_types` is fourth
-        // * `phpdoc_scalar` is fifth
+        // Prepare bulk tests for phpdoc fixers to test that:
+        // * `align_multiline_comment` is first
+        // * `comment_to_phpdoc` is second
+        // * `phpdoc_to_comment` is third
+        // * `phpdoc_indent` is fourth
+        // * `phpdoc_types` is fifth
+        // * `phpdoc_scalar` is sixth
         // * `phpdoc_align` is last
+        // Add these cases in test-order instead of alphabetical
+        $cases[] = [$fixers['align_multiline_comment'], $fixers['comment_to_phpdoc']];
         $cases[] = [$fixers['comment_to_phpdoc'], $fixers['phpdoc_to_comment']];
-        $cases[] = [$fixers['phpdoc_indent'], $fixers['phpdoc_types']];
         $cases[] = [$fixers['phpdoc_to_comment'], $fixers['phpdoc_indent']];
+        $cases[] = [$fixers['phpdoc_indent'], $fixers['phpdoc_types']];
         $cases[] = [$fixers['phpdoc_types'], $fixers['phpdoc_scalar']];
 
         $docFixerNames = array_filter(
@@ -314,6 +321,7 @@ final class FixerFactoryTest extends TestCase
 
         foreach ($docFixerNames as $docFixerName) {
             if (!\in_array($docFixerName, ['comment_to_phpdoc', 'phpdoc_to_comment', 'phpdoc_indent', 'phpdoc_types', 'phpdoc_scalar'], true)) {
+                $cases[] = [$fixers['align_multiline_comment'], $fixers[$docFixerName]];
                 $cases[] = [$fixers['comment_to_phpdoc'], $fixers[$docFixerName]];
                 $cases[] = [$fixers['phpdoc_indent'], $fixers[$docFixerName]];
                 $cases[] = [$fixers['phpdoc_to_comment'], $fixers[$docFixerName]];

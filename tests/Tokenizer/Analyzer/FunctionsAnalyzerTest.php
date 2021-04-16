@@ -348,32 +348,47 @@ A();
     }
 
     /**
-     * @param int[]  $globalFunctionIndexes
+     * @param bool   $isFunctionIndex
      * @param string $code
+     * @param int    $index
      *
      * @dataProvider provideIsGlobalFunctionCallPhp80Cases
      * @requires PHP 8.0
      */
-    public function testIsGlobalFunctionCallPhp80(array $globalFunctionIndexes, $code)
+    public function testIsGlobalFunctionCallPhp80($isFunctionIndex, $code, $index)
     {
         $tokens = Tokens::fromCode($code);
         $analyzer = new FunctionsAnalyzer();
 
-        foreach ($globalFunctionIndexes as $index) {
-            static::assertTrue($analyzer->isGlobalFunctionCall($tokens, $index));
-        }
+        static::assertSame($isFunctionIndex, $analyzer->isGlobalFunctionCall($tokens, $index));
     }
 
     public function provideIsGlobalFunctionCallPhp80Cases()
     {
         yield [
-            [8],
+            true,
             '<?php $a = new (foo());',
+            8,
         ];
 
         yield [
-            [10],
+            true,
             '<?php $b = $foo instanceof (foo());',
+            10,
+        ];
+
+        yield [
+            false,
+            '<?php
+#[\Attribute(\Attribute::TARGET_CLASS)]
+class Foo {}
+',
+            3,
+        ];
+        yield [
+            false,
+            '<?php $x?->count();',
+            3,
         ];
     }
 
@@ -763,6 +778,14 @@ A();
             sprintf($template, 'Bar::'),
             24,
         ];
+
+        if (\PHP_VERSION_ID >= 80000) {
+            yield [
+                true,
+                sprintf($template, '$this?->'),
+                24,
+            ];
+        }
     }
 
     /**

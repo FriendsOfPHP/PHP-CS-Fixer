@@ -48,7 +48,14 @@ class Tokens extends \SplFixedArray
     private static $cache = [];
 
     /**
-     * Cache of block edges. Any change in collection will invalidate it.
+     * Cache of block starts. Any change in collection will invalidate it.
+     *
+     * @var array<int, int>
+     */
+    private $blockStartCache = [];
+
+    /**
+     * Cache of block ends. Any change in collection will invalidate it.
      *
      * @var array<int, int>
      */
@@ -276,6 +283,7 @@ class Tokens extends \SplFixedArray
             ],
         ];
 
+        // @TODO: drop condition when PHP 8.0+ is required
         if (\defined('T_ATTRIBUTE')) {
             $definitions[self::BLOCK_TYPE_ATTRIBUTE] = [
                 'start' => [T_ATTRIBUTE, '#['],
@@ -290,13 +298,18 @@ class Tokens extends \SplFixedArray
      * Set new size of collection.
      *
      * @param int $size
+     *
+     * @return bool
      */
     public function setSize($size)
     {
         if ($this->getSize() !== $size) {
             $this->changed = true;
-            parent::setSize($size);
+
+            return parent::setSize($size);
         }
+
+        return true;
     }
 
     /**
@@ -321,6 +334,7 @@ class Tokens extends \SplFixedArray
      */
     public function offsetSet($index, $newval)
     {
+        $this->blockStartCache = [];
         $this->blockEndCache = [];
 
         if (!isset($this[$index]) || !$this[$index]->equals($newval)) {
@@ -455,9 +469,9 @@ class Tokens extends \SplFixedArray
     {
         if (3 === \func_num_args()) {
             if ($findEnd) {
-                @trigger_error('Argument #3 of Tokens::findBlockEnd is deprecated and will be removed in 3.0, you can safely drop the argument.', E_USER_DEPRECATED);
+                Utils::triggerDeprecation('Argument #3 of Tokens::findBlockEnd is deprecated and will be removed in 3.0, you can safely drop the argument.');
             } else {
-                @trigger_error('Argument #3 of Tokens::findBlockEnd is deprecated and will be removed in 3.0, use Tokens::findBlockStart instead.', E_USER_DEPRECATED);
+                Utils::triggerDeprecation('Argument #3 of Tokens::findBlockEnd is deprecated and will be removed in 3.0, use Tokens::findBlockStart instead.');
             }
         }
 
@@ -932,6 +946,7 @@ class Tokens extends \SplFixedArray
 
         $oldSize = \count($this);
         $this->changed = true;
+        $this->blockStartCache = [];
         $this->blockEndCache = [];
         $this->setSize($oldSize + $itemsCount);
 
@@ -1014,7 +1029,7 @@ class Tokens extends \SplFixedArray
      */
     public function overrideAt($index, $token)
     {
-        @trigger_error(__METHOD__.' is deprecated and will be removed in 3.0, use offsetSet instead.', E_USER_DEPRECATED);
+        Utils::triggerDeprecation(__METHOD__.' is deprecated and will be removed in 3.0, use offsetSet instead.');
         self::$isLegacyMode = true;
 
         $this[$index]->override($token);
@@ -1092,7 +1107,7 @@ class Tokens extends \SplFixedArray
         // clear memory
         $this->setSize(0);
 
-        $tokens = \defined('TOKEN_PARSE')
+        $tokens = \defined('TOKEN_PARSE') // @TODO: drop condition when PHP 7.0+ is required
             ? token_get_all($code, TOKEN_PARSE)
             : token_get_all($code);
 
@@ -1102,8 +1117,7 @@ class Tokens extends \SplFixedArray
             $this[$index] = new Token($token);
         }
 
-        $transformers = Transformers::create();
-        $transformers->transform($this);
+        $this->applyTransformers();
 
         $this->foundTokenKinds = [];
 
@@ -1370,6 +1384,15 @@ class Tokens extends \SplFixedArray
         return parent::valid();
     }
 
+    /**
+     * @internal
+     */
+    protected function applyTransformers()
+    {
+        $transformers = Transformers::create();
+        $transformers->transform($this);
+    }
+
     private function warnPhp8SplFixerArrayChange($method)
     {
         if (80000 <= \PHP_VERSION_ID) {
@@ -1422,8 +1445,13 @@ class Tokens extends \SplFixedArray
             throw new \InvalidArgumentException(sprintf('Invalid param type: "%s".', $type));
         }
 
-        if (!self::isLegacyMode() && isset($this->blockEndCache[$searchIndex])) {
-            return $this->blockEndCache[$searchIndex];
+        if (!self::isLegacyMode()) {
+            if ($findEnd && isset($this->blockStartCache[$searchIndex])) {
+                return $this->blockStartCache[$searchIndex];
+            }
+            if (!$findEnd && isset($this->blockEndCache[$searchIndex])) {
+                return $this->blockEndCache[$searchIndex];
+            }
         }
 
         $startEdge = $blockEdgeDefinitions[$type]['start'];
@@ -1468,8 +1496,13 @@ class Tokens extends \SplFixedArray
             throw new \UnexpectedValueException(sprintf('Missing block "%s".', $findEnd ? 'end' : 'start'));
         }
 
-        $this->blockEndCache[$startIndex] = $index;
-        $this->blockEndCache[$index] = $startIndex;
+        if ($startIndex < $index) {
+            $this->blockStartCache[$startIndex] = $index;
+            $this->blockEndCache[$index] = $startIndex;
+        } else {
+            $this->blockStartCache[$index] = $startIndex;
+            $this->blockEndCache[$startIndex] = $index;
+        }
 
         return $index;
     }

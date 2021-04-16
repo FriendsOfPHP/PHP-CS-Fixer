@@ -3,6 +3,51 @@ CHANGELOG for PHP CS Fixer
 
 This file contains changelogs for stable releases only.
 
+Changelog for v2.18.5
+---------------------
+
+* bug #5561 NoMixedEchoPrintFixer: fix for conditions without curly brackets (kubawerlos)
+* bug #5563 Priority fix: SingleSpaceAfterConstructFixer must run before BracesFixer (kubawerlos)
+* bug #5567 Fix order of BracesFixer and ClassDefinitionFixer (Daeroni)
+* bug #5596 NullableTypeTransformer - fix for attributes (kubawerlos, jrmajor)
+* bug #5598 GroupImportFixer - fix breaking code when fixing root classes (Leprechaunz)
+* minor #5571 DX: add test to make sure SingleSpaceAfterConstructFixer runs before FunctionDeclarationFixer (kubawerlos)
+* minor #5577 Extend priority test for "class_definition" vs "braces" (kubawerlos)
+* minor #5585 DX: make doc examples prettier (kubawerlos)
+* minor #5590 Docs: HeaderCommentFixer - document example how to remove header comment (keradus)
+* minor #5602 DX: regenerate docs (keradus)
+
+Changelog for v2.18.4
+---------------------
+
+* bug #4085 Priority: AlignMultilineComment should run before every PhpdocFixer (dmvdbrugge)
+* bug #5421 PsrAutoloadingFixer - Fix PSR autoloading outside configured directory (kelunik, keradus)
+* bug #5464 NativeFunctionInvocationFixer - PHP 8 attributes (HypeMC, keradus)
+* bug #5548 NullableTypeDeclarationForDefaultNullValueFixer - fix handling promoted properties (jrmajor, keradus)
+* bug #5550 TypeAlternationTransformer - fix for typed static properties (kubawerlos)
+* bug #5551 ClassAttributesSeparationFixer - fix for properties with type alternation (kubawerlos, keradus)
+* bug #5552 DX: test relation between function_declaration and method_argument_space (keradus)
+* minor #5540 DX: RuleSet - convert null handling to soft-warning (keradus)
+* minor #5545 DX: update checkbashisms (keradus)
+
+Changelog for v2.18.3
+---------------------
+
+* bug #5484 NullableTypeDeclarationForDefaultNullValueFixer - handle mixed pseudotype (keradus)
+* minor #5470 Disable CI fail-fast (mvorisek)
+* minor #5491 Support php8 static return type for NoSuperfluousPhpdocTagsFixer (tigitz)
+* minor #5494 BinaryOperatorSpacesFixer - extend examples (keradus)
+* minor #5499 DX: add TODOs for PHP requirements cleanup (keradus)
+* minor #5500 DX: Test that Transformers are adding only CustomTokens that they define and nothing else (keradus)
+* minor #5507 Fix quoting in exception message (gquemener)
+* minor #5514 DX: PHP 7.0 integration test - solve TODO for random_api_migration usage (keradus)
+* minor #5515 DX: do not override getConfigurationDefinition (keradus)
+* minor #5516 DX: AbstractDoctrineAnnotationFixer - no need for import aliases (keradus)
+* minor #5518 DX: minor typing and validation fixes (keradus)
+* minor #5522 Token - add handling json_encode crash (keradus)
+* minor #5523 DX: EregToPregFixer - fix sorting (keradus)
+* minor #5528 DX: code cleanup (keradus)
+
 Changelog for v2.18.2
 ---------------------
 

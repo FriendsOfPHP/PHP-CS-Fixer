@@ -23,6 +23,7 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
+use PhpCsFixer\Utils;
 
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
@@ -72,7 +73,7 @@ final class BlankLineBeforeStatementFixer extends AbstractFixer implements Confi
     {
         parent::__construct();
 
-        // To be moved back to compile time property declaration when PHP support of PHP CS Fixer will be 7.0+
+        // @TODO: To be moved back to compile time property declaration when PHP support of PHP CS Fixer will be 7.0+
         if (\defined('T_YIELD_FROM')) {
             self::$tokenMap['yield_from'] = T_YIELD_FROM;
         }
@@ -89,7 +90,7 @@ final class BlankLineBeforeStatementFixer extends AbstractFixer implements Confi
 
         foreach ($this->configuration['statements'] as $key) {
             if ('die' === $key) {
-                @trigger_error('Option "die" is deprecated, use "exit" instead.', E_USER_DEPRECATED);
+                Utils::triggerDeprecation('Option "die" is deprecated, use "exit" instead.');
             }
 
             $this->fixTokenMap[$key] = self::$tokenMap[$key];

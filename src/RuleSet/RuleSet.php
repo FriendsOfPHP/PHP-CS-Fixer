@@ -12,6 +12,9 @@
 
 namespace PhpCsFixer\RuleSet;
 
+use PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException;
+use PhpCsFixer\Utils;
+
 /**
  * Set of rules to be used by fixer.
  *
@@ -37,9 +40,29 @@ class RuleSet implements RuleSetInterface
 
     public function __construct(array $set = [])
     {
-        foreach ($set as $key => $value) {
-            if (\is_int($key)) {
+        foreach ($set as $name => $value) {
+            if ('' === $name) {
+                throw new \InvalidArgumentException('Rule/set name must not be empty.');
+            }
+
+            if (\is_int($name)) {
                 throw new \InvalidArgumentException(sprintf('Missing value for "%s" rule/set.', $value));
+            }
+
+            if (true !== $value && false !== $value && !\is_array($value)) {
+                // @TODO drop me on 3.0
+                if (null === $value) {
+                    Utils::triggerDeprecation(
+                        'To disable the rule, use "FALSE" instead of "NULL".',
+                        InvalidFixerConfigurationException::class
+                    );
+
+                    continue;
+                }
+
+                $message = '@' === $name[0] ? 'Set must be enabled (true) or disabled (false). Other values are not allowed.' : 'Rule must be enabled (true), disabled (false) or configured (non-empty, assoc array). Other values are not allowed.';
+
+                throw new InvalidFixerConfigurationException($name, $message);
             }
         }
 
@@ -83,7 +106,7 @@ class RuleSet implements RuleSetInterface
      */
     public static function create(array $set = [])
     {
-        @trigger_error(__METHOD__.' is deprecated and will be removed in 3.0, use the constructor.', E_USER_DEPRECATED);
+        Utils::triggerDeprecation(__METHOD__.' is deprecated and will be removed in 3.0, use the constructor.');
 
         return new self($set);
     }
@@ -93,7 +116,7 @@ class RuleSet implements RuleSetInterface
      */
     public function getSetDefinitionNames()
     {
-        @trigger_error(__METHOD__.' is deprecated and will be removed in 3.0, use PhpCsFixer\RuleSet\RuleSets::getSetDefinitionNames.', E_USER_DEPRECATED);
+        Utils::triggerDeprecation(__METHOD__.' is deprecated and will be removed in 3.0, use PhpCsFixer\RuleSet\RuleSets::getSetDefinitionNames.');
 
         return RuleSets::getSetDefinitionNames();
     }

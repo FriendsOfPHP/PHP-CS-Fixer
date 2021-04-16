@@ -326,7 +326,7 @@ final class TokensAnalyzer
 
         $prevIndex = $this->tokens->getPrevMeaningfulToken($index);
 
-        if ($this->tokens[$prevIndex]->isGivenKind([T_AS, T_CLASS, T_CONST, T_DOUBLE_COLON, T_FUNCTION, T_GOTO, CT::T_GROUP_IMPORT_BRACE_OPEN, T_INTERFACE, T_OBJECT_OPERATOR, T_TRAIT, CT::T_TYPE_COLON])) {
+        if ($this->tokens[$prevIndex]->isGivenKind([T_AS, T_CLASS, T_CONST, T_DOUBLE_COLON, T_FUNCTION, T_GOTO, CT::T_GROUP_IMPORT_BRACE_OPEN, T_INTERFACE, T_TRAIT, CT::T_TYPE_COLON]) || $this->tokens[$prevIndex]->isObjectOperator()) {
             return false;
         }
 
@@ -560,14 +560,17 @@ final class TokensAnalyzer
                 CT::T_TYPE_ALTERNATION => true, // |
             ];
 
+            // @TODO: drop condition when PHP 7.0+ is required
             if (\defined('T_SPACESHIP')) {
                 $arrayOperators[T_SPACESHIP] = true; // <=>
             }
 
+            // @TODO: drop condition when PHP 7.0+ is required
             if (\defined('T_COALESCE')) {
                 $arrayOperators[T_COALESCE] = true;  // ??
             }
 
+            // @TODO: drop condition when PHP 7.4+ is required
             if (\defined('T_COALESCE_EQUAL')) {
                 $arrayOperators[T_COALESCE_EQUAL] = true;  // ??=
             }

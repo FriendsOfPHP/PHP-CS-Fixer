@@ -151,8 +151,38 @@ final class TokenTest extends TestCase
             yield $index => $test;
         }
 
+        // @TODO: drop condition when PHP 8.0+ is required
         if (\defined('T_ATTRIBUTE')) {
             yield [new Token([T_ATTRIBUTE, '#[', 1]), false];
+        }
+    }
+
+    /**
+     * @param bool $isObjectOperator
+     *
+     * @dataProvider provideIsObjectOperatorCases
+     */
+    public function testIsObjectOperator(Token $token, $isObjectOperator)
+    {
+        static::assertSame($isObjectOperator, $token->isObjectOperator());
+    }
+
+    public function provideIsObjectOperatorCases()
+    {
+        $tests = [
+            [$this->getBraceToken(), false],
+            [$this->getForeachToken(), false],
+            [new Token([T_COMMENT, '/* comment */']), false],
+            [new Token([T_DOUBLE_COLON, '::']), false],
+            [new Token([T_OBJECT_OPERATOR, '->']), true],
+        ];
+
+        foreach ($tests as $index => $test) {
+            yield $index => $test;
+        }
+
+        if (\defined('T_NULLSAFE_OBJECT_OPERATOR')) {
+            yield [new Token([T_NULLSAFE_OBJECT_OPERATOR, '?->']), true];
         }
     }
 

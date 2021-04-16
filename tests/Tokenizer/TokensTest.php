@@ -46,11 +46,11 @@ final class TokensTest extends TestCase
     }
 
     /**
-     * @param string     $source
-     * @param Token[]    $sequence
-     * @param int        $start
-     * @param null|int   $end
-     * @param array|bool $caseSensitive
+     * @param string          $source
+     * @param Token[]         $sequence
+     * @param int             $start
+     * @param null|int        $end
+     * @param null|array|bool $caseSensitive
      *
      * @dataProvider provideFindSequenceCases
      */
@@ -210,7 +210,7 @@ final class TokensTest extends TestCase
                 ],
                 0,
                 1,
-                [1, true],
+                [1 => true],
             ],
             [
                 '<?php $x = 13;',
@@ -238,7 +238,7 @@ final class TokensTest extends TestCase
                 ],
                 0,
                 1,
-                [1, false],
+                [1 => false],
             ],
             [
                 '<?php $x = 15;',
@@ -621,7 +621,7 @@ PHP;
     }
 
     /**
-     * @param int  $expectedIndex
+     * @param ?int $expectedIndex
      * @param int  $direction
      * @param int  $index
      * @param bool $caseSensitive
@@ -825,6 +825,32 @@ PHP;
         $tokens = Tokens::fromCode('<?php ${$bar};');
 
         static::assertSame(4, $tokens->findBlockEnd(Tokens::BLOCK_TYPE_DYNAMIC_VAR_BRACE, 2, true));
+    }
+
+    public function testFindBlockEndCalledMultipleTimes()
+    {
+        Tokens::clearCache();
+        $tokens = Tokens::fromCode('<?php foo(1, 2);');
+
+        static::assertSame(7, $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, 2));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^Invalid param \$startIndex - not a proper block "start"\.$/');
+
+        $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, 7);
+    }
+
+    public function testFindBlockStartEdgeCalledMultipleTimes()
+    {
+        Tokens::clearCache();
+        $tokens = Tokens::fromCode('<?php foo(1, 2);');
+
+        static::assertSame(2, $tokens->findBlockStart(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, 7));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^Invalid param \$startIndex - not a proper block "end"\.$/');
+
+        $tokens->findBlockStart(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, 2);
     }
 
     public function testEmptyTokens()
@@ -1247,9 +1273,9 @@ $bar;',
     }
 
     /**
-     * @param null|int $expected
-     * @param string   $code
-     * @param int      $index
+     * @param null|array $expected
+     * @param string     $code
+     * @param int        $index
      *
      * @dataProvider provideDetectBlockTypeCases
      */

@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * This file is part of PHP CS Fixer.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *     Dariusz Rumiński <dariusz.ruminski@gmail.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
+// HARD copy of .php-cs-fixer.dist.php file for fabbot.io compatibility for PHP CS Fixer v2
+
 $header = <<<'EOF'
 This file is part of PHP CS Fixer.
 
@@ -39,7 +51,8 @@ if (false !== getenv('FABBOT_IO')) {
         PhpCsFixer\FixerFactory::create()
             ->registerBuiltInFixers()
             ->registerCustomFixers($config->getCustomFixers())
-            ->useRuleSet(new PhpCsFixer\RuleSet($config->getRules()));
+            ->useRuleSet(new PhpCsFixer\RuleSet($config->getRules()))
+        ;
     } catch (PhpCsFixer\ConfigurationException\InvalidConfigurationException $e) {
         $config->setRules([]);
     } catch (UnexpectedValueException $e) {
