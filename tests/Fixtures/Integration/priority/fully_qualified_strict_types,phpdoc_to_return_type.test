@@ -7,7 +7,7 @@ Integration of fixers: fully_qualified_strict_types,phpdoc_to_return_type.
 --EXPECT--
 <?php
 use \Foo\Bar\Baz;
-/** @return \Foo\Bar\Baz */
+/** @return Baz */
 function my_foo(): Baz
 {}
 

@@ -20,7 +20,7 @@ use PhpCsFixer\Tests\TestCase;
  *
  * @internal
  *
- * @covers \PhpCsFixer\Cache\Directory
+ * @covers \Directory
  */
 final class DirectoryTest extends TestCase
 {

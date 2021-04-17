@@ -2,8 +2,8 @@
 Rule ``fully_qualified_strict_types``
 =====================================
 
-Transforms imported FQCN parameters and return types in function arguments to
-short version.
+Transforms imported FQCN parameters (including PHPDoc) and return types in
+function arguments to short version.
 
 Examples
 --------
@@ -16,9 +16,7 @@ Example #1
    --- Original
    +++ New
     <?php
-
     use Foo\Bar;
-
     class SomeClass
     {
    -    public function doSomething(\Foo\Bar $foo)
@@ -35,10 +33,29 @@ Example #2
    --- Original
    +++ New
     <?php
+    use Foo\Bar\Baz;
+    use Foo\Bar\Bam;
+    /**
+   - * @see \Foo\Bar\Baz
+   - * @see \Foo\Bar\Bam
+   + * @see Baz
+   + * @see Bam
+     */
+    class SomeClass
+    {
 
+    }
+
+Example #3
+~~~~~~~~~~
+
+.. code-block:: diff
+
+   --- Original
+   +++ New
+    <?php
     use Foo\Bar;
     use Foo\Bar\Baz;
-
     class SomeClass
     {
    -    public function doSomething(\Foo\Bar $foo): \Foo\Bar\Baz
