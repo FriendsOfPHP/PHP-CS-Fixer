@@ -41,6 +41,7 @@ final class BlankLineBeforeStatementFixer extends AbstractFixer implements Confi
         'continue' => T_CONTINUE,
         'declare' => T_DECLARE,
         'default' => T_DEFAULT,
+        'doc_comment' => T_DOC_COMMENT,
         'die' => T_EXIT, // TODO remove this alias 3.0, use `exit`
         'do' => T_DO,
         'exit' => T_EXIT,
