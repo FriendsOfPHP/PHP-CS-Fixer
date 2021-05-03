@@ -113,7 +113,8 @@ final class NoMixedEchoPrintFixer extends AbstractFixer implements Configuration
             (new FixerOptionBuilder('use', 'The desired language construct.'))
                 ->setAllowedValues(['print', 'echo'])
                 ->setDefault('echo')
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

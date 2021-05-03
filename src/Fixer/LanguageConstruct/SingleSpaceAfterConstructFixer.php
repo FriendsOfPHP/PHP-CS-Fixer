@@ -273,7 +273,8 @@ yield  from  baz();
                 ->setAllowedTypes(['array'])
                 ->setAllowedValues([new AllowedValueSubset(array_keys(self::$tokenMap))])
                 ->setDefault(array_keys(self::$tokenMap))
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

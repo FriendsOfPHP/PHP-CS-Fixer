@@ -90,11 +90,13 @@ final class GeneralPhpdocTagRenameFixer extends AbstractFixer implements Configu
             (new FixerOptionBuilder('fix_annotation', 'Whether annotation tags should be fixed.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(true)
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder('fix_inline', 'Whether inline tags should be fixed.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(true)
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder('replacements', 'A map of tags to replace.'))
                 ->setAllowedTypes(['array'])
                 ->setNormalizer(function (Options $options, $value) {
@@ -153,11 +155,13 @@ final class GeneralPhpdocTagRenameFixer extends AbstractFixer implements Configu
                     return $normalizedValue;
                 })
                 ->setDefault([])
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder('case_sensitive', 'Whether tags should be replaced only if they have exact same casing.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

@@ -82,7 +82,8 @@ final class Psr0Fixer extends AbstractProxyFixer implements ConfigurationDefinit
             (new FixerOptionBuilder('dir', 'The directory where the project code is placed.'))
                 ->setAllowedTypes(['string'])
                 ->setDefault('')
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

@@ -113,7 +113,8 @@ final class Example
                 ->setDefault($values)
                 ->setAllowedTypes(['array'])
                 ->setAllowedValues([new AllowedValueSubset($values)])
-                ->getOption(),
+                ->getOption()
+            ,
         ], $this->getName());
     }
 

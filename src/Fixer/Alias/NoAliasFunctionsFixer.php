@@ -252,7 +252,8 @@ mbereg_search_getregs();
                 ->setAllowedTypes(['array'])
                 ->setAllowedValues([new AllowedValueSubset($sets)])
                 ->setDefault(['@internal', '@IMAP'])
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 }

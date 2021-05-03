@@ -140,21 +140,24 @@ interface Bar extends
             ))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
-                ->getOption(),
+                ->getOption()
+            ,
             (new AliasedFixerOptionBuilder(
                 new FixerOptionBuilder('single_item_single_line', 'Whether definitions should be single line when including a single item.'),
                 'singleItemSingleLine'
             ))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
-                ->getOption(),
+                ->getOption()
+            ,
             (new AliasedFixerOptionBuilder(
                 new FixerOptionBuilder('single_line', 'Whether definitions should be single line.'),
                 'singleLine'
             ))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

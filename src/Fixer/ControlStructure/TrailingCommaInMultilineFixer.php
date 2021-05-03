@@ -114,7 +114,8 @@ SAMPLE
 
                     return $value;
                 })
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder('elements', sprintf('Where to fix multiline trailing comma (PHP >= 7.3 required for `%s`, PHP >= 8.0 for `%s`).', self::ELEMENTS_ARGUMENTS, self::ELEMENTS_PARAMETERS)))
                 ->setAllowedTypes(['array'])
                 ->setAllowedValues([new AllowedValueSubset([self::ELEMENTS_ARRAYS, self::ELEMENTS_ARGUMENTS, self::ELEMENTS_PARAMETERS])])
@@ -129,7 +130,8 @@ SAMPLE
 
                     return $value;
                 })
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

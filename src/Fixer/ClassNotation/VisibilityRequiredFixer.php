@@ -87,7 +87,8 @@ class Sample
                 ->setAllowedTypes(['array'])
                 ->setAllowedValues([new AllowedValueSubset(['property', 'method', 'const'])])
                 ->setDefault(['property', 'method'])  // @TODO v3 / PHP 7.1 add `const`
-                ->getOption(),
+                ->getOption()
+            ,
         ], $this->getName());
     }
 

@@ -123,7 +123,8 @@ final class CastSpacesFixer extends AbstractFixer implements ConfigurationDefini
             (new FixerOptionBuilder('space', 'spacing to apply between cast and variable.'))
                 ->setAllowedValues(['none', 'single'])
                 ->setDefault('single')
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 }

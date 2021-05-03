@@ -243,7 +243,8 @@ use Bar;
             ))
                 ->setAllowedValues($this->supportedSortAlgorithms)
                 ->setDefault(self::SORT_ALPHA)
-                ->getOption(),
+                ->getOption()
+            ,
             (new AliasedFixerOptionBuilder(
                 new FixerOptionBuilder('imports_order', 'Defines the order of import types.'),
                 'importsOrder'
@@ -273,7 +274,8 @@ use Bar;
                     return true;
                 }])
                 ->setDefault(null)
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

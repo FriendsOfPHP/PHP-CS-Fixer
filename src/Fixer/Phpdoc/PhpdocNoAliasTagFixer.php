@@ -118,7 +118,8 @@ final class Example
                     'type' => 'var',
                     'link' => 'see',
                 ])
-                ->getOption(),
+                ->getOption()
+            ,
         ], $this->getName());
     }
 

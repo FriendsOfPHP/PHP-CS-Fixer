@@ -97,12 +97,14 @@ public function testItDoesSomething() {}}'.$this->whitespacesConfig->getLineEndi
             (new FixerOptionBuilder('style', 'Whether to use the @test annotation or not.'))
                 ->setAllowedValues(['prefix', 'annotation'])
                 ->setDefault('prefix')
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder('case', 'Whether to camel or snake case when adding the test prefix'))
                 ->setAllowedValues(['camel', 'snake'])
                 ->setDefault('camel')
                 ->setDeprecationMessage('Use `php_unit_method_casing` fixer instead.')
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

@@ -101,7 +101,8 @@ namespace Foo {
             (new FixerOptionBuilder('namespaces', 'Remove unneeded curly braces from bracketed namespaces.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

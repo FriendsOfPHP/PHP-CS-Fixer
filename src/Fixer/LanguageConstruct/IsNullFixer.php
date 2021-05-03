@@ -197,7 +197,8 @@ final class IsNullFixer extends AbstractFixer implements ConfigurationDefinition
                 ->setAllowedTypes(['bool'])
                 ->setDefault(true)
                 ->setDeprecationMessage('Use `yoda_style` fixer instead.')
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 }

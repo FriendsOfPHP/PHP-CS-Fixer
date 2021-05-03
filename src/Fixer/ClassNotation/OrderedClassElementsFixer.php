@@ -279,14 +279,16 @@ class Example
                     'method_protected',
                     'method_private',
                 ])
-                ->getOption(),
+                ->getOption()
+            ,
             (new AliasedFixerOptionBuilder(
                 new FixerOptionBuilder('sort_algorithm', 'How multiple occurrences of same type statements should be sorted'),
                 'sortAlgorithm'
             ))
                 ->setAllowedValues($this->supportedSortAlgorithms)
                 ->setDefault(self::SORT_NONE)
-                ->getOption(),
+                ->getOption()
+            ,
         ], $this->getName());
     }
 

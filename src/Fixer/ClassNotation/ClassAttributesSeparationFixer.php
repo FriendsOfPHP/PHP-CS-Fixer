@@ -238,7 +238,8 @@ class Sample
                     'method' => self::SPACING_ONE,
                     'property' => self::SPACING_ONE,
                 ])
-                ->getOption(),
+                ->getOption()
+            ,
         ]);
     }
 

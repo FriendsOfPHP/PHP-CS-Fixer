@@ -244,7 +244,8 @@ final class MyTest extends \PHPUnit_Framework_TestCase
                 ])
                 ->setDefault(null)
                 ->setDeprecationMessage('Use option `target` instead.')
-                ->getOption(),
+                ->getOption()
+            ,
             (new FixerOptionBuilder('target', 'Target version of PHPUnit.'))
                 ->setAllowedTypes(['string'])
                 ->setAllowedValues([
@@ -255,7 +256,8 @@ final class MyTest extends \PHPUnit_Framework_TestCase
                     PhpUnitTargetVersion::VERSION_NEWEST,
                 ])
                 ->setDefault(PhpUnitTargetVersion::VERSION_5_0) // @TODO 3.x: change to `VERSION_NEWEST`
-                ->getOption(),
+                ->getOption()
+            ,
         ], $this->getName());
     }
 
