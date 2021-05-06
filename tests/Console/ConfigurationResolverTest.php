@@ -983,7 +983,7 @@ final class ConfigurationResolverTest extends TestCase
     {
         $config = new Config();
         $config->setRules([
-            'braces' => true,
+            'statement_indentation' => true,
             'strict_comparison' => false,
         ]);
 
@@ -994,7 +994,7 @@ final class ConfigurationResolverTest extends TestCase
 
         static::assertSameRules(
             [
-                'braces' => true,
+                'statement_indentation' => true,
             ],
             $resolver->getRules()
         );
@@ -1002,11 +1002,11 @@ final class ConfigurationResolverTest extends TestCase
 
     public function testResolveRulesWithOption()
     {
-        $resolver = $this->createConfigurationResolver(['rules' => 'braces,-strict_comparison']);
+        $resolver = $this->createConfigurationResolver(['rules' => 'statement_indentation,-strict_comparison']);
 
         static::assertSameRules(
             [
-                'braces' => true,
+                'statement_indentation' => true,
             ],
             $resolver->getRules()
         );
@@ -1021,7 +1021,7 @@ final class ConfigurationResolverTest extends TestCase
             'The rules contain unknown fixers: "bar", "binary_operator_space" (did you mean "binary_operator_spaces"?).'
         );
 
-        $resolver = $this->createConfigurationResolver(['rules' => 'braces,-bar,binary_operator_space']);
+        $resolver = $this->createConfigurationResolver(['rules' => 'statement_indentation,-bar,binary_operator_space']);
 
         $resolver->getRules();
     }
@@ -1030,7 +1030,7 @@ final class ConfigurationResolverTest extends TestCase
     {
         $config = new Config();
         $config->setRules([
-            'braces' => true,
+            'statement_indentation' => true,
             'strict_comparison' => false,
         ]);
 

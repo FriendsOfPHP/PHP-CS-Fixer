@@ -16,9 +16,7 @@ Rules
 - `blank_line_before_statement <./../rules/whitespace/blank_line_before_statement.rst>`_
   config:
   ``['statements' => ['return']]``
-- `braces <./../rules/basic/braces.rst>`_
-  config:
-  ``['allow_single_line_anonymous_class_with_empty_body' => true, 'allow_single_line_closure' => true]``
+- `blank_lines_inside_block <./../rules/whitespace/blank_lines_inside_block.rst>`_
 - `cast_spaces <./../rules/cast_notation/cast_spaces.rst>`_
 - `class_attributes_separation <./../rules/class_notation/class_attributes_separation.rst>`_
   config:
@@ -28,6 +26,10 @@ Rules
   ``['single_line' => true]``
 - `clean_namespace <./../rules/namespace_notation/clean_namespace.rst>`_
 - `concat_space <./../rules/operator/concat_space.rst>`_
+- `curly_braces_position <./../rules/basic/curly_braces_position.rst>`_
+  config:
+  ``['allow_single_line_anonymous_functions' => true, 'allow_single_line_empty_anonymous_classes' => true]``
+- `declare_braces <./../rules/language_construct/declare_braces.rst>`_
 - `echo_tag_syntax <./../rules/php_tag/echo_tag_syntax.rst>`_
 - `fully_qualified_strict_types <./../rules/import/fully_qualified_strict_types.rst>`_
 - `function_typehint_space <./../rules/function_notation/function_typehint_space.rst>`_

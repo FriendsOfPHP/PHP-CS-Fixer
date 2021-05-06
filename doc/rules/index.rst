@@ -49,10 +49,14 @@ Array Notation
 Basic
 -----
 
-- `braces <./basic/braces.rst>`_
+- `braces <./basic/braces.rst>`_ *(deprecated)*
     The body of each structure MUST be enclosed by braces. Braces should be properly placed. Body of braces should be properly indented.
+- `curly_braces_position <./basic/curly_braces_position.rst>`_
+    Curly braces must be placed as configured.
 - `encoding <./basic/encoding.rst>`_
     PHP code MUST use only UTF-8 without BOM (remove BOM).
+- `no_multiple_statements_per_line <./basic/no_multiple_statements_per_line.rst>`_
+    There must not be more than one statement per line.
 - `non_printable_character <./basic/non_printable_character.rst>`_ *(risky)*
     Remove Zero-width space (ZWSP), Non-breaking space (NBSP) and other invisible unicode symbols.
 - `psr0 <./basic/psr0.rst>`_ *(deprecated, risky)*
@@ -175,6 +179,10 @@ Constant Notation
 Control Structure
 -----------------
 
+- `control_structure_braces <./control_structure/control_structure_braces.rst>`_
+    The body of each control structure MUST be enclosed by braces.
+- `control_structure_continuation <./control_structure/control_structure_continuation.rst>`_
+    Control structure continuation keyword must be on the configured line.
 - `elseif <./control_structure/elseif.rst>`_
     The keyword ``elseif`` should be used instead of ``else if`` so that all control keywords look like single words.
 - `include <./control_structure/include.rst>`_
@@ -295,6 +303,8 @@ Language Construct
     Using ``isset($var) &&`` multiple times should be done in one call.
 - `combine_consecutive_unsets <./language_construct/combine_consecutive_unsets.rst>`_
     Calling ``unset`` on multiple items should be done in one call.
+- `declare_braces <./language_construct/declare_braces.rst>`_
+    There must not be spaces around ``declare`` statement braces.
 - `declare_equal_normalize <./language_construct/declare_equal_normalize.rst>`_
     Equal sign in declare statement should be surrounded by spaces or not following configuration.
 - `dir_constant <./language_construct/dir_constant.rst>`_ *(risky)*
@@ -569,6 +579,8 @@ Whitespace
     Each element of an array must be indented exactly once.
 - `blank_line_before_statement <./whitespace/blank_line_before_statement.rst>`_
     An empty line feed must precede any configured statement.
+- `blank_lines_inside_block <./whitespace/blank_lines_inside_block.rst>`_
+    There must not be blank lines at start and end of braces blocks.
 - `compact_nullable_typehint <./whitespace/compact_nullable_typehint.rst>`_
     Remove extra spaces in a nullable typehint.
 - `heredoc_indentation <./whitespace/heredoc_indentation.rst>`_
@@ -593,3 +605,5 @@ Whitespace
     Remove trailing whitespace at the end of blank lines.
 - `single_blank_line_at_eof <./whitespace/single_blank_line_at_eof.rst>`_
     A PHP file without end tag must always end with a single empty line feed.
+- `statement_indentation <./whitespace/statement_indentation.rst>`_
+    Each statement must be indented.

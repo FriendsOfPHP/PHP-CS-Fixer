@@ -53,7 +53,7 @@ final class Sample
     /**
      * {@inheritdoc}
      *
-     * Must run before BracesFixer, IndentationTypeFixer.
+     * Must run before BracesFixer, IndentationTypeFixer, StatementIndentationFixer.
      * Must run after OrderedClassElementsFixer.
      */
     public function getPriority()
