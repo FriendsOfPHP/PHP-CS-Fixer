@@ -22,6 +22,7 @@ use PhpCsFixer\Tokenizer\Analyzer\NamespacesAnalyzer;
 use PhpCsFixer\Tokenizer\Analyzer\NamespaceUsesAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+use PhpCsFixer\Tokenizer\TokensAnalyzer;
 
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
@@ -107,7 +108,7 @@ final class NoUnusedImportsFixer extends AbstractFixer
             }
 
             foreach ($currentNamespaceUseDeclarations as $useDeclaration) {
-                if (!$this->isImportUsed($tokens, $namespace, $usagesSearchIgnoredIndexes, $useDeclaration->getShortName())) {
+                if (!$this->isImportUsed($tokens, $namespace, $usagesSearchIgnoredIndexes, $useDeclaration)) {
                     $this->removeUseDeclaration($tokens, $useDeclaration);
                 }
             }
@@ -118,12 +119,19 @@ final class NoUnusedImportsFixer extends AbstractFixer
 
     /**
      * @param array<int, int> $ignoredIndexes
-     * @param string          $shortName
      *
      * @return bool
      */
-    private function isImportUsed(Tokens $tokens, NamespaceAnalysis $namespace, array $ignoredIndexes, $shortName)
+    private function isImportUsed(Tokens $tokens, NamespaceAnalysis $namespace, array $ignoredIndexes, NamespaceUseAnalysis $import)
     {
+        $analyzer = new TokensAnalyzer($tokens);
+
+        $tokensNotBeforeFunctionCall = [T_NEW];
+        // @TODO: drop condition when PHP 8.0+ is required
+        if (\defined('T_ATTRIBUTE')) {
+            $tokensNotBeforeFunctionCall[] = T_ATTRIBUTE;
+        }
+
         $namespaceEndIndex = $namespace->getScopeEndIndex();
         for ($index = $namespace->getScopeStartIndex(); $index <= $namespaceEndIndex; ++$index) {
             if (isset($ignoredIndexes[$index])) {
@@ -137,17 +145,34 @@ final class NoUnusedImportsFixer extends AbstractFixer
             if ($token->isGivenKind(T_STRING)) {
                 $prevMeaningfulToken = $tokens[$tokens->getPrevMeaningfulToken($index)];
 
+                if (
+                    $prevMeaningfulToken->isGivenKind([T_NS_SEPARATOR, T_FUNCTION, T_CONST, T_DOUBLE_COLON])
+                    || $prevMeaningfulToken->isObjectOperator()
+                ) {
+                    continue;
+                }
+
                 if ($prevMeaningfulToken->isGivenKind(T_NAMESPACE)) {
                     $index = $tokens->getNextTokenOfKind($index, [';', '{', [T_CLOSE_TAG]]);
 
                     continue;
                 }
 
-                if (
-                    0 === strcasecmp($shortName, $token->getContent())
-                    && !$prevMeaningfulToken->isGivenKind([T_NS_SEPARATOR, T_CONST, T_DOUBLE_COLON])
-                    && !$prevMeaningfulToken->isObjectOperator()
-                ) {
+                if (0 !== strcasecmp($import->getShortName(), $token->getContent())) {
+                    continue;
+                }
+
+                $nextMeaningfulToken = $tokens[$tokens->getNextMeaningfulToken($index)];
+
+                if ($analyzer->isConstantInvocation($index)) {
+                    $type = NamespaceUseAnalysis::TYPE_CONSTANT;
+                } elseif ($nextMeaningfulToken->equals('(') && !$prevMeaningfulToken->isGivenKind($tokensNotBeforeFunctionCall)) {
+                    $type = NamespaceUseAnalysis::TYPE_FUNCTION;
+                } else {
+                    $type = NamespaceUseAnalysis::TYPE_CLASS;
+                }
+
+                if ($import->getType() === $type) {
                     return true;
                 }
 
@@ -156,7 +181,7 @@ final class NoUnusedImportsFixer extends AbstractFixer
 
             if ($token->isComment()
                 && Preg::match(
-                    '/(?<![[:alnum:]\$])(?<!\\\\)'.$shortName.'(?![[:alnum:]])/i',
+                    '/(?<![[:alnum:]\$])(?<!\\\\)'.$import->getShortName().'(?![[:alnum:]])/i',
                     $token->getContent()
                 )
             ) {
