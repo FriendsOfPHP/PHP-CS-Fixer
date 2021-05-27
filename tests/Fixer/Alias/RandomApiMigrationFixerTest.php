@@ -221,4 +221,14 @@ class srand extends SrandClass{
             ],
         ];
     }
+
+    public function testFixToRandomInt()
+    {
+        $this->fixer->configure(['replacements' => ['rand' => 'random_int']]);
+
+        $this->doTest(
+            '<?php $a = random_int(0, 999);',
+            '<?php $a = rand(0, 999);'
+        );
+    }
 }
