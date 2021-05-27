@@ -41,7 +41,7 @@ final class EmptyLoopBodyFixer extends AbstractFixer implements ConfigurableFixe
      */
     public const STYLE_SEMICOLON = 'semicolon';
 
-    private $tokenLoopKinds = [T_FOR, T_FOREACH, T_WHILE];
+    private const TOKEN_LOOP_KINDS = [T_FOR, T_FOREACH, T_WHILE];
 
     /**
      * {@inheritdoc}
@@ -78,7 +78,7 @@ final class EmptyLoopBodyFixer extends AbstractFixer implements ConfigurableFixe
      */
     public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isAnyTokenKindsFound($this->tokenLoopKinds);
+        return $tokens->isAnyTokenKindsFound(self::TOKEN_LOOP_KINDS);
     }
 
     /**
@@ -122,7 +122,7 @@ final class EmptyLoopBodyFixer extends AbstractFixer implements ConfigurableFixe
         }
 
         for ($index = $tokens->count() - 1; $index > 0; --$index) {
-            if ($tokens[$index]->isGivenKind($this->tokenLoopKinds)) {
+            if ($tokens[$index]->isGivenKind(self::TOKEN_LOOP_KINDS)) {
                 $endIndex = $tokens->getNextTokenOfKind($index, ['(']); // proceed to open '('
                 $endIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $endIndex); // proceed to close ')'
                 $fixLoop($index, $endIndex); // fix loop if needs fixing
