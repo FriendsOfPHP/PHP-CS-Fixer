@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace PhpCsFixer\Tests\Fixer\ControlStructure;
 
-use PhpCsFixer\Fixer\ControlStructure\EmptyLoopBodyFixer;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
