@@ -34,7 +34,7 @@ final class EmptyLoopBodyFixerTest extends AbstractFixerTestCase
         if (null === $config) {
             $this->doTest($expected, $input);
 
-            $this->fixer->configure(['style' => EmptyLoopBodyFixer::STYLE_SEMICOLON]);
+            $this->fixer->configure(['style' => 'semicolon']);
 
             if (null === $input) {
                 $this->doTest($expected, $input);

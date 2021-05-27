@@ -31,15 +31,9 @@ use PhpCsFixer\Tokenizer\TokensAnalyzer;
  */
 final class EmptyLoopBodyFixer extends AbstractFixer implements ConfigurableFixerInterface
 {
-    /**
-     * @internal
-     */
-    public const STYLE_BRACES = 'braces';
+    private const STYLE_BRACES = 'braces';
 
-    /**
-     * @internal
-     */
-    public const STYLE_SEMICOLON = 'semicolon';
+    private const STYLE_SEMICOLON = 'semicolon';
 
     private const TOKEN_LOOP_KINDS = [T_FOR, T_FOREACH, T_WHILE];
 
