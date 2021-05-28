@@ -548,6 +548,19 @@ $loader = require __DIR__.\'/../vendor/autoload.php\';
 ',
         ];
 
+        $cases[] = [
+            '<?php
+class A
+{
+    public function b()
+    {
+        /** @var string */
+        return \'foo\';
+    }
+}
+',
+        ];
+
         return $cases;
     }
 
