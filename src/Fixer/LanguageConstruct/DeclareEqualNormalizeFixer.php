@@ -89,7 +89,8 @@ final class DeclareEqualNormalizeFixer extends AbstractFixer implements Configur
                 continue;
             }
 
-            while (!$tokens[++$index]->equals('='));
+            while (!$tokens[++$index]->equals('=')) {
+            }
 
             $this->{$callback}($tokens, $index);
         }
