@@ -550,19 +550,31 @@ $array = [
             }
 
             if ($token->equals('(')) {
-                $index = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $index);
+                $end = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $index);
+
+                if (!$this->isBlockContainsAnonymousFunction($tokens, $index, $end)) {
+                    $index = $end;
+                }
 
                 continue;
             }
 
             if ($token->equals('[')) {
-                $index = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_INDEX_SQUARE_BRACE, $index);
+                $end = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_INDEX_SQUARE_BRACE, $index);
+
+                if (!$this->isBlockContainsAnonymousFunction($tokens, $index, $end)) {
+                    $index = $end;
+                }
 
                 continue;
             }
 
             if ($token->isGivenKind(CT::T_ARRAY_SQUARE_BRACE_OPEN)) {
-                $index = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_ARRAY_SQUARE_BRACE, $index);
+                $end = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_ARRAY_SQUARE_BRACE, $index);
+
+                if (!$this->isBlockContainsAnonymousFunction($tokens, $index, $end)) {
+                    $index = $end;
+                }
 
                 continue;
             }
@@ -752,5 +764,17 @@ $array = [
         }
 
         return $tmpCode;
+    }
+
+    /**
+     * @param \PhpCsFixer\Tokenizer\Tokens $tokens
+     * @param int                          $startAt
+     * @param int                          $endAt
+     *
+     * @return bool
+     */
+    private function isBlockContainsAnonymousFunction(Tokens $tokens, $startAt, $endAt)
+    {
+        return \count($tokens->findGivenKind(T_FUNCTION, $startAt, $endAt)) !== 0;
     }
 }
