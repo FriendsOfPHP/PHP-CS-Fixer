@@ -182,11 +182,14 @@ final class PsrAutoloadingFixerTest extends AbstractFixerTestCase
 
     public function provideFixCases()
     {
+        $filePath = __DIR__.\DIRECTORY_SEPARATOR.'Psr'.\DIRECTORY_SEPARATOR.'Foo'.\DIRECTORY_SEPARATOR.'Bar.php';
+
         $fileProphecy = $this->prophesize();
         $fileProphecy->willExtend(\SplFileInfo::class);
+        $fileProphecy->willBeConstructedWith([$filePath]);
         $fileProphecy->getBasename('.php')->willReturn('Bar');
         $fileProphecy->getExtension()->willReturn('php');
-        $fileProphecy->getRealPath()->willReturn(__DIR__.\DIRECTORY_SEPARATOR.'Psr'.\DIRECTORY_SEPARATOR.'Foo'.\DIRECTORY_SEPARATOR.'Bar.php');
+        $fileProphecy->getRealPath()->willReturn($filePath);
         $file = $fileProphecy->reveal();
 
         yield [ // namespace with wrong casing

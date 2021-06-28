@@ -12,7 +12,7 @@
 
 namespace PhpCsFixer\Tests;
 
-use org\bovigo\vfs\vfsStream;
+use bovigo\vfs\vfsStream;
 use PhpCsFixer\FileRemoval;
 
 /**

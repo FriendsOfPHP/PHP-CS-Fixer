@@ -32,9 +32,10 @@
         "symfony/stopwatch": "^3.0 || ^4.0 || ^5.0"
     },
     "require-dev": {
+        "cweagans/composer-patches": "^1.7.1",
         "justinrainbow/json-schema": "^5.0",
         "keradus/cli-executor": "^1.4",
-        "mikey179/vfsstream": "^1.6",
+        "mikey179/vfsstream": "v1.x-dev",
         "php-coveralls/php-coveralls": "^2.4.2",
         "php-cs-fixer/accessible-object": "^1.0",
         "php-cs-fixer/phpunit-constraint-isidenticalstring": "^1.2",
@@ -60,6 +61,11 @@
     "extra": {
         "branch-alias": {
             "dev-master": "2.19-dev"
+        },
+        "patches": {
+            "justinrainbow/json-schema": {
+                "Fix PHP 8.1 deprecations": ".patch/justinrainbow_json-schema.patch"
+            }
         }
     },
     "autoload": {

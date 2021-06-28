@@ -25,11 +25,14 @@ final class Psr4FixerTest extends AbstractFixerTestCase
 {
     public function testFixCase()
     {
+        $filePath = __DIR__.\DIRECTORY_SEPARATOR.'Psr4'.\DIRECTORY_SEPARATOR.'Foo'.\DIRECTORY_SEPARATOR.'Bar.php';
+
         $fileProphecy = $this->prophesize();
         $fileProphecy->willExtend(\SplFileInfo::class);
+        $fileProphecy->willBeConstructedWith([$filePath]);
         $fileProphecy->getBasename('.php')->willReturn('Bar');
         $fileProphecy->getExtension()->willReturn('php');
-        $fileProphecy->getRealPath()->willReturn(__DIR__.\DIRECTORY_SEPARATOR.'Psr4'.\DIRECTORY_SEPARATOR.'Foo'.\DIRECTORY_SEPARATOR.'Bar.php');
+        $fileProphecy->getRealPath()->willReturn($filePath);
         $file = $fileProphecy->reveal();
 
         $expected = <<<'EOF'

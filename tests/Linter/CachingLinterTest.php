@@ -12,7 +12,7 @@
 
 namespace PhpCsFixer\Tests\Linter;
 
-use org\bovigo\vfs\vfsStream;
+use bovigo\vfs\vfsStream;
 use PhpCsFixer\Linter\CachingLinter;
 use PhpCsFixer\Tests\TestCase;
 

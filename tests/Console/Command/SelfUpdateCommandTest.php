@@ -12,7 +12,7 @@
 
 namespace PhpCsFixer\Tests\Console\Command;
 
-use org\bovigo\vfs\vfsStream;
+use bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamException;
 use org\bovigo\vfs\vfsStreamWrapper;

@@ -1,0 +1,9 @@
+diff --git a/vendor/justinrainbow/json-schema/src/JsonSchema/Constraints/Constraint.php b/vendor/justinrainbow/json-schema/src/JsonSchema/Constraints/Constraint.php
+@@ -45,7 +45,7 @@
+         $path = $path->withPropertyPaths(
+             array_merge(
+                 $path->getPropertyPaths(),
+-                array_filter(array($i), 'strlen')
++                array_filter(array($i), function ($x) { return $x !== null && strlen($x) > 0; })
+             )
+         );
