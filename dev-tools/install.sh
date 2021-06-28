@@ -42,5 +42,5 @@ fi
 bin/shellcheck --version
 
 echo λλλ composer packages
-composer update -v
-composer info -D | sort
+COMPOSER=composer_sca.json composer update -v
+COMPOSER=composer_sca.json composer info -D | sort

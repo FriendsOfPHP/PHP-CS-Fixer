@@ -1,0 +1,12 @@
+{
+    "require": {
+        "php": "^7.4"
+    },
+    "require-dev": {
+        "humbug/box": "^3.8"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

@@ -12,7 +12,7 @@ composer require --no-update symfony/polyfill-mbstring
 composer update --no-interaction --no-progress --no-dev --prefer-stable --optimize-autoloader
 composer info -D | sort
 
-composer show -d dev-tools humbug/box -q || composer update -d dev-tools --no-interaction --no-progress
+COMPOSER=composer_build.json composer show -d dev-tools humbug/box -q || COMPOSER=composer_build.json composer update -d dev-tools --no-interaction --no-progress
 
 # build phar file
 dev-tools/vendor/bin/box compile
