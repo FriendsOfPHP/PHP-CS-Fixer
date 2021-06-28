@@ -4691,6 +4691,26 @@ $foo = new class () extends \Exception {
 $foo = new class () extends \Exception {};
 ',
             ],
+        ];
+    }
+
+    /**
+     * @group legacy
+     * @dataProvider provideFixDeprecated70Cases
+     * @requires PHP 7.0
+     */
+    public function testFix70Deprecated(string $expected, ?string $input = null, array $configuration = []): void
+    {
+        $this->expectDeprecation('Option "allow_single_line_anonymous_class_with_empty_body" for rule "braces" is deprecated and will be removed in version 4.0. Use option "allow_single_line_empty_body" instead.');
+
+        $this->fixer->configure($configuration);
+
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixDeprecated70Cases(): array
+    {
+        return [
             [
                 '<?php
 $foo = new class () extends \Exception {};
@@ -4884,6 +4904,156 @@ if (true) {
                 '<?php
     $callback = function () { if($a) return true;
     return false; };',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideFixWithAllowSingleLineEmptyBodyCases
+     */
+    public function testFixWithAllowSingleLineEmptyBody(string $expected, ?string $input = null): void
+    {
+        $this->fixer->configure([
+            'allow_single_line_empty_body' => true,
+        ]);
+
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixWithAllowSingleLineEmptyBodyCases()
+    {
+        return [
+            [
+                '<?php
+    $emptyBody = function () {};',
+            ],
+            [
+                '<?php
+    $nonEmptyBody = function () {
+        0;
+    };',
+                '<?php
+    $nonEmptyBody = function () { 0; };',
+            ],
+            [
+                '<?php
+    function empty_body(): void {}',
+            ],
+            [
+                '<?php
+    function non_empty_body(): void
+    {
+        0;
+    }',
+                '<?php
+    function non_empty_body(): void { 0; }',
+            ],
+            [
+                '<?php
+    function foo()
+    {
+    }',
+            ],
+            [
+                '<?php
+    class A
+    {
+        public function emptyBody(): void {}
+    }',
+            ],
+            [
+                '<?php
+    class A
+    {
+        public function nonEmptyBody(): void
+        {
+            0;
+        }
+    }',
+                '<?php
+    class A
+    {
+        public function nonEmptyBody(): void { 0; }
+    }',
+            ],
+            [
+                '<?php
+    $x = new class () {
+        public function x(): void
+        {
+            0;
+        }
+    };',
+                '<?php
+    $x = new class () { public function x(): void {
+        0;
+    } };',
+            ],
+            [
+                '<?php
+    $x = new class () {};',
+            ],
+            [
+                '<?php
+    class Foo {}',
+            ],
+            [
+                '<?php
+    class Foo
+    {
+        public function bar(): void
+        {
+            0;
+        }
+    }',
+                '<?php
+    class Foo { public function bar(): void {
+        0;
+    }}',
+            ],
+            [
+                '<?php
+    interface Foo {}',
+            ],
+            [
+                '<?php
+    trait Foo {}',
+            ],
+            [
+                '<?php
+    if (true) {} else {}',
+            ],
+            [
+                '<?php
+    if (true) {
+        0;
+    } else {}',
+                '<?php
+    if (true) { 0; } else {}',
+            ],
+            [
+                '<?php
+    while (false) {
+        0;
+    }',
+                '<?php
+    while (false) { 0; }',
+            ],
+            [
+                '<?php
+    while (false) {}',
+            ],
+            [
+                '<?php
+    try {
+        0;
+    } catch (\Throwable $t) {}',
+                '<?php
+    try { 0; } catch (\Throwable $t) {}',
+            ],
+            [
+                '<?php
+    try {} catch (\Throwable $t) {}',
             ],
         ];
     }

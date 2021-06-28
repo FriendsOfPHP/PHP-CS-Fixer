@@ -165,10 +165,15 @@ class Foo
     {
         return new FixerConfigurationResolver([
             (new FixerOptionBuilder('allow_single_line_anonymous_class_with_empty_body', 'Whether single line anonymous class with empty body notation should be allowed.'))
+                ->setDeprecationMessage('Use option "allow_single_line_empty_body" instead.')
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
                 ->getOption(),
             (new FixerOptionBuilder('allow_single_line_closure', 'Whether single line lambda notation should be allowed.'))
+                ->setAllowedTypes(['bool'])
+                ->setDefault(false)
+                ->getOption(),
+            (new FixerOptionBuilder('allow_single_line_empty_body', 'Whether the braces are allowed to be placed on the same line if they are empty.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
                 ->getOption(),
@@ -353,6 +358,21 @@ class Foo
                 );
 
                 if (!$this->isMultilined($tokens, $index, $braceEndIndex)) {
+                    $index = $braceEndIndex;
+
+                    continue;
+                }
+            }
+
+            if ($this->configuration['allow_single_line_empty_body']) {
+                $braceStartIndex = $tokens->getNextTokenOfKind($index, [';', '{']);
+                if (!$tokens[$braceStartIndex]->equals('{')) {
+                    continue;
+                }
+
+                $braceEndIndex = $tokens->getNextMeaningfulToken($braceStartIndex);
+
+                if ('}' === $tokens[$braceEndIndex]->getContent() && !$this->isMultilined($tokens, $index, $braceEndIndex)) {
                     $index = $braceEndIndex;
 
                     continue;
