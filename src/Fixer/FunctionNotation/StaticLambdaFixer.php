@@ -175,6 +175,10 @@ final class StaticLambdaFixer extends AbstractFixer
                     return true; // "$$a" case
                 }
             }
+
+            if ($tokens[$i]->isGivenKind(T_STRING) && 'parent' === strtolower($tokens[$i]->getContent())) {
+                return true; // parent:: case
+            }
         }
 
         return false;
