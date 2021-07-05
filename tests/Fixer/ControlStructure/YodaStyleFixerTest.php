@@ -676,7 +676,6 @@ $a#4
 
         foreach ($assignmentOperators as $operator) {
             yield [
-                sprintf('<?php $x === 1 %s 2;', $operator),
                 sprintf('<?php 1 === $x %s 2;', $operator),
             ];
         }
