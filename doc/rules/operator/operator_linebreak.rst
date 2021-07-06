@@ -26,6 +26,15 @@ Allowed values: ``'beginning'``, ``'end'``
 
 Default value: ``'beginning'``
 
+``ignored_operators``
+~~~~~~~~~~~~~~~~~~~~~
+
+Which operators to ignore
+
+Allowed types: ``array``
+
+Default value: ``[]``
+
 Examples
 --------
 
@@ -57,6 +66,25 @@ With configuration: ``['position' => 'end']``.
    +++ New
     <?php
     function foo() {
+   -    return $bar
+   -        || $baz;
+   +    return $bar ||
+   +        $baz;
+    }
+
+Example #3
+~~~~~~~~~~
+
+With configuration: ``['ignored_operators' => ['->']]``.
+
+.. code-block:: diff
+
+   --- Original
+   +++ New
+   @@ -3,6 +3,6 @@
+        $bar->$baz
+            ->commit();
+
    -    return $bar
    -        || $baz;
    +    return $bar ||
