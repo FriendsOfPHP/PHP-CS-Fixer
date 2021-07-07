@@ -287,6 +287,62 @@ EOF;
         $this->doTest($expected, $input);
     }
 
+    public function testWhitespaceInDocBlockAboveNamespaceIsNotTouched()
+    {
+        $expected = <<<'EOF'
+<?php
+
+/**
+ * This is a file-level docblock.
+ */
+
+namespace Foo\Bar\Baz;
+
+/**
+ * The Qux class.
+ */
+final class Qux
+{
+    /**
+     * Any value.
+     *
+     * @var string
+     */
+    private $value = 'qux';
+}
+
+EOF;
+
+        $input = <<<'EOF'
+<?php
+
+/**
+ * This is a file-level docblock.
+ */
+
+namespace Foo\Bar\Baz;
+
+/**
+ * The Qux class.
+ */
+
+final class Qux
+{
+    /**
+     * Any value.
+     *
+     * @var string
+     */
+
+
+    private $value = 'qux';
+}
+
+EOF;
+
+        $this->doTest($expected, $input);
+    }
+
     public function testFixesWindowsStyle()
     {
         $expected = "<?php\r\n    /**     * Constant!     */\n    \$foo = 123;";
