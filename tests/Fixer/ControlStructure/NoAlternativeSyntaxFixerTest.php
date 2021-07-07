@@ -28,8 +28,12 @@ final class NoAlternativeSyntaxFixerTest extends AbstractFixerTestCase
     /**
      * @dataProvider provideFixCases
      */
-    public function testFix(string $expected, ?string $input = null): void
+    public function testFix(string $expected, ?string $input = null, ?array $configuration = null): void
     {
+        if (null !== $configuration) {
+            $this->fixer->configure($configuration);
+        }
+
         $this->doTest($expected, $input);
     }
 
@@ -120,6 +124,35 @@ final class NoAlternativeSyntaxFixerTest extends AbstractFixerTestCase
             [
                 '<?php if ($some) { $test = true; } elseif ($some !== "test") { $test = false; }',
                 '<?php if ($some) : $test = true; elseif ($some !== "test") : $test = false; endif;',
+            ],
+            [
+                '<?php if ($condition) { ?><p>This is visible.</p><?php } ?>',
+                '<?php if ($condition): ?><p>This is visible.</p><?php endif; ?>',
+            ],
+            [
+                '<?php if ($condition): ?><p>This is visible.</p><?php endif; ?>',
+                null,
+                ['exclude_non_monolithic_code' => true],
+            ],
+            [
+                '<?php if (true) { ?>Text display.<?php } ?>',
+                '<?php if (true): ?>Text display.<?php endif; ?>',
+                ['exclude_non_monolithic_code' => false],
+            ],
+            [
+                '<?php if (true): ?>Text display.<?php endif; ?>',
+                null,
+                ['exclude_non_monolithic_code' => true],
+            ],
+            [
+                '<?php if ($condition) { ?><?= "xd"; ?><?php } ?>',
+                '<?php if ($condition): ?><?= "xd"; ?><?php endif; ?>',
+                ['exclude_non_monolithic_code' => false],
+            ],
+            [
+                '<?php if ($condition): ?><?= "xd"; ?><?php endif; ?>',
+                null,
+                ['exclude_non_monolithic_code' => true],
             ],
         ];
     }
