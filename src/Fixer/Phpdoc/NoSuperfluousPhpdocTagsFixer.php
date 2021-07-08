@@ -17,6 +17,7 @@ namespace PhpCsFixer\Fixer\Phpdoc;
 use PhpCsFixer\AbstractFixer;
 use PhpCsFixer\DocBlock\Annotation;
 use PhpCsFixer\DocBlock\DocBlock;
+use PhpCsFixer\DocBlock\TypeExpression;
 use PhpCsFixer\Fixer\ConfigurableFixerInterface;
 use PhpCsFixer\FixerConfiguration\FixerConfigurationResolver;
 use PhpCsFixer\FixerConfiguration\FixerConfigurationResolverInterface;
@@ -373,15 +374,26 @@ class Foo {
     private function annotationIsSuperfluous(Annotation $annotation, array $info, array $symbolShortNames): bool
     {
         if ('param' === $annotation->getTag()->getName()) {
-            $regex = '/@param\s+(?:\S|\s(?!\$))++\s\$\S+\s+\S/';
+            $regex = '{@param\s*(?:(?<=\s)'.TypeExpression::REGEX_TYPES.')*\s+\$\S+\s*(?<description>(?<=\s)[\S]+)*}sx';
         } elseif ('var' === $annotation->getTag()->getName()) {
-            $regex = '/@var\s+\S+(\s+\$\S+)?(\s+)(?!\*+\/)([^$\s]+)/';
+            $regex = '{@var\s*(?:(?<=\s)'.TypeExpression::REGEX_TYPES.')*\s*(?<var>(?<=\s)\$\S+)?\s*(?<description>(?<=\s)(?!\*\/)\S+)*}sx';
         } else {
-            $regex = '/@return\s+\S+\s+\S/';
+            $regex = '{@return\s*(?:(?<=\s)'.TypeExpression::REGEX_TYPES.')*\s*(?<description>(?<=\s)(?!\*\/)\S+)*}sx';
         }
 
-        if (Preg::match($regex, $annotation->getContent())) {
+        if (1 !== Preg::match($regex, $annotation->getContent(), $matches)) {
+            // Unable to match the annotation, it must be badly malformed or has unsupported format.
+            // Either way we don't want to tinker with it.
             return false;
+        }
+
+        if (isset($matches['description'])) {
+            return false;
+        }
+
+        if (!isset($matches['types']) || "" === $matches['types']) {
+            // If there's no type info in the annotation, further checks make no sense, exit early.
+            return true;
         }
 
         $annotationTypes = $this->toComparableNames($annotation->getTypes(), $symbolShortNames);

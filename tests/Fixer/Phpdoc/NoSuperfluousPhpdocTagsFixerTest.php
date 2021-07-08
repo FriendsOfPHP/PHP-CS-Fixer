@@ -1083,6 +1083,84 @@ class Foo {
     private $bar;
 }',
             ],
+            'property without a type' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private $foo;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var
+     */
+    private $foo;
+}',
+            ],
+            'property without a type but with a name and a description' => [
+                '<?php
+class Foo {
+    /**
+     * @var $foo some description
+     */
+    private $foo;
+}',
+                ],
+            'property without a type but with a name' => [
+                '<?php
+class Foo {
+    /**
+     */
+    private $foo;
+}',
+                '<?php
+class Foo {
+    /**
+     * @var $foo
+     */
+    private $foo;
+}',
+            ],
+            'method without param type' => [
+                '<?php
+class Foo {
+    /**
+     */
+    public function foo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     * @param $foo
+     */
+    public function foo($foo) {}
+}',
+            ],
+            'method without a param type but with a description' => [
+                '<?php
+class Foo {
+    /**
+     * @param $foo description
+     */
+    public function foo($foo) {}
+}',
+            ],
+            'method with empty return' => [
+                '<?php
+class Foo {
+    /**
+     */
+    public function foo($foo) {}
+}',
+                '<?php
+class Foo {
+    /**
+     * @return
+     */
+    public function foo($foo) {}
+}',
+            ],
         ];
     }
 
