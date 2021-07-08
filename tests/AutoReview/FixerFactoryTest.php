@@ -31,9 +31,7 @@ final class FixerFactoryTest extends TestCase
 {
     public function testFixersPriorityEdgeFixers()
     {
-        $factory = new FixerFactory();
-        $factory->registerBuiltInFixers();
-        $fixers = $factory->getFixers();
+        $fixers = $this->getFixers();
 
         static::assertSame('encoding', $fixers[0]->getName(), 'Expected "encoding" fixer to have the highest priority.');
         static::assertSame('full_opening_tag', $fixers[1]->getName(), 'Expected "full_opening_tag" fixer has second highest priority.');
@@ -51,12 +49,9 @@ final class FixerFactoryTest extends TestCase
 
     public function provideFixersPriorityCases()
     {
-        $factory = new FixerFactory();
-        $factory->registerBuiltInFixers();
-
         $fixers = [];
 
-        foreach ($factory->getFixers() as $fixer) {
+        foreach ($this->getFixers() as $fixer) {
             $fixers[$fixer->getName()] = $fixer;
         }
 
@@ -71,11 +66,10 @@ final class FixerFactoryTest extends TestCase
             [$fixers['backtick_to_shell_exec'], $fixers['native_function_invocation']],
             [$fixers['backtick_to_shell_exec'], $fixers['single_quote']],
             [$fixers['blank_line_after_opening_tag'], $fixers['no_blank_lines_before_namespace']],
-            [$fixers['braces'], $fixers['array_indentation']],
-            [$fixers['braces'], $fixers['method_argument_space']],
-            [$fixers['braces'], $fixers['method_chaining_indentation']],
+            [$fixers['braces'], $fixers['heredoc_indentation']],
             [$fixers['class_attributes_separation'], $fixers['braces']],
             [$fixers['class_attributes_separation'], $fixers['indentation_type']],
+            [$fixers['class_attributes_separation'], $fixers['statement_indentation']],
             [$fixers['class_definition'], $fixers['braces']],
             [$fixers['class_keyword_remove'], $fixers['no_unused_imports']],
             [$fixers['combine_consecutive_issets'], $fixers['multiline_whitespace_before_semicolons']],
@@ -89,13 +83,15 @@ final class FixerFactoryTest extends TestCase
             [$fixers['combine_consecutive_unsets'], $fixers['space_after_semicolon']],
             [$fixers['combine_nested_dirname'], $fixers['method_argument_space']],
             [$fixers['combine_nested_dirname'], $fixers['no_spaces_inside_parenthesis']],
+            [$fixers['control_structure_braces'], $fixers['blank_lines_inside_block']],
+            [$fixers['control_structure_braces'], $fixers['control_structure_continuation']],
+            [$fixers['control_structure_braces'], $fixers['curly_braces_position']],
             [$fixers['declare_strict_types'], $fixers['blank_line_after_opening_tag']],
             [$fixers['declare_strict_types'], $fixers['declare_equal_normalize']],
             [$fixers['declare_strict_types'], $fixers['header_comment']],
             [$fixers['dir_constant'], $fixers['combine_nested_dirname']],
             [$fixers['doctrine_annotation_array_assignment'], $fixers['doctrine_annotation_spaces']],
             [$fixers['echo_tag_syntax'], $fixers['no_mixed_echo_print']],
-            [$fixers['elseif'], $fixers['braces']],
             [$fixers['escape_implicit_backslashes'], $fixers['heredoc_to_nowdoc']],
             [$fixers['escape_implicit_backslashes'], $fixers['single_quote']],
             [$fixers['explicit_string_variable'], $fixers['simple_to_complex_string_variable']],
@@ -121,14 +117,12 @@ final class FixerFactoryTest extends TestCase
             [$fixers['indentation_type'], $fixers['phpdoc_indent']],
             [$fixers['is_null'], $fixers['yoda_style']],
             [$fixers['lambda_not_used_import'], $fixers['no_spaces_inside_parenthesis']],
-            [$fixers['line_ending'], $fixers['braces']],
             [$fixers['list_syntax'], $fixers['binary_operator_spaces']],
             [$fixers['list_syntax'], $fixers['ternary_operator_spaces']],
             [$fixers['method_argument_space'], $fixers['array_indentation']],
-            [$fixers['method_chaining_indentation'], $fixers['array_indentation']],
-            [$fixers['method_chaining_indentation'], $fixers['method_argument_space']],
             [$fixers['method_separation'], $fixers['braces']],
             [$fixers['method_separation'], $fixers['indentation_type']],
+            [$fixers['method_separation'], $fixers['statement_indentation']],
             [$fixers['multiline_whitespace_before_semicolons'], $fixers['space_after_semicolon']],
             [$fixers['native_constant_invocation'], $fixers['global_namespace_import']],
             [$fixers['native_function_invocation'], $fixers['global_namespace_import']],
@@ -275,6 +269,7 @@ final class FixerFactoryTest extends TestCase
             [$fixers['single_trait_insert_per_statement'], $fixers['space_after_semicolon']],
             [$fixers['standardize_increment'], $fixers['increment_style']],
             [$fixers['standardize_not_equals'], $fixers['binary_operator_spaces']],
+            [$fixers['statement_indentation'], $fixers['heredoc_indentation']],
             [$fixers['strict_comparison'], $fixers['binary_operator_spaces']],
             [$fixers['strict_param'], $fixers['native_function_invocation']],
             [$fixers['ternary_to_elvis_operator'], $fixers['no_trailing_whitespace']],
@@ -288,12 +283,9 @@ final class FixerFactoryTest extends TestCase
 
     public function provideFixersPrioritySpecialPhpdocCases()
     {
-        $factory = new FixerFactory();
-        $factory->registerBuiltInFixers();
-
         $fixers = [];
 
-        foreach ($factory->getFixers() as $fixer) {
+        foreach ($this->getFixers() as $fixer) {
             $fixers[$fixer->getName()] = $fixer;
         }
 
@@ -617,5 +609,14 @@ final class FixerFactoryTest extends TestCase
     private function getIntegrationPriorityDirectory()
     {
         return __DIR__.'/../Fixtures/Integration/priority/';
+    }
+
+    private function getFixers()
+    {
+        $factory = new FixerFactory();
+        $factory->registerBuiltInFixers();
+        $factory->registerHiddenFixers();
+
+        return $factory->getFixers();
     }
 }

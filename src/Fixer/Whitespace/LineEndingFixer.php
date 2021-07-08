@@ -54,16 +54,6 @@ final class LineEndingFixer extends AbstractFixer implements WhitespacesAwareFix
 
     /**
      * {@inheritdoc}
-     *
-     * Must run before BracesFixer.
-     */
-    public function getPriority()
-    {
-        return 40;
-    }
-
-    /**
-     * {@inheritdoc}
      */
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
