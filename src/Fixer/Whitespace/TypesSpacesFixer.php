@@ -62,11 +62,6 @@ final class TypesSpacesFixer extends AbstractFixer implements ConfigurableFixerI
         return $tokens->isTokenKindFound(CT::T_TYPE_ALTERNATION);
     }
 
-    public function getPriority(): int
-    {
-        return -33; // TODO: remove once https://github.com/FriendsOfPHP/PHP-CS-Fixer/pull/5738 is merged
-    }
-
     /**
      * {@inheritdoc}
      */
