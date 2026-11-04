@@ -1118,6 +1118,7 @@ final class NoUnneededControlParenthesesFixerTest extends AbstractFixerTestCase
                 $h = $i ?? $j;
                 $k = !$l;
                 $p = foo($q and $r) + 1;
+                $d = $b && $c instanceof Foo;
                 $m = $n . $o ?>',
             '<?php
                 $foo = (1 * $bar / self::BAZ);
@@ -1126,6 +1127,7 @@ final class NoUnneededControlParenthesesFixerTest extends AbstractFixerTestCase
                 $h = ($i ?? $j);
                 $k = (!$l);
                 $p = (foo($q and $r) + 1);
+                $d = ($b && $c instanceof Foo);
                 $m = ($n . $o) ?>',
             $configuration,
         ];
@@ -1146,6 +1148,7 @@ final class NoUnneededControlParenthesesFixerTest extends AbstractFixerTestCase
                 $p = ($q++);
                 $r = (--$s);
                 $anonymous = (new class {});
+                $g = ($b instanceof Foo and $c);
                 $t = ($u + $v) * $w;
                 $x += ($y + $z);',
             null,

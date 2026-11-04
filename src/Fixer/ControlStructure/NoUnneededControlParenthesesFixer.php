@@ -307,6 +307,12 @@ final class NoUnneededControlParenthesesFixer extends AbstractFixer implements C
                 continue;
             }
 
+            if ($this->isWrappedAssignedValue($tokens, $beforeOpenIndex, $openIndex, $closeIndex, $afterCloseIndex)) {
+                $this->removeUselessParenthesisPair($tokens, $beforeOpenIndex, $afterCloseIndex, $openIndex, $closeIndex, 'others');
+
+                continue;
+            }
+
             // handle `clone` statements
 
             if ($tokens[$beforeOpenIndex]->isGivenKind(\T_CLONE)) {
@@ -332,12 +338,6 @@ final class NoUnneededControlParenthesesFixer extends AbstractFixer implements C
                         $tokens[$beforeOpenIndex]->equals('!') ? 'negative_instanceof' : 'others',
                     );
                 }
-
-                continue;
-            }
-
-            if ($this->isWrappedAssignedValue($tokens, $beforeOpenIndex, $openIndex, $closeIndex, $afterCloseIndex)) {
-                $this->removeUselessParenthesisPair($tokens, $beforeOpenIndex, $afterCloseIndex, $openIndex, $closeIndex, 'others');
 
                 continue;
             }
