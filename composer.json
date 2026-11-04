@@ -40,10 +40,10 @@
         "symfony/filesystem": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0",
         "symfony/finder": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0",
         "symfony/options-resolver": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0",
-        "symfony/polyfill-mbstring": "^1.37",
-        "symfony/polyfill-php80": "^1.37",
-        "symfony/polyfill-php81": "^1.37",
-        "symfony/polyfill-php84": "^1.37",
+        "symfony/polyfill-mbstring": "^1.43.3",
+        "symfony/polyfill-php80": "^1.43",
+        "symfony/polyfill-php81": "^1.38.1",
+        "symfony/polyfill-php84": "^1.43",
         "symfony/process": "^5.4.47 || ^6.4.24 || ^7.2 || ^8.0",
         "symfony/stopwatch": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0"
     },
@@ -56,7 +56,7 @@
         "php-cs-fixer/phpunit-constraint-isidenticalstring": "^1.8",
         "php-cs-fixer/phpunit-constraint-xmlmatchesxsd": "^1.8",
         "phpunit/phpunit": "^9.6.36 || ^10.5.64 || ^11.5.56 || ^12.5.35 || ^13.3.3",
-        "symfony/polyfill-php85": "^1.41",
+        "symfony/polyfill-php85": "^1.43",
         "symfony/var-dumper": "^5.4.48 || ^6.4.45 || ^7.4.18 || ^8.1.7",
         "symfony/yaml": "^5.4.53 || ^6.4.45 || ^7.4.18 || ^8.1.6"
     },
