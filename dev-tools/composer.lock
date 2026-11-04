@@ -1485,16 +1485,16 @@
         },
         {
             "name": "symfony/var-exporter",
-            "version": "v8.1.10",
+            "version": "v8.2.0-BETA1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-exporter.git",
-                "reference": "e94442cdefc1df995528d26acb40d25c2d50504d"
+                "reference": "928c131f248af2221532d33c389d06b4575e9b38"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/e94442cdefc1df995528d26acb40d25c2d50504d",
-                "reference": "e94442cdefc1df995528d26acb40d25c2d50504d"
+                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/928c131f248af2221532d33c389d06b4575e9b38",
+                "reference": "928c131f248af2221532d33c389d06b4575e9b38"
             },
             "require": {
                 "php": ">=8.4.1",
