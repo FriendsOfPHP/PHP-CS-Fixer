@@ -1110,6 +1110,48 @@ final class NoUnneededControlParenthesesFixerTest extends AbstractFixerTestCase
             $configuration,
         ];
 
+        yield 'wrapped operation as assigned value' => [
+            '<?php
+                $foo = 1 * $bar / self::BAZ;
+                $a = $b || $c;
+                $d = $e ? $f : $g;
+                $h = $i ?? $j;
+                $k = !$l;
+                $p = foo($q and $r) + 1;
+                $m = $n . $o ?>',
+            '<?php
+                $foo = (1 * $bar / self::BAZ);
+                $a = ($b || $c);
+                $d = ($e ? $f : $g);
+                $h = ($i ?? $j);
+                $k = (!$l);
+                $p = (foo($q and $r) + 1);
+                $m = ($n . $o) ?>',
+            $configuration,
+        ];
+
+        yield 'wrapped operation as assigned value, not with others' => [
+            '<?php $foo = (1 * $bar / self::BAZ);',
+            null,
+            ['statements' => ['return']],
+        ];
+
+        yield 'wrapped operation as assigned value, keep where precedence or readability matter' => [
+            '<?php
+                $a = ($b and $c);
+                $d = ($e or $f);
+                $g = ($h xor $i);
+                $j = ($k = $l);
+                $m = ($n .= $o);
+                $p = ($q++);
+                $r = (--$s);
+                $anonymous = (new class {});
+                $t = ($u + $v) * $w;
+                $x += ($y + $z);',
+            null,
+            $configuration,
+        ];
+
         yield 'wrapped function call, op + call as arg' => [
             '<?php $bk = foo(1 + bar()) ?>',
             '<?php $bk = (foo(1 + bar())) ?>',
