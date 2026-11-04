@@ -1132,6 +1132,12 @@ final class NoUnneededControlParenthesesFixerTest extends AbstractFixerTestCase
             $configuration,
         ];
 
+        yield 'wrapped multi-line operation as assigned value' => [
+            "<?php\n\$a = \n    \$b\n    && \$c\n;",
+            "<?php\n\$a = (\n    \$b\n    && \$c\n);",
+            $configuration,
+        ];
+
         yield 'wrapped operation as assigned value, not with others' => [
             '<?php $foo = (1 * $bar / self::BAZ);',
             null,
