@@ -28,6 +28,8 @@ use PhpCsFixer\ToolInfo;
 use Symfony\Component\Finder\Finder;
 
 /**
+ * @example PHP_CS_FIXER_BENCH_FILES_LIMIT=500 ./vendor/bin/phpbench run tests/Benchmark/ProcessingBench.php
+ *
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise.
  */
 final class ProcessingBench
