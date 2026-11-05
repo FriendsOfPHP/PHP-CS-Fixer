@@ -1,0 +1,14 @@
+dev-tools/composer.json
+  h_44235ea8856697 5,12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "e098bc4aa7096c94ff26f5ce9875f6fc7f84bd52",
+  "prompts": {},
+  "humans": {
+    "h_44235ea8856697": {
+      "author": "Dariusz Ruminski <dariusz.ruminski@gmail.com>"
+    }
+  }
+}
