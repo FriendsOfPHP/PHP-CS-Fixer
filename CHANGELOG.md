@@ -3,6 +3,55 @@ CHANGELOG for PHP CS Fixer
 
 This file contains changelogs for stable releases only.
 
+Changelog for v3.95.28
+----------------------
+
+* CI: check PHPUnit configuration only for test-related jobs (#9920)
+* deps: bump crate-ci/typos from 1.50.2 to 1.50.3 in /.github/workflows in the all group across 1 directory (#9876)
+* deps: bump crate-ci/typos from 1.50.3 to 1.51.1 in /.github/workflows in the all group across 1 directory (#9886)
+* deps: bump phpstan/phpstan-phpunit from 2.0.18 to 2.0.19 in /dev-tools in the phpstan group (#9874)
+* deps: bump shipmonk/phpstan-baseline-per-identifier from 2.3.0 to 2.4.0 in /dev-tools in the shipmonk group across 1 directory (#9875)
+* deps: bump `phpstan/phpstan-phpunit` (#9903)
+* deps: update dev deps (#9864)
+* deps: update`ergebnis/agent-detector:^2.0.0` (#9910)
+* deps: upgrade Symfony (#9919)
+* fix: Fix `SwitchCaseSpaceFixer` not fixing if default case is fine (#9912)
+* fix: `ComposerJsonReader` - read PHP version from `php-64bit` requirement (#9868)
+* fix: `NewWithParenthesesFixer` - do not move parentheses past `.`, `??` and `}` (#9883)
+* fix: `NumericLiteralSeparatorFixer` - do not drop exponent with explicit plus sign (#9909)
+* fix: `NumericLiteralSeparatorFixer` - do not treat floats with leading zero and exponent as octal (#9908)
+* fix: `StatementIndentationFixer` - handle comment right after open tag inside block (#9902)
+* fix: `SwitchContinueToBreakFixer` - handle parentheses in loop condition (#9872)
+* perf: filter BraceTransformer work by token kind (#9880)
+* perf: `WhitespacyCommentTransformer` should insert tokens as bulk slices (#9879)
+* refactor: `AbstractTypeTransformer` - reduce logic (#9861)
+* refactor: `BraceTransformer` - convert following ifs to elseifs (#9884)
+* refactor: `Transformers` - use `process()` instead of `processToken()` (#9803)
+
+Changelog for v3.95.27
+----------------------
+
+* fix: refuse a symlinked cache path in FileHandler to avoid arbitrary file overwrite (#9856)
+* fix: validate value types in Cache::fromJson so a corrupt cache rebuilds instead of crashing (#9855)
+* fix: `SimplifiedIfReturnFixer` - fix whitespace before `;` as well (#9857)
+* refactor: more moderate permissions for newly created cache file/directory (#9852)
+* chore: add TODO to split class with too many responsibilities (#9853)
+* docs: `FullyQualifiedStrictTypesFixer` - document attribute handling in example (#9859)
+
+Changelog for v3.95.26
+----------------------
+
+* perf: Use dedicated sequence matcher in `simplified_if_return` (#9763)
+* DX: add XDEBUG for PHP 8.5 docker build (#9841)
+* chore: ConfigInterface - document TODO for v4 (#9845)
+* chore: drop `benchmark.sh` in favour of `phpbench` (#9849)
+* chore: stalebot - exclude RTM labels (#9843)
+* deps: bump dev-deps (#9840)
+* deps: explicitly expect PHPUnit 13.3+ over 13.0.x (#9842)
+* deps: update dev deps (#9848)
+* docs: do not promote deprecated `path` argument usage with `--path-mode=override` (#9850)
+* docs: simpler docs for parallel execution, as it's default one nowadays (#9851)
+
 Changelog for v3.95.25
 ----------------------
 
