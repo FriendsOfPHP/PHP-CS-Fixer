@@ -1,0 +1,22 @@
+src/Fixer/Comment/NoEmptyCommentFixer.php
+  h_44235ea8856697 147
+src/Fixer/Operator/OperatorLinebreakFixer.php
+  h_44235ea8856697 225,250
+src/Fixer/PhpUnit/PhpUnitNoExpectationAnnotationFixer.php
+  h_44235ea8856697 242-243
+src/Fixer/Phpdoc/AlignMultilineCommentFixer.php
+  h_44235ea8856697 151
+src/Tokenizer/Analyzer/CommentsAnalyzer.php
+  h_44235ea8856697 344
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aad50c124ede197632c77ef3faaf32409a536809",
+  "prompts": {},
+  "humans": {
+    "h_44235ea8856697": {
+      "author": "Dariusz Ruminski <dariusz.ruminski@gmail.com>"
+    }
+  }
+}
