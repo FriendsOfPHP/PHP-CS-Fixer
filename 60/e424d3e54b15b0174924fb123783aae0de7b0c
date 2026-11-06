@@ -1,0 +1,16 @@
+CHANGELOG.md
+  h_44235ea8856697 6-15
+src/Console/Application.php
+  h_44235ea8856697 54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "60e424d3e54b15b0174924fb123783aae0de7b0c",
+  "prompts": {},
+  "humans": {
+    "h_44235ea8856697": {
+      "author": "Dariusz Ruminski <dariusz.ruminski@gmail.com>"
+    }
+  }
+}
