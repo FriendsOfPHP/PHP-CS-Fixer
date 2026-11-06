@@ -41,7 +41,7 @@ final class ParallelisationException extends \RuntimeException
             'Worker process exited unexpectedly (exit code: %s, signal: %s), its files were not analysed.%s',
             $exitCode ?? 'n/a',
             $termSignal ?? 'n/a',
-            '' !== $output ? \PHP_EOL.'Worker output:'.\PHP_EOL.$output : '',
+            '' !== $output ? "\nWorker output:\n".$output : '',
         ));
     }
 }
