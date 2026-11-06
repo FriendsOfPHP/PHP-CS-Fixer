@@ -1,0 +1,14 @@
+tests/Fixer/Import/SingleImportPerStatementFixerTest.php
+  h_44235ea8856697 342-345
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0ec8a871050828f360bf6f40e2edc7f312609627",
+  "prompts": {},
+  "humans": {
+    "h_44235ea8856697": {
+      "author": "Dariusz Ruminski <dariusz.ruminski@gmail.com>"
+    }
+  }
+}
