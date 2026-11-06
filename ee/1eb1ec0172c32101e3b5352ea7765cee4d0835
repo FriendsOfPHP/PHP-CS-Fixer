@@ -1,0 +1,16 @@
+tests/Fixer/Import/SingleImportPerStatementFixerTest.php
+  h_44235ea8856697 342-345
+src/Tokenizer/Transformer/UseTransformer.php
+  h_44235ea8856697 78-79,81-82,88-89,91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ee1eb1ec0172c32101e3b5352ea7765cee4d0835",
+  "prompts": {},
+  "humans": {
+    "h_44235ea8856697": {
+      "author": "Dariusz Ruminski <dariusz.ruminski@gmail.com>"
+    }
+  }
+}
