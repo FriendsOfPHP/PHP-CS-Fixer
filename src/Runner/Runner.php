@@ -513,10 +513,12 @@ final class Runner
                         return;
                     }
 
+                    // @codeCoverageIgnoreStart
                     // Non-exception fatal (e.g. memory limit) or killed process: no structured error, but chunk was lost
                     $processPool->endAll();
 
                     throw ParallelisationException::forUnexpectedWorkerExit($exitCode, $termSignal, $output);
+                    // @codeCoverageIgnoreEnd
                 },
             );
         }
