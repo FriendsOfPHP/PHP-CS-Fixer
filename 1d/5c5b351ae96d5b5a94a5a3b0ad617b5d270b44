@@ -1,0 +1,14 @@
+src/Console/Application.php
+  h_44235ea8856697 54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1d5c5b351ae96d5b5a94a5a3b0ad617b5d270b44",
+  "prompts": {},
+  "humans": {
+    "h_44235ea8856697": {
+      "author": "Dariusz Ruminski <dariusz.ruminski@gmail.com>"
+    }
+  }
+}
