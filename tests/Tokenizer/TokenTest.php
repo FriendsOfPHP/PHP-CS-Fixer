@@ -573,60 +573,45 @@ final class TokenTest extends TestCase
      * @dataProvider provideEqualsAnyCharCases
      */
     #[DataProvider('provideEqualsAnyCharCases')]
-    public function testEqualsAnyChar(Token $token, bool $expected, string $characters): void
+    public function testEqualsAnyChar(Token $token, bool $expected, array $characters): void
     {
         self::assertSame($expected, $token->equalsAnyChar($characters));
-        self::assertSame($expected, $token->equalsAny(str_split($characters)));
+        self::assertSame($expected, $token->equalsAny($characters));
     }
 
     /**
-     * @return iterable<int, array{Token, bool, string}>
+     * @return iterable<int, array{Token, bool, non-empty-list<string>}>
      */
     public static function provideEqualsAnyCharCases(): iterable
     {
         $brace = self::getBraceToken();
         $foreach = self::getForeachToken();
 
-        yield [$brace, true, '('];
+        yield [$brace, true, ['(']];
 
-        yield [$brace, false, ')'];
+        yield [$brace, false, [')']];
 
-        yield [$brace, true, ';,)('];
+        yield [$brace, true, [';', ',', ')', '(']];
 
-        yield [$brace, false, ';,)'];
+        yield [$brace, false, [';', ',', ')']];
 
-        yield [new Token(';'), true, ';,)'];
+        yield [new Token(';'), true, [';', ',', ')']];
 
-        yield [new Token('x'), false, ';,)'];
+        yield [new Token('x'), false, [';', ',', ')']];
 
-        yield [$foreach, false, '('];
+        yield [$foreach, false, ['(']];
 
-        yield [$foreach, false, 'foreach'];
+        yield [$foreach, false, ['f', 'o', 'r', 'e', 'a', 'c', 'h']];
 
-        yield [new Token([\T_INLINE_HTML, ';']), false, ';'];
+        yield [new Token([\T_INLINE_HTML, ';']), false, [';']];
 
-        yield [new Token([\T_STRING, 'x']), false, 'x'];
+        yield [new Token([\T_STRING, 'x']), false, ['x']];
 
-        yield [new Token('ab'), false, 'ab'];
+        yield [new Token('ab'), false, ['a', 'b']];
 
-        yield [new Token(';,'), false, ';,'];
+        yield [new Token(';,'), false, [';', ',']];
 
-        yield [new Token(''), false, ';,'];
-    }
-
-    /**
-     * @param bool|list<bool> $caseSensitive
-     *
-     * @dataProvider provideIsKeyCaseSensitiveCases
-     *
-     * @group legacy
-     */
-    #[DataProvider('provideIsKeyCaseSensitiveCases')]
-    #[Group('legacy')]
-    public function testIsKeyCaseSensitive(bool $isKeyCaseSensitive, $caseSensitive, int $key): void
-    {
-        $this->expectDeprecation('Method "PhpCsFixer\Tokenizer\Token::isKeyCaseSensitive" is deprecated and will be removed in the next major version.');
-        self::assertSame($isKeyCaseSensitive, Token::isKeyCaseSensitive($caseSensitive, $key));
+        yield [new Token(''), false, [';', ',']];
     }
 
     /**
