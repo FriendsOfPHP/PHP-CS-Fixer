@@ -3,6 +3,11 @@ CHANGELOG for PHP CS Fixer
 
 This file contains changelogs for stable releases only.
 
+Changelog for v3.95.30
+----------------------
+
+* Revert "refactor: no need for /u for new-line regex" (#9930)
+
 Changelog for v3.95.29
 ----------------------
 
