@@ -3,6 +3,21 @@ CHANGELOG for PHP CS Fixer
 
 This file contains changelogs for stable releases only.
 
+Changelog for v3.95.30
+----------------------
+
+* Revert "refactor: no need for /u for new-line regex" (#9930)
+
+Changelog for v3.95.29
+----------------------
+
+* fix(parallel-runner): Fail loud when child process exit unexpectedly (#9926)
+* fix: `UseTransformer` - skip anonymous class constructor arguments when looking for class body (#9929)
+* deps: bump crate-ci/typos from 1.51.1 to 1.52.0 in /.github/workflows in the all group across 1 directory (#9927)
+* deps: upgrade dev dependencies (#9922)
+* DX: add Benchmark test for e2e file processing (#9914)
+* refactor: no need for /u for new-line regex (#9925)
+
 Changelog for v3.95.28
 ----------------------
 
