@@ -570,6 +570,7 @@ final class TokenTest extends TestCase
     }
 
     /**
+     * @param non-empty-list<non-empty-string> $characters single-character strings to look for
      * @dataProvider provideEqualsAnyCharCases
      */
     #[DataProvider('provideEqualsAnyCharCases')]
