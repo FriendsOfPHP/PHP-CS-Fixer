@@ -1,0 +1,14 @@
+.github/workflows/sca.yml
+  h_44235ea8856697 108-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "20b496a698e88088e00ab836c0c9d79f720a4fb6",
+  "prompts": {},
+  "humans": {
+    "h_44235ea8856697": {
+      "author": "Dariusz Ruminski <dariusz.ruminski@gmail.com>"
+    }
+  }
+}
