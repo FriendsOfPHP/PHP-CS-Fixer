@@ -108,5 +108,9 @@ jobs:
 
       - name: Check - regex \R
         run: |
-          git grep -F "'/\R/'" src/ tests/ \
-          && (echo "Non-UTF regex for \R found, replace with 'false === strpbrk(\$ccontent, '\\\\r\\\\n')' " && exit 1) || echo "No UTF \R regex found"
+          if git grep -F '/\R/' src/ tests/; then
+            echo "::error::Non-UTF regex for \R found. Replace with 'false === strpbrk(\$ccontent, '\\\\r\\\\n')'"
+            exit 1
+          else
+            echo "No UTF \R regex found"
+          fi
