@@ -570,6 +570,53 @@ final class TokenTest extends TestCase
     }
 
     /**
+     * @param non-empty-list<non-empty-string> $characters single-character strings to look for
+     *
+     * @dataProvider provideEqualsAnyCharCases
+     */
+    #[DataProvider('provideEqualsAnyCharCases')]
+    public function testEqualsAnyChar(Token $token, bool $expected, array $characters): void
+    {
+        self::assertSame($expected, $token->equalsAnyChar($characters));
+        self::assertSame($expected, $token->equalsAny($characters));
+    }
+
+    /**
+     * @return iterable<int, array{Token, bool, non-empty-list<string>}>
+     */
+    public static function provideEqualsAnyCharCases(): iterable
+    {
+        $brace = self::getBraceToken();
+        $foreach = self::getForeachToken();
+
+        yield [$brace, true, ['(']];
+
+        yield [$brace, false, [')']];
+
+        yield [$brace, true, [';', ',', ')', '(']];
+
+        yield [$brace, false, [';', ',', ')']];
+
+        yield [new Token(';'), true, [';', ',', ')']];
+
+        yield [new Token('x'), false, [';', ',', ')']];
+
+        yield [$foreach, false, ['(']];
+
+        yield [$foreach, false, ['f', 'o', 'r', 'e', 'a', 'c', 'h']];
+
+        yield [new Token([\T_INLINE_HTML, ';']), false, [';']];
+
+        yield [new Token([\T_STRING, 'x']), false, ['x']];
+
+        yield [new Token('ab'), false, ['a', 'b']];
+
+        yield [new Token(';,'), false, [';', ',']];
+
+        yield [new Token(''), false, [';', ',']];
+    }
+
+    /**
      * @param bool|list<bool> $caseSensitive
      *
      * @dataProvider provideIsKeyCaseSensitiveCases
