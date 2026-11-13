@@ -283,12 +283,15 @@ final class SpacesAroundOffsetFixer extends AbstractFixer implements Configurabl
             return;
         }
 
+        // before PHP 8.0 a single line comment token holds the line break, so do not add a space after it;
+        // covered by tests requiring PHP < 8.0, while coverage is collected on PHP 8+
         if (\PHP_VERSION_ID < 8_00_00) {
-            // before PHP 8.0 a single line comment token holds the line break, so do not add a space after it
+            /** @codeCoverageIgnoreStart */
             $content = $tokens[$insertIndex - 1]->getContent();
             if ("\n" === substr($content, -1) || "\r" === substr($content, -1)) {
                 return;
             }
+            // @codeCoverageIgnoreEnd
         }
 
         $tokens->insertAt($insertIndex, new Token([\T_WHITESPACE, ' ']));
